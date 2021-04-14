@@ -1,0 +1,43 @@
+.gitignore
+
+CFLAGS += -ffast-math -ffp-contract=fast -msse4.1 -mfma -mavx2
+CPPFLAGS += -std=c++17
+LINKER += -pthread -ldl -lSDL2 -lGL
+
+# Debug build is without optimisations and with DEBUG_BUILD and DEV_TOOLS defined.
+# Default build is with opitmisations.
+# Release build is the same as default build, but with debug symbols stripped
+ifdef CONFIG_DEBUG_BUILD
+    CFLAGS += -O0 -g -DDEBUG_BUILD -DDEV_TOOLS
+    BINARY_NAME_SUFFIX = -debug
+else
+    CFLAGS += -Ofast
+    LTO += -flto
+    ifndef CONFIG_RELEASE_BUILD
+        CFLAGS += -g -DDEV_TOOLS
+        BINARY_NAME_SUFFIX = -dev
+    endif
+endif
+
+MODULE_ROOT = ../..
+# Module includes are slightly different, since they live one level of directories deeper
+MODULE_INCLUDES += -I$(MODULE_ROOT)/sdk
+# Add vendor includes
+VENDOR = $(MODULE_ROOT)/vendor
+MODULE_INCLUDES += -I$(VENDOR)/cr/
+MODULE_INCLUDES += -I$(VENDOR)/entt/src
+
+# Engine
+!pch = |> clang++ $(CPPFLAGS) $(INCLUDES) -stdlib=libstdc++ -x c++-header %f -o %o |>
+!compile-engine = | $(PCH).hpp |> clang++ -Wall -Werror $(CFLAGS) $(CPPFLAGS) $(LTO) `sdl2-config --cflags` -include $(PCH).hpp $(INCLUDES) -c %f -o %o |> %d__%B.o
+!link-engine = |> clang++ $(LINKER) $(LTO) %f -o %o |>
+
+# Modules
+!compile-module = | <module-pch> |>clang++ -fPIC  $(CFLAGS) $(CPPFLAGS) $(MODULE_INCLUDES) $(INCLUDES) $(LTO) -include $(MODULE_ROOT)/sdk/gou.hpp -c %f -o %o |> %d__%B.o
+# -Wl,-z,origin -Wl, -rpath './libs'
+!link-module =  | $(MODULE_ROOT)/sdk/module/boilerplate.o |> clang++ $(LTO) $(MODULE_LINKER) -shared $(MODULE_ROOT)/sdk/module/boilerplate.o %f -o %o |> ../%d.module
+
+# Dependencies
+!compile-c = |> clang $(CFLAGS) $(INCLUDES) -c %f -o %o |> %d__%B.o
+!compile-c++ = |> clang++ $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -c %f -o %o |> %d__%B.o
+!ar = |> ar crs %o %f |>

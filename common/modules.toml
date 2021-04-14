@@ -1,0 +1,9 @@
+[[module]]
+    path = "modules/"
+    name = "test"
+    enabled = true
+
+[[module]]
+    path = "modules/"
+    name = "test2"
+    enabled = true

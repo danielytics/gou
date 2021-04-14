@@ -1,0 +1,7 @@
+[memory.events]
+per-thread-pool-size = 96
+
+[physics]
+target-framerate = 30
+max-substeps = 10
+gravity = { y = -9.81 }

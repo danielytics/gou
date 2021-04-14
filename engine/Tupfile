@@ -1,0 +1,42 @@
+include_rules
+
+PCH = gou_engine
+VENDOR = ../vendor
+
+# Needed because source files aren't in the build artifact root directory, but some headers (eg PCH) are
+INCLUDES += -I.
+# Add the SDK, shared between modules and engine
+INCLUDES += -I../sdk
+# Vendor includes
+INCLUDES += -I$(VENDOR)/cr/
+INCLUDES += -I$(VENDOR)/entt/src
+INCLUDES += -I$(VENDOR)/taskflow
+INCLUDES += -I$(VENDOR)/toml11
+INCLUDES += -I$(VENDOR)/cxxopts/include
+INCLUDES += -I$(VENDOR)/physfs/src
+INCLUDES += -I$(VENDOR)/physfs-hpp/include
+INCLUDES += -I$(VENDOR)/spdlog/include
+INCLUDES += -I$(VENDOR)/glm
+INCLUDES += -I$(VENDOR)/imgui
+INCLUDES += -I$(VENDOR)/bullet3/src
+INCLUDES += -I$(VENDOR)/orderedmap/include
+
+# Compile SDK PCH
+: ../sdk/gou.hpp |> !pch |> ../sdk/gou.pch | <module-pch>
+
+# Compile PCH
+: $(PCH).hpp |> !pch |> $(PCH).pch
+
+# Compile Sources
+: foreach core/*.cpp |> !compile-engine |>
+: foreach utils/*.cpp |> !compile-engine |>
+: foreach $(VENDOR)/physfs/src/*.c |> !compile-c |>
+
+# Link binary
+: *.o $(VENDOR)/*.a |> !link-engine |> ../gou$(BINARY_NAME_SUFFIX)
+
+# Preserve source files in debug build, for better debugging experience
+ifdef CONFIG_DEBUG_BUILD_
+: foreach core/*.cpp core/*.hpp |> !tup_preserve |>
+: foreach utils/*.cpp utils/*.hpp |> !tup_preserve |>
+endif
