@@ -18,7 +18,7 @@ CR_EXPORT int cr_main(cr_plugin* ctx, cr_op operation)
         auto engine = static_cast<gou::api::Engine*>(ctx->userdata);
         gou::ctx::ref = engine->type_context();
         gou::ctx::gou_module = gou::module_init(engine);
-        gou::ctx::gou_module->on_load();
+        engine->registerModule(gou::ctx::gou_module->on_load(), gou::ctx::gou_module);
     }
     switch (operation) {
         case CR_LOAD:
@@ -52,7 +52,7 @@ template <class Derived> std::uint32_t gou::Module<Derived>::on_load () {
     if constexpr (detail::hasMember_onLoad<Derived>()) {
         static_cast<Derived*>(this)->onLoad(Engine{m_engine});
     }
-    
+
     uint32_t flags = 0;
     using CM = gou::api::Module::CallbackMasks;
     if constexpr (detail::hasMember_onBeforeUpdate<Derived>()) {

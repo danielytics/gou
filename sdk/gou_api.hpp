@@ -14,32 +14,6 @@ namespace gou::api {
         class type_context;
     }
 
-    // The engine-provided API to modules
-    class Engine {
-    public:
-        // Used internally by module boilerplate to ensure ECS type ID's are consistent across modules
-        virtual detail::type_context* type_context() = 0;
-
-        // Access to the ECS registry
-        virtual entt::registry& registry() = 0;
-
-        // Access ECS organizers through which to register systems
-        virtual entt::organizer& organizer(std::uint32_t) = 0;
-
-        // Internal module creation and destruction API
-        template <class Module> Module* createModule () {
-            return new (allocModule(sizeof(Module))) Module(*this);
-        }
-        template <class Module> void destroyModule (Module* mod) {
-            mod->~Module();
-            deallocModule(mod);
-        }
-    private:
-        // Allow engine to decide where the module classes are allocated
-        virtual void* allocModule (std::size_t) = 0;
-        virtual void deallocModule (void*) = 0;
-    };
-
     // The module-provided API to the engine
     class Module {
     public:
@@ -68,6 +42,34 @@ namespace gou::api {
         // Scene setup and teardown. Use these to set up scene logic and scene-specific systems.
         virtual void on_load_scene () = 0;
         virtual void on_unload_scene () = 0;
+    };
+
+    // The engine-provided API to modules
+    class Engine {
+    public:
+        // Used internally by module boilerplate to ensure ECS type ID's are consistent across modules
+        virtual detail::type_context* type_context() = 0;
+
+        virtual void registerModule(std::uint32_t, Module*) = 0;
+
+        // Access to the ECS registry
+        virtual entt::registry& registry() = 0;
+
+        // Access ECS organizers through which to register systems
+        virtual entt::organizer& organizer(std::uint32_t) = 0;
+
+        // Internal module creation and destruction API
+        template <class Module> Module* createModule () {
+            return new (allocModule(sizeof(Module))) Module(*this);
+        }
+        template <class Module> void destroyModule (Module* mod) {
+            mod->~Module();
+            deallocModule(mod);
+        }
+    private:
+        // Allow engine to decide where the module classes are allocated
+        virtual void* allocModule (std::size_t) = 0;
+        virtual void deallocModule (void*) = 0;
     };
 }
 
