@@ -7,6 +7,27 @@
 #include "utils/parser.hpp"
 
 #define CR_HOST
+#ifdef DEBUG_BUILD
+template <typename... Args>
+void cr_debug_log (const std::string& fmt, Args... args) {
+    std::string format = fmt;
+    const std::string search = "%s";
+    const std::string replace = "{}";
+    std::string::size_type n = 0;
+    while ( ( n = format.find(search, n ) ) != std::string::npos ) {
+        format.replace(n, search.size(), replace);
+        n += replace.size();
+    }
+    if (format.back() == '\n') {
+        format.pop_back();
+    }
+    spdlog::debug(format, args...);
+}
+#define CR_DEBUG
+#define CR_TRACE
+#define CR_LOG(...)
+#define CR_ERROR cr_debug_log
+#endif
 #include <cr.h>
 
 struct ModuleInfo {
@@ -30,8 +51,10 @@ core::ModuleManager::~ModuleManager()
     delete m_data;
 }
 
-void core::ModuleManager::load ()
+bool core::ModuleManager::load ()
 {
+    bool success = true;
+
     std::string path = entt::monostate<"game/modules-path"_hs>();
     if (path != "" && path.back() != gou::constants::PathSeparator) {
         path += gou::constants::PathSeparator;
@@ -46,6 +69,8 @@ void core::ModuleManager::load ()
                 ModuleInfo info;
                 info.ctx.userdata = m_engine;
 
+                bool required = toml::find_or<bool>(module_config, "required", false);
+
                 // Build file path and name
                 auto filename = path + toml::find<std::string>(module_config, "path");
                 if (filename.back() != gou::constants::PathSeparator) {
@@ -54,11 +79,21 @@ void core::ModuleManager::load ()
                 filename += toml::find<std::string>(module_config, "name") + ".module";
 
                 // Load module
-                spdlog::info("Loading module: {}", filename);
                 if (cr_plugin_open(info.ctx, filename.c_str())) {
                     info.name = filename;
-                    m_data->modules.push_back(info);
-                    cr_plugin_update(info.ctx);
+                    auto result = cr_plugin_update(info.ctx);
+                    if (result == 0) {
+                        spdlog::info("Loaded module: {}", filename);
+                        m_data->modules.push_back(info);
+                     } else {
+                         cr_plugin_close(info.ctx);
+                         if (required) {
+                             spdlog::error("Failed to load required module: {} ({})", filename, result);
+                             success = false;
+                         } else {
+                            spdlog::warn("Failed to load module: {} ({})", filename, result);
+                         }
+                     }
                 } else {
                     spdlog::error("Failed to load module: {}", filename);
                 }
@@ -67,6 +102,12 @@ void core::ModuleManager::load ()
     } else {
         SPDLOG_DEBUG("No 'module' list found in {}", modules);
     }
+
+    if (! success) {
+        unload();
+    }
+
+    return success;
 }
 
 void core::ModuleManager::update ()
@@ -82,4 +123,5 @@ void core::ModuleManager::unload ()
         spdlog::info("Unloading module: {}", info.name);
         cr_plugin_close(info.ctx);
     }
+    m_data->modules.clear();
 }

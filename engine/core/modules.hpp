@@ -13,7 +13,7 @@ namespace core {
         ModuleManager(class Engine&);
         ~ModuleManager();
 
-        void load ();
+        bool load ();
         void update ();
         void unload ();
 

@@ -2,6 +2,7 @@
     path = "modules/"
     name = "test"
     enabled = true
+    required = true
 
 [[module]]
     path = "modules/"

@@ -13,6 +13,7 @@ public:
 
     void onLoad (gou::Engine e)
     {
+        std::cout << "load\n";
         auto& engine = e.engine;
         auto& registry = engine.registry();
 
@@ -27,6 +28,16 @@ public:
             pos.x += static_cast<int>(16 * vel.dx);
             pos.y += static_cast<int>(16 * vel.dy);
         });
+    }
+
+    void onUnload (gou::Engine e)
+    {
+        std::cout << "unload\n";
+    }
+
+    void onLoadScene (gou::Scene& scene)
+    {
+
     }
 };
 

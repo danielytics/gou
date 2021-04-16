@@ -13,18 +13,29 @@ namespace gou::api {
     namespace detail {
         class type_context;
     }
+    namespace components {
+        struct Named {
+            entt::hashed_string name;
+        };
+    }
+
+    enum class SystemStage {
+        GameLogic = 0,
+        Update = 1
+    };
 
     // The module-provided API to the engine
     class Module {
     public:
         enum class CallbackMasks : std::uint32_t {
             // load, unload and before_frame are always called. reload functions are handled by the module (not the engine)
+            BEFORE_FRAME  = 0x00, // Doesn't need to set a bit because its always registered for every module
             BEFORE_UPDATE = 0x01,
             AFTER_FRAME   = 0x02,
             BEFORE_RENDER = 0x04,
             AFTER_RENDER  = 0x08,
             LOAD_SCENE    = 0x10,
-            UNLOAD_SCENE  = 0x20,            
+            UNLOAD_SCENE  = 0x20,
         };
         // Module lifecycle. Use these to setup and shutdown your module, setting up global (non-scene-specific) systems.
         virtual std::uint32_t on_load () = 0;
@@ -50,6 +61,7 @@ namespace gou::api {
         // Used internally by module boilerplate to ensure ECS type ID's are consistent across modules
         virtual detail::type_context* type_context() = 0;
 
+        // Used internally to register a modules callback hooks
         virtual void registerModule(std::uint32_t, Module*) = 0;
 
         // Access to the ECS registry
@@ -57,6 +69,15 @@ namespace gou::api {
 
         // Access ECS organizers through which to register systems
         virtual entt::organizer& organizer(std::uint32_t) = 0;
+
+        // Find a named entity
+        virtual entt::entity findEntity (entt::hashed_string) = 0;
+
+        // Load an entity from a template
+        virtual entt::entity loadEntity (entt::hashed_string) = 0;
+
+        // Merge a template into an entity
+        virtual void mergeEntity (entt::entity, entt::hashed_string, bool) = 0;
 
         // Internal module creation and destruction API
         template <class Module> Module* createModule () {
