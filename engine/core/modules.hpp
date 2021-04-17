@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/logger.h>
+
 namespace core {
     namespace detail {
         struct ModuleData;
@@ -13,7 +15,7 @@ namespace core {
         ModuleManager(class Engine&);
         ~ModuleManager();
 
-        bool load ();
+        bool load (std::shared_ptr<spdlog::logger> logger);
         void update ();
         void unload ();
 

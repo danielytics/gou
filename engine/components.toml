@@ -4,6 +4,11 @@ namespace = ""
 # Core un-namespaced components ##################
 
 [[component]]
+    _name_ = "named"
+    _description_ = "Provides a name by which to look this component up by in the scene"
+    name = "ref"
+
+[[component]]
     _name_ = "global"
     _description_ = "A tag which causes this entity to remain in the scene even when scenes are changed and it does NOT get reloaded if the original scene is loaded again"
 

@@ -30,14 +30,9 @@ void cr_debug_log (const std::string& fmt, Args... args) {
 #endif
 #include <cr.h>
 
-struct ModuleInfo {
-    cr_plugin ctx;
-    std::string name;
-};
-
 namespace core::detail {
     struct ModuleData {
-        std::vector<ModuleInfo> modules;
+        std::vector<cr_plugin> modules;
     };
 }
 
@@ -51,7 +46,7 @@ core::ModuleManager::~ModuleManager()
     delete m_data;
 }
 
-bool core::ModuleManager::load ()
+bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger)
 {
     bool success = true;
 
@@ -66,8 +61,11 @@ bool core::ModuleManager::load ()
         const auto& module_list = toml::find<TomlArray>(config, "module");
         for (const auto& module_config : module_list) {
             if (toml::find_or<bool>(module_config, "enabled", false) && module_config.contains("path") && module_config.contains("name")) {
-                ModuleInfo info;
-                info.ctx.userdata = m_engine;
+                auto info = new gou::api::detail::ModuleInfo{
+                    toml::find<std::string>(module_config, "name"),
+                    m_engine,
+                    logger,
+                };
 
                 bool required = toml::find_or<bool>(module_config, "required", false);
 
@@ -76,26 +74,28 @@ bool core::ModuleManager::load ()
                 if (filename.back() != gou::constants::PathSeparator) {
                     filename += gou::constants::PathSeparator;
                 }
-                filename += toml::find<std::string>(module_config, "name") + ".module";
+                filename += info->name + ".module";
 
                 // Load module
-                if (cr_plugin_open(info.ctx, filename.c_str())) {
-                    info.name = filename;
-                    auto result = cr_plugin_update(info.ctx);
+                spdlog::info("Loading module \"{}\" from: {}", info->name, filename);
+                cr_plugin ctx;
+                ctx.userdata = info;
+                if (cr_plugin_open(ctx, filename.c_str())) {
+                    auto result = cr_plugin_update(ctx);
                     if (result == 0) {
-                        spdlog::info("Loaded module: {}", filename);
-                        m_data->modules.push_back(info);
+                        spdlog::info("Loaded module \"{}\"", info->name);
+                        m_data->modules.push_back(ctx);
                      } else {
-                         cr_plugin_close(info.ctx);
+                         cr_plugin_close(ctx);
                          if (required) {
-                             spdlog::error("Failed to load required module: {} ({})", filename, result);
+                             spdlog::error("Failed to load required module \"{}\": {}", info->name, result);
                              success = false;
                          } else {
-                            spdlog::warn("Failed to load module: {} ({})", filename, result);
+                            spdlog::warn("Failed to load module \"{}\" {}", info->name, result);
                          }
                      }
                 } else {
-                    spdlog::error("Failed to load module: {}", filename);
+                    spdlog::error("Could not open module: {}", filename);
                 }
             }
         }   
@@ -112,16 +112,21 @@ bool core::ModuleManager::load ()
 
 void core::ModuleManager::update ()
 {
-    for (auto& info : m_data->modules) {
-        cr_plugin_update(info.ctx);
+    for (auto& ctx : m_data->modules) {
+        cr_plugin_update(ctx);
     }
 }
 
 void core::ModuleManager::unload ()
 {
-    for (auto& info : helpers::reverse(m_data->modules)) {
-        spdlog::info("Unloading module: {}", info.name);
-        cr_plugin_close(info.ctx);
+    // Unload each plugin in reverse load order
+    for (auto& ctx : helpers::reverse(m_data->modules)) {
+        auto info = static_cast<gou::api::detail::ModuleInfo*>(ctx.userdata);
+        spdlog::info("Unloading module \"{}\"", info->name);
+        cr_plugin_close(ctx);
+        delete info;
     }
+
+    // Make sure the list of modules is empty to prevent accidental use of deleted data
     m_data->modules.clear();
 }

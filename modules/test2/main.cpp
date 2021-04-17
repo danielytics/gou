@@ -14,7 +14,7 @@ public:
     {
         auto& engine = e.engine;
         auto& registry = engine.registry();
-        registry.view<position, velocity>().each([](position &pos, velocity &vel) {
+        registry.view<components::Position, velocity>().each([](components::Position &pos, velocity &vel) {
             pos.z = static_cast<int>(vel.dx) + static_cast<int>(vel.dy);
         });
     }

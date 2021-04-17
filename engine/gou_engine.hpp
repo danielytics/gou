@@ -27,6 +27,7 @@ using namespace entt::literals;
 
 // From SDK
 #include <types.hpp>
+#include <components/core.hpp>
 //#include <events.hpp>
 #include <utilities.hpp>
 

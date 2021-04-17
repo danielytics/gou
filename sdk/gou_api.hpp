@@ -1,21 +1,27 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+
 #include <entt/core/hashed_string.hpp>
 #include <entt/entity/registry.hpp>
 #include <entt/entity/organizer.hpp>
+
+#include <spdlog/spdlog.h>
 
 #include "types.hpp"
 
 struct ImGuiContext;
 
 namespace gou::api {
+    class Engine;
     namespace detail {
         class type_context;
-    }
-    namespace components {
-        struct Named {
-            entt::hashed_string name;
+        struct ModuleInfo {
+            // ModuleInfo (const std::string& name, Engine* engine, std::shared_ptr<spdlog::logger> logger) : name{name}, engine{engine}, logger{logger} {}
+            const std::string name;
+            Engine* const engine;
+            const std::shared_ptr<spdlog::logger> logger;
         };
     }
 
@@ -83,9 +89,12 @@ namespace gou::api {
         using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
         virtual void registerLoader(entt::hashed_string, LoaderFn) = 0;
 
+        // Retrieve a resource handle by name
+        virtual gou::resources::Handle findResource (entt::hashed_string::hash_type) = 0;
+
         // Internal module creation and destruction API
-        template <class Module> Module* createModule () {
-            return new (allocModule(sizeof(Module))) Module(*this);
+        template <class Module> Module* createModule (const std::string& name) {
+            return new (allocModule(sizeof(Module))) Module(name, *this);
         }
         template <class Module> void destroyModule (Module* mod) {
             mod->~Module();
@@ -97,9 +106,3 @@ namespace gou::api {
         virtual void deallocModule (void*) = 0;
     };
 }
-
-struct position {
-    int x;
-    int y;
-    int z;
-};

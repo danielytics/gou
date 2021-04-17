@@ -13,6 +13,9 @@ namespace core {
      */
     class Engine : public gou::api::Engine {
     public:
+        Engine();
+        virtual ~Engine();
+
         // Implement API interface
         gou::api::detail::type_context* type_context() final;
         void registerModule (std::uint32_t, gou::api::Module*) final;
@@ -22,9 +25,11 @@ namespace core {
         entt::entity loadEntity (entt::hashed_string) final;
         void mergeEntity (entt::entity, entt::hashed_string, bool) final;
         void registerLoader(entt::hashed_string, gou::api::Engine::LoaderFn) final;
+        gou::resources::Handle findResource (entt::hashed_string::hash_type) final;
 
         // Execute the Taskflow graph of tasks
         void execute (Time current_time, DeltaTime delta, uint64_t frame_count);
+        void reset ();
 
         // Call all modules that are added as a specific engine hook
         template <gou::api::Module::CallbackMasks Hook, typename... T> void callModuleHook (T... args) {

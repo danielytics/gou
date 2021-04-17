@@ -16,6 +16,18 @@ namespace gou::api::detail {
 //     pumpEvents();
 // }
 
+core::Engine::Engine ()
+{
+    for(auto i = 0.f; i < 3.f; ++i) {
+        m_registry.emplace<components::Position>(m_registry.create(), i, i, 0.f);
+    }
+}
+
+core::Engine::~Engine ()
+{
+
+}
+
 gou::api::detail::type_context* core::Engine::type_context() {
     return gou::api::detail::type_context::instance();
 }
@@ -23,8 +35,6 @@ gou::api::detail::type_context* core::Engine::type_context() {
 void core::Engine::registerModule (std::uint32_t flags, gou::api::Module* mod)
 {
     using CM = gou::api::Module::CallbackMasks;
-
-    spdlog::info("Registering module");
 
     // All modules have the before-frame hook registered
     addModuleHook(CM::BEFORE_FRAME, mod);
@@ -65,6 +75,11 @@ void core::Engine::mergeEntity (entt::entity entity, entt::hashed_string templat
 void core::Engine::registerLoader(entt::hashed_string name, gou::api::Engine::LoaderFn loader_fn)
 {
 
+}
+
+gou::resources::Handle core::Engine::findResource (entt::hashed_string::hash_type name)
+{
+    return {};
 }
 
 void* core::Engine::allocModule (std::size_t bytes) {
@@ -193,6 +208,15 @@ void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
 
     // Run the after-frame hook for each module
     callModuleHook<CM::AFTER_FRAME>();
+}
+
+void core::Engine::reset ()
+{
+    m_registry.view<components::Position>().each([](auto entity, auto &position) {
+        std::cout << "(" << position.x << ", " << position.y << ", " << position.z << "): " << static_cast<int>(entt::to_integral(entity) + 16u) << "\n";
+    });
+    
+    m_registry = {};
 }
 
 void core::Engine::pumpEvents () {

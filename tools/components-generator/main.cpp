@@ -66,15 +66,15 @@ std::map<std::string, std::string> data_types{
     {"vec2", "glm::vec2"},
     {"vec3", "glm::vec3"},
     {"vec4", "glm::vec4"},
-    {"uint64", "uint64_t"},
-    {"uint32", "uint32_t"},
-    {"uint16", "uint16_t"},
-    {"uint8", "uint8_t"},
-    {"int64", "int64_t"},
-    {"int32", "int32_t"},
-    {"int16", "int16_t"},
-    {"int8", "int8_t"},
-    {"byte", "char"},
+    {"uint64", "std::uint64_t"},
+    {"uint32", "std::uint32_t"},
+    {"uint16", "std::uint16_t"},
+    {"uint8", "std::uint8_t"},
+    {"int64", "std::int64_t"},
+    {"int32", "std::int32_t"},
+    {"int16", "std::int16_t"},
+    {"int8", "std::int8_t"},
+    {"byte", "std::byte"},
     {"resource", "gou::resources::Handle"},
     {"entity", "entt::entity"},
     {"entity-set", "gou::resources::EntitySetHandle"},
@@ -135,7 +135,7 @@ std::string load_hashed_string (const std::string& attribute) {
 }
 std::string load_resource_handle (const std::string& attribute) {
     std::ostringstream sstr;
-    sstr << "engine->getResourceHandle(";
+    sstr << "engine->findResource(";
     sstr <<   "entt::hashed_string::value(";
     sstr <<     "toml::find<std::string>(table, \"" << attribute << "\").c_str()";
     sstr <<   ")";
@@ -292,7 +292,7 @@ private:
 
 class LoaderGenerator {
 public:
-    LoaderGenerator(OutWrapper& file, const std::string module_name) : out(file), module_name(module_name) {
+    LoaderGenerator(OutWrapper& file) : out(file) {
     }
     ~LoaderGenerator() {
     }
@@ -363,7 +363,6 @@ public:
 
 private:
     OutWrapper out;
-    const std::string module_name;
     friend class Component;
 };
 
@@ -376,6 +375,7 @@ public:
     }
 
     void add (const std::string& ns, const std::string& component) {
+        out();
         out() << "registry.prepare<components::";
         if (! ns.empty()) {
             out(false) << ns << "::";
@@ -391,15 +391,21 @@ private:
 void generate_components (const TomlValue& in, const std::string& module_name, std::ofstream& header_file, std::ofstream& source_file) {
     OutWrapper source(source_file);
     source(false) << "#include <components/" << module_name << ".hpp>";
+    source() << "#include <gou_api.hpp>";
     source() << "#include <toml.hpp>";
-    source() << "void gou::register_components (gou::api::Engine* engine)";
+    source();
+    source() << "using namespace entt::literals;";
+    source();
+    source() << "namespace gou {";
+    source.indent();
+    source() << "void register_components (gou::api::Engine* engine)";
     source() << "{";
     source.indent();
     source() << "entt::registry& registry = engine->registry();";
     
     HeaderGenerator header(header_file);
-    LoaderGenerator loader(source, module_name);
     RegistrationGenerator registration(source);
+    LoaderGenerator loader(source);
 
     auto default_namespace = toml::find<std::string>(in, "namespace");
     auto components = toml::find<TomlArray>(in, "component");
@@ -441,6 +447,8 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
 
     source.dedent();
     source() << "}";
+    source.dedent();
+    source() << "} // gou::";
 }
 
 /*

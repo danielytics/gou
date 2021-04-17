@@ -3,6 +3,8 @@
 // Common API between engine and modules
 #include "gou_api.hpp"
 
+#include "components/core.hpp"
+
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation Details, not part of public API
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,7 +61,7 @@ namespace gou {
          */
         entt::entity create (entt::hashed_string name) {
             auto entity = m_registry.create();
-            m_registry.emplace<api::components::Named>(entity, name);
+            m_registry.emplace<components::Named>(entity, name);
             return entity;
         }
 
@@ -150,9 +152,9 @@ namespace gou {
         }
 
         // Time accessors
-        const Time current_time () {return m_current_time;}
-        const DeltaTime delta_time() {return m_delta_time;}
-        const uint64_t current_frame() {return m_current_frame;}
+        Time current_time () const { return m_current_time; }
+        DeltaTime delta_time() const { return m_delta_time; }
+        uint64_t current_frame() const { return m_current_frame; }
     
     protected:
         Time m_current_time;
@@ -193,9 +195,21 @@ namespace gou {
     template <typename Derived>
     class Module : public gou::api::Module {
     public:
-        Module (gou::api::Engine& engine) : m_engine{engine}, m_scene{engine.registry(), m_engine} {}
+        Module (const std::string& name, gou::api::Engine& engine) : m_moduleName{name}, m_engine{engine}, m_scene{engine.registry(), m_engine} {}
         virtual ~Module () {}
 
+///////////////////////////////////////////////////////////////////////////////
+// Public Module API
+///////////////////////////////////////////////////////////////////////////////
+
+    template <typename... Args> void info  (const std::string& text, Args... args)  {spdlog::info(m_moduleName + text, args...);}
+    template <typename... Args> void warn  (const std::string& text, Args... args)  {spdlog::warn(m_moduleName + text, args...);}
+    template <typename... Args> void error (const std::string& text, Args... args)  {spdlog::error(m_moduleName + text, args...);}
+    template <typename... Args> void debug (const std::string& text, Args... args)  {
+#ifdef DEBUG_BUILD
+        spdlog::debug(m_moduleName + text, args...);
+#endif
+    }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation Details, not part of public API
@@ -291,6 +305,7 @@ namespace gou {
             }
         }
 
+        const std::string m_moduleName;
         gou::api::Engine& m_engine;
         class SettableScene : public Scene {
         public:
@@ -311,7 +326,7 @@ namespace gou {
         static gou::api::detail::type_context* ref;
         static gou::api::Module* gou_module;
     };
-    #define GOU_MODULE_INIT(NAMESPACE) gou::api::Module* NAMESPACE module_init (gou::api::Engine* engine)
+    #define GOU_MODULE_INIT(NAMESPACE) gou::api::Module* NAMESPACE module_init (const std::string& name, gou::api::Engine* engine)
     GOU_MODULE_INIT();
 #ifndef NO_COMPONENTS
     void register_components(api::Engine*);
@@ -334,9 +349,9 @@ struct entt::type_seq<Type> {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Add module class boilerplate
-#define GOU_CLASS(ClassName) public: ClassName(gou::api::Engine& e) : gou::Module<ClassName>(e) {} virtual ~ClassName() {} private:
+#define GOU_CLASS(ClassName) public: ClassName(const std::string& name, gou::api::Engine& e) : gou::Module<ClassName>(name, e) {} virtual ~ClassName() {} private:
 
 // Declare module
-#define GOU_MODULE(ClassName) GOU_MODULE_INIT(gou::) { GOU_REGISTER_COMPONENTS; return engine->createModule<ClassName>(); }
+#define GOU_MODULE(ClassName) GOU_MODULE_INIT(gou::) { GOU_REGISTER_COMPONENTS; return engine->createModule<ClassName>(name); }
 
 

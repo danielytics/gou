@@ -93,37 +93,16 @@ int main (int argc, char* argv[])
         }
     }
 
-    // auto& registry = engine.registry();
-
-    // for(auto i = 0; i < 3; ++i) {
-    //     registry.emplace<position>(registry.create(), i, i, 0);
-    // }
-
-    // std::vector<std::string> modules{
-    //     "modules/test.module",
-    //     "modules/test2.module",
-    // };
-    // moduleManager.load(modules);
-
-    // registry.view<position>().each([](auto entity, auto &position) {
-    //     std::cout << "(" << position.x << ", " << position.y << ", " << position.z << "): " << static_cast<int>(entt::to_integral(entity) + 16u) << "\n";
-    // });
-
-    // registry = {};
-    
-    // moduleManager.unload();
-
     try {
-        bool running = true;
+        bool running = false;
         SDL_Event event;
         SDL_GameController* gameController;
         // bool inputLearnMode = false;
         // std::unordered_map<InputKeys::Type, frenzy::events::Event> input_mapping;
 
         core::Engine engine;
-        // engine.setup(logger);
         core::ModuleManager moduleManager(engine);
-        if (!moduleManager.load()) {
+        if (!moduleManager.load(logger)) {
             spdlog::critical("Could not load some required modules. Terminating.");
         } else {
             // Scene scene;
@@ -266,6 +245,8 @@ int main (int argc, char* argv[])
             spdlog::info("Average framerate: {:d} ({:.2f}ms per frame)", 1000000 / micros_per_frame, micros_per_frame / 1000.0f);
 
             // graphics::term(graphics_context);
+            // Clear data before unloading modules, to avoid referencing memory owned by modules after they are unloaded
+            engine.reset();
             moduleManager.unload();
         }
     } catch (const std::exception& e) {
