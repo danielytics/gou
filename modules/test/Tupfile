@@ -1,4 +1,7 @@
 include_rules
 
+# Uncomment if this module doesn't include a components.toml
+#CPPFLAGS += -DNO_COMPONENTS
+
 : foreach *.cpp |> !compile-module |>
 : *.o |> !link-module |>

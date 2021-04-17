@@ -1,0 +1,7 @@
+namespace = "animation"
+
+[[component]]
+    _name_ = "animated-transform"
+    rotation-speed = "vec3"
+    scale-speed = "vec3"
+    running = "bool"

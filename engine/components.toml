@@ -1,0 +1,106 @@
+namespace = ""
+
+##################################################
+# Core un-namespaced components ##################
+
+[[component]]
+    _name_ = "global"
+    _description_ = "A tag which causes this entity to remain in the scene even when scenes are changed and it does NOT get reloaded if the original scene is loaded again"
+
+[[component]]
+    _name_ = "transform"
+    rotation = "vec3"
+    scale = "vec3"
+
+[[component]]
+    _name_ = "position"
+    x = "float"
+    y = "float"
+    z = "float"
+
+[[component]]
+    _name_ = "trigger-region"
+    _description_ = "A region which emits an event when a physics body enters or exits its area"
+    shape = "resource"
+    enter-event = "event"
+    exit-event = "event"
+    trigger-mask = "uint32"
+
+[[component]]
+    _name_ = "time-aware"
+    _description_ = "Provides access to (possibly dilated or compressed) simulation time"
+    scale-factor = "float"
+
+[[component]]
+    _name_ = "scripted-behavior"
+    _description_ = "Lua script adding behavior to entity by reacting to and emitting events"
+    script = "ref"
+
+##################################################
+# Graphics components           ##################
+
+[[component]]
+    _name_ = "layer"
+    _namespace_ = "graphics"
+    layer = "uint8"
+
+[[component]]
+    _name_ = "sprite"
+    _namespace_ = "graphics"
+    _description_ = "An image-based visual representation"
+
+[[component]]
+    _name_ = "billboard"
+    _namespace_ = "graphics"
+    _description_ = "An image-based visual representation that is always oriented towards the camera"
+    image = "resource"
+
+[[component]]
+    _name_ = "model"
+    _namespace_ = "graphics"
+    _description_ = "A 3D mesh-based visual representation"
+    mesh = "resource"
+    material = "resource"
+
+[[component]]
+    _name_ = "point-light"
+    _namespace_ = "graphics"
+    _description_ = "An emitter of light, in all directions"
+    radius = "float"
+    color = "vec3"
+    intensity = "float"
+
+[[component]]
+    _name_ = "spot-light"
+    _namespace_ = "graphics"
+    _description_ = "An emitter of light, in one direction"
+    range = "float"
+    color = "vec3"
+    direction = "vec3"
+    intensity = "float"
+
+##################################################
+# Physics components            ##################
+
+[[component]]
+    _name_ = "static-body"
+    _namespace_ = "physics"
+    _description_ = "A static (immobile) physics object"
+    shape = "resource"
+    physics-body = "ptr:btRigidBody"
+
+[[component]]
+    _name_ = "dynamic-body"
+    _namespace_ = "physics"
+    _description_ = "A physics object whose motion is dictated by the physics engine"
+    shape = "resource"
+    mass = "float"
+    physics-body = "ptr:btRigidBody"
+
+[[component]]
+    _name_ = "kinematic-body"
+    _namespace_ = "physics"
+    _description_ = "A physics object whose motion is externally controlled"
+    shape = "resource"
+    mass = "float"
+    physics-body = "ptr:btRigidBody"

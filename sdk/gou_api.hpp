@@ -79,6 +79,10 @@ namespace gou::api {
         // Merge a template into an entity
         virtual void mergeEntity (entt::entity, entt::hashed_string, bool) = 0;
 
+        // Register a component loader
+        using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
+        virtual void registerLoader(entt::hashed_string, LoaderFn) = 0;
+
         // Internal module creation and destruction API
         template <class Module> Module* createModule () {
             return new (allocModule(sizeof(Module))) Module(*this);

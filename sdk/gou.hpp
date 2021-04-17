@@ -3,6 +3,10 @@
 // Common API between engine and modules
 #include "gou_api.hpp"
 
+///////////////////////////////////////////////////////////////////////////////
+// Implementation Details, not part of public API
+///////////////////////////////////////////////////////////////////////////////
+
 using namespace entt::literals;
 
 // Macro to generate constexpr function hasMember_`Function`<T>() which returns true if T::`Function``Args` exists, otherwise false
@@ -24,6 +28,10 @@ namespace supports_detail {                                                     
 namespace gou {
 
     #include <utilities.hpp>
+
+///////////////////////////////////////////////////////////////////////////////
+// Public Module API
+///////////////////////////////////////////////////////////////////////////////
 
     // API for managing engine setup
     class Engine {
@@ -158,6 +166,15 @@ namespace gou {
         entt::registry& m_registry;
         gou::api::Engine& m_engine;
     };
+///////////////////////////////////////////////////////////////////////////////
+// Public Module API
+///////////////////////////////////////////////////////////////////////////////
+
+    // TODO: Add spdlog helpers
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation Details, not part of public API
+///////////////////////////////////////////////////////////////////////////////
 
     namespace detail {
         HAS_MEMBER_FUNCTION(onLoad,        (std::declval<Engine>()))
@@ -178,6 +195,11 @@ namespace gou {
     public:
         Module (gou::api::Engine& engine) : m_engine{engine}, m_scene{engine.registry(), m_engine} {}
         virtual ~Module () {}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation Details, not part of public API
+///////////////////////////////////////////////////////////////////////////////
 
     private:
         std::uint32_t on_load () final {
@@ -282,8 +304,6 @@ namespace gou {
         } m_scene;
     };
 
-    gou::api::Module* module_init (api::Engine*);
-
     namespace api::detail {
         #include <type_info.hpp>
     }
@@ -291,12 +311,15 @@ namespace gou {
         static gou::api::detail::type_context* ref;
         static gou::api::Module* gou_module;
     };
+    #define GOU_MODULE_INIT(NAMESPACE) gou::api::Module* NAMESPACE module_init (gou::api::Engine* engine)
+    GOU_MODULE_INIT();
+#ifndef NO_COMPONENTS
+    void register_components(api::Engine*);
+    #define GOU_REGISTER_COMPONENTS gou::register_components(engine)
+#else
+    #define GOU_REGISTER_COMPONENTS
+#endif
 }
-
-// Declare module
-#define GOU_MODULE(ClassName) gou::api::Module* gou::module_init (gou::api::Engine* engine) { return engine->createModule<ClassName>(); }
-// Add module class boilerplate
-#define GOU_CLASS(ClassName) public: ClassName(gou::api::Engine& e) : gou::Module<ClassName>(e) {} virtual ~ClassName() {} private:
 
 template<typename Type>
 struct entt::type_seq<Type> {
@@ -305,3 +328,15 @@ struct entt::type_seq<Type> {
         return value;
     }
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// Macro for declaring module class
+///////////////////////////////////////////////////////////////////////////////
+
+// Add module class boilerplate
+#define GOU_CLASS(ClassName) public: ClassName(gou::api::Engine& e) : gou::Module<ClassName>(e) {} virtual ~ClassName() {} private:
+
+// Declare module
+#define GOU_MODULE(ClassName) GOU_MODULE_INIT(gou::) { GOU_REGISTER_COMPONENTS; return engine->createModule<ClassName>(); }
+
+

@@ -1,7 +1,8 @@
 include_rules
 
 PCH = gou_engine
-VENDOR = ../vendor
+ROOT_LOCATION = ..
+VENDOR = $(ROOT_LOCATION)/vendor
 
 # Needed because source files aren't in the build artifact root directory, but some headers (eg PCH) are
 INCLUDES += -I.
@@ -12,14 +13,16 @@ INCLUDES += -I$(VENDOR)/cr/
 INCLUDES += -I$(VENDOR)/entt/src
 INCLUDES += -I$(VENDOR)/taskflow
 INCLUDES += -I$(VENDOR)/toml11
+INCLUDES += -I$(VENDOR)/glm
+INCLUDES += -I$(VENDOR)/spdlog/include
 INCLUDES += -I$(VENDOR)/cxxopts/include
 INCLUDES += -I$(VENDOR)/physfs/src
 INCLUDES += -I$(VENDOR)/physfs-hpp/include
-INCLUDES += -I$(VENDOR)/spdlog/include
-INCLUDES += -I$(VENDOR)/glm
 INCLUDES += -I$(VENDOR)/imgui
 INCLUDES += -I$(VENDOR)/bullet3/src
 INCLUDES += -I$(VENDOR)/orderedmap/include
+
+LINKER += -pthread -ldl -lSDL2 -lGL
 
 # Compile SDK PCH
 : ../sdk/gou.hpp |> !pch |> ../sdk/gou.pch | <module-pch>

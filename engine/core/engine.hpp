@@ -21,6 +21,7 @@ namespace core {
         entt::entity findEntity (entt::hashed_string) final;
         entt::entity loadEntity (entt::hashed_string) final;
         void mergeEntity (entt::entity, entt::hashed_string, bool) final;
+        void registerLoader(entt::hashed_string, gou::api::Engine::LoaderFn) final;
 
         // Execute the Taskflow graph of tasks
         void execute (Time current_time, DeltaTime delta, uint64_t frame_count);

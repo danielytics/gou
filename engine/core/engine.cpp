@@ -62,6 +62,11 @@ void core::Engine::mergeEntity (entt::entity entity, entt::hashed_string templat
 
 }
 
+void core::Engine::registerLoader(entt::hashed_string name, gou::api::Engine::LoaderFn loader_fn)
+{
+
+}
+
 void* core::Engine::allocModule (std::size_t bytes) {
     return reinterpret_cast<void*>(new std::byte[bytes]);
 }
