@@ -31,7 +31,7 @@ Engine dependencies:
 * [LuaJIT](http://luajit.org/luajit.html) - Lua bindings and JIT runtime (MIT License)
 * [FastNoiseSIMD](https://github.com/Auburns/FastNoiseSIMD) - Library of various SIMD-optimised noise functions (MIT License, note: Simplex noise is patent-encumbered when used for texture generation)
 * [PhysicsFS](http://icculus.org/physfs/) - Library for filesystem abstraction (zlib License)
-* [PhysFS++](https://github.com/Ybalrid/physfs-hpp) - C++ wrapper for PhysicsFS (zlib License + [notes](https://github.com/Ybalrid/physfs-hpp/blob/master/LICENSE.txt))
+* [PhysFS++](https://github.com/danielytics/physfs-hpp) - C++ wrapper for PhysicsFS (zlib License + [notes](https://github.com/Ybalrid/physfs-hpp/blob/master/LICENSE.txt))
 * [toml11](https://github.com/ToruNiina/toml11) - TOML data file loader (MIT License)
 * [cr.h](https://github.com/fungos/cr) - Module live reload library (MIT License)
 * [stb_image](https://github.com/nothings/stb) - Image loader (Public Domain)
