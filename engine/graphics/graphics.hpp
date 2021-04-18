@@ -3,6 +3,8 @@
 #include <mutex>
 #include <condition_variable>
 
+struct ImGuiContext;
+
 namespace core {
     class Engine;
 }
@@ -20,7 +22,7 @@ namespace graphics {
         } owner = Owner::Engine;
     };
 
-    Context* init (core::Engine&, graphics::Sync**);
+    Context* init (core::Engine&, graphics::Sync*&, ImGuiContext*&);
     // void update(Context*);
     void term (Context*);
 

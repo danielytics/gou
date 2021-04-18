@@ -3,6 +3,8 @@
 #include "graphics/graphics.hpp"
 #include "physics/physics.hpp"
 
+#include <SDL.h>
+
 using CM = gou::api::Module::CallbackMasks;
 
 #include <entt/core/type_info.hpp>
@@ -224,7 +226,70 @@ void core::Engine::setupSystems (graphics::Sync* state_sync)
     pumpEvents();
 }
 
-void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count) {
+void core::Engine::handleInput (bool& running)
+{
+    SDL_Event event;
+    m_input_events.clear();
+    // Gather and dispatch input
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type) {
+            case SDL_QUIT:
+                running = false;
+                break;
+            case SDL_KEYDOWN:
+            case SDL_KEYUP:
+            {
+                if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    running = false;
+                } else {
+                    // handleInput(engine, input_mapping, InputKeys::KeyType::KeyboardButton, event.key.keysym.scancode, [&event]() -> float {
+                    //     return event.key.state == SDL_PRESSED ? 1.0f : 0.0f;
+                    // });
+                }
+                break;
+            }
+            case SDL_CONTROLLERDEVICEADDED:
+                // TODO: Handle multiple gamepads
+                m_game_controller = SDL_GameControllerOpen(event.cdevice.which);
+                if (m_game_controller == 0) {
+                    spdlog::error("Could not open gamepad {}: {}", event.cdevice.which, SDL_GetError());
+                } else {
+                    spdlog::info("Gamepad detected {}", SDL_GameControllerName(m_game_controller));
+                }
+                break;
+            case SDL_CONTROLLERDEVICEREMOVED:
+                SDL_GameControllerClose(m_game_controller);
+                break;
+            case SDL_CONTROLLERBUTTONDOWN:
+            case SDL_CONTROLLERBUTTONUP:
+            {
+                // handleInput(engine, input_mapping, InputKeys::KeyType::ControllerButton, event.cbutton.button, [&event]() -> float {
+                //     return event.cbutton.state ? 1.0f : 0.0f;
+                // });
+                break;
+            }
+            case SDL_CONTROLLERAXISMOTION:
+            {
+                // handleInput(engine, input_mapping, InputKeys::KeyType::ControllerAxis, event.caxis.axis, [&event]() -> float {
+                //     float value = float(event.caxis.value) * Constants::GamePadAxisScaleFactor;
+                //     if (std::fabs(value) < 0.15f /* TODO: configurable deadzones */) {
+                //         return 0;
+                //     }
+                //     return value;
+                // });
+                break;
+            }
+            default:
+                break;
+        };
+        // Store events for render thread to access (used by Dear ImGui)
+        m_input_events.push_back(event);
+    }
+}
+
+void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count)
+{
     m_current_time_delta = delta;
 
     // Run the before-frame hook for each module, updating the current time

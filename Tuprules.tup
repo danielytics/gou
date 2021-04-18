@@ -30,6 +30,7 @@ MODULE_INCLUDES += -I$(VENDOR)/entt/src
 MODULE_INCLUDES += -I$(VENDOR)/toml11
 MODULE_INCLUDES += -I$(VENDOR)/glm
 MODULE_INCLUDES += -I$(VENDOR)/spdlog/include
+MODULE_INCLUDES += -I$(VENDOR)/imgui
 
 # Engine
 !pch = |> clang++ $(CPPFLAGS) $(INCLUDES) -stdlib=libstdc++ -x c++-header %f -o %o |>
@@ -39,7 +40,7 @@ MODULE_INCLUDES += -I$(VENDOR)/spdlog/include
 # Modules
 !compile-module = | <module-pch> |> clang++ -fPIC  $(CFLAGS) $(CPPFLAGS) $(MODULE_INCLUDES) $(INCLUDES) $(LTO) -include $(ROOT_LOCATION)/sdk/gou.hpp -c %f -o %o |> %d__%B.o
 # -Wl,-z,origin -Wl, -rpath './libs'
-!link-module =  | $(ROOT_LOCATION)/sdk/module/entry.o |> clang++ $(LTO) $(MODULE_LINKER) -shared $(ROOT_LOCATION)/sdk/module/entry.o %f -o %o |> ../%d.module
+!link-module =  | $(ROOT_LOCATION)/sdk/module/entry.o $(ROOT_LOCATION)/vendor/libdearimgui.a |> clang++ $(LTO) $(MODULE_LINKER) -shared $(ROOT_LOCATION)/sdk/module/entry.o $(ROOT_LOCATION)/vendor/libdearimgui.a %f -o %o |> ../%d.module
 
 # Dependencies
 !compile-c = |> clang $(CFLAGS) $(INCLUDES) -c %f -o %o |> %d__%B.o

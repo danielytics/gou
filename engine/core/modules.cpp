@@ -39,7 +39,7 @@ core::ModuleManager::~ModuleManager()
     delete m_data;
 }
 
-bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger)
+bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger, ImGuiContext* imgui_context)
 {
     bool success = true;
 
@@ -58,6 +58,7 @@ bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger)
                     toml::find<std::string>(module_config, "name"),
                     m_engine,
                     logger,
+                    imgui_context,
                 };
 
                 bool required = toml::find_or<bool>(module_config, "required", false);

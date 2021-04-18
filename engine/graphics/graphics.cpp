@@ -23,7 +23,7 @@ struct graphics::Context {
 
 int render (void* data);
 
-graphics::Context* graphics::init (core::Engine& engine, graphics::Sync** state_sync) {
+graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_sync, ImGuiContext*& imgui_context) {
     // Set the OpenGL attributes for our context
 #ifdef __APPLE__
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on OS X
@@ -84,6 +84,10 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync** state_
     spdlog::debug("Shader limits: {} vertex attributes, {} varying vectors, {} vertex vectors, {} fragment vectors", max_vertex_attribs, max_varying_vec, max_vert_uniform_vec, max_frag_uniform_vec);
 #endif
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    imgui_context = ImGui::CreateContext();
+
     // Create context to share with render thread and graphics API. Context is opague to the engine
     auto context = new graphics::Context{
         window,
@@ -95,7 +99,7 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync** state_
     };
 
     // Share sync object with engine
-    *state_sync = &context->state_sync;
+    state_sync = &context->state_sync;
 
     // Start render thread
     context->render_thread = SDL_CreateThread(render, "render", reinterpret_cast<void*>(context));
@@ -120,9 +124,6 @@ int render (void* data) {
     glFrontFace(GL_CCW);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    [[maybe_unused]] auto imgui_context = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -140,8 +141,6 @@ int render (void* data) {
     //engine.setImguiContext(imgui_context);
 
     spdlog::info("Render thread running");
-
-    // SDL_Event event;
     
     // Run render loop
     do {
@@ -160,9 +159,9 @@ int render (void* data) {
             // entt::registry& registry = context->engine.registry();
 
             // Let Dear ImGui process events from event queue
-            // while (context->eventQueue.try_dequeue(event)) {
-            //     ImGui_ImplSDL2_ProcessEvent(&event);
-            // }
+            for (const auto& event : engine.inputEvents()) {
+                ImGui_ImplSDL2_ProcessEvent(&event);
+            }
 
             // Hand exclusive access back to engine
             state_sync.owner = graphics::Sync::Owner::Engine;

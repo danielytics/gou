@@ -22,6 +22,7 @@ namespace gou::api {
             const std::string name;
             Engine* const engine;
             const std::shared_ptr<spdlog::logger> logger;
+            ImGuiContext* imgui_context;
         };
     }
 

@@ -186,8 +186,8 @@ namespace gou {
         HAS_MEMBER_FUNCTION(onBeforeFrame, (std::declval<Scene&>()))
         HAS_MEMBER_FUNCTION(onBeforeUpdate,(std::declval<Scene&>()))
         HAS_MEMBER_FUNCTION(onAfterFrame,  (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onBeforeRender,(std::declval<Renderer>()))
-        HAS_MEMBER_FUNCTION(onAfterRender, (std::declval<Renderer>()))
+        HAS_MEMBER_FUNCTION(onBeforeRender,(std::declval<Renderer&>()))
+        HAS_MEMBER_FUNCTION(onAfterRender, (std::declval<Renderer&>()))
         HAS_MEMBER_FUNCTION(onLoadScene,   (std::declval<Scene&>()))
         HAS_MEMBER_FUNCTION(onUnloadScene, (std::declval<Scene&>()))
     }
@@ -283,13 +283,15 @@ namespace gou {
 
         void on_before_render () final {
             if constexpr (detail::hasMember_onBeforeRender<Derived>()) {
-                static_cast<Derived*>(this)->onBeforeRender(Renderer{});
+                Renderer renderer;
+                static_cast<Derived*>(this)->onBeforeRender(renderer);
             }
         }
 
         void on_after_render () final {
             if constexpr (detail::hasMember_onAfterRender<Derived>()) {
-                static_cast<Derived*>(this)->onAfterRender(Renderer{});
+                Renderer renderer;
+                static_cast<Derived*>(this)->onAfterRender(renderer);
             }
         }
 

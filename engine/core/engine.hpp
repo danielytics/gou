@@ -3,6 +3,8 @@
 #include "gou_engine.hpp"
 #include <gou_api.hpp>
 
+#include <SDL.h>
+
 #include <taskflow/taskflow.hpp>
 
 namespace graphics {
@@ -39,6 +41,14 @@ namespace core {
 
         // Initialise systems
         void setupSystems (graphics::Sync*);
+
+        // Process input events
+        void handleInput (bool& running);
+
+        // Provide access to input events
+        const std::vector<SDL_Event>& inputEvents () {
+            return m_input_events;
+        }
 
         // Execute the Taskflow graph of tasks
         void execute (Time current_time, DeltaTime delta, uint64_t frame_count);
@@ -106,6 +116,10 @@ namespace core {
 
         // Physics state
         physics::Context* m_physics_context;
+
+        // Input
+        SDL_GameController* m_game_controller;
+        std::vector<SDL_Event> m_input_events;
 
         // Implement API interface
         void* allocModule (std::size_t bytes) final;

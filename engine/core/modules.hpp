@@ -2,6 +2,8 @@
 
 #include <spdlog/logger.h>
 
+struct ImGuiContext;
+
 namespace core {
 
     namespace detail {
@@ -17,7 +19,7 @@ namespace core {
         ModuleManager(class Engine&);
         ~ModuleManager();
 
-        bool load (std::shared_ptr<spdlog::logger> logger);
+        bool load (std::shared_ptr<spdlog::logger> logger, ImGuiContext*);
         void update ();
         void unload ();
 

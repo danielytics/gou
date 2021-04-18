@@ -5,7 +5,7 @@
 #include <entt/core/type_info.hpp>
 #include <spdlog/spdlog.h>
 
-#include <iostream>
+#include <imgui.h>
 
 /********************************************************************************
  * Plugin entrypoint and setup
@@ -22,6 +22,8 @@ CR_EXPORT int cr_main(cr_plugin* ctx, cr_op operation)
         gou::ctx::ref = info->engine->type_context();
         // Set spdlog logger
         spdlog::set_default_logger(info->logger);
+        // Set Dear ImGUI context
+        ImGui::SetCurrentContext(info->imgui_context);
         // Create instance of module class
         gou::ctx::gou_module = gou::module_init(
             std::string{"["} + info->name + std::string{"] "},

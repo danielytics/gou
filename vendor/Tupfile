@@ -12,7 +12,7 @@ endif
 
 # Build ImGUI
 INCLUDES += `sdl2-config --cflags` -Iimgui
-CPPFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
+CPPFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD -fPIC
 : foreach imgui/*.cpp |> !compile-c++ |> imgui__%B.o
 : imgui/backends/imgui_impl_sdl.cpp |> !compile-c++ |> imgui__%d_%B.o
 : imgui/backends/imgui_impl_opengl3.cpp |> !compile-c++ |>imgui__%d_%B.o

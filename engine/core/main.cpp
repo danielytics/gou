@@ -13,9 +13,6 @@
 
 #include <physfs.hpp>
 
-#include <SDL.h>
-
-
 void setupPhysFS (const char* argv0)
 {
     const std::vector<std::string>& sourcePaths = entt::monostate<"game/sources"_hs>{};
@@ -102,31 +99,23 @@ int main (int argc, char* argv[])
     bool clean_exit = true;
     try {
         bool running = true;
-        SDL_Event event;
-        SDL_GameController* gameController;
         // bool inputLearnMode = false;
         // std::unordered_map<InputKeys::Type, frenzy::events::Event> input_mapping;
 
         core::Engine engine;
         core::ModuleManager moduleManager(engine);
-        if (!moduleManager.load(logger)) {
+        graphics::Sync* state_sync;
+        struct ImGuiContext* imgui_ctx;
+        graphics::Context* graphics_context = graphics::init(engine, state_sync, imgui_ctx);
+        if (graphics_context == nullptr || !moduleManager.load(logger, imgui_ctx)) {
             spdlog::critical("Could not load some required modules. Terminating.");
         } else {
-            graphics::Context* graphics_context;
+            engine.setupSystems(state_sync);
             // Scene scene;
             // input_mapping[InputKeys::make(InputKeys::KeyType::KeyboardButton, SDL_SCANCODE_SPACE)] = frenzy::events::Event{
             //     "character/jump"_event, entt::null, scene.playerEntity(), {0, 0, 0}, 0, 0
             // };
-            
-            {
-                graphics::Sync* state_sync;
-                graphics_context = graphics::init(engine, &state_sync);
-                if (graphics_context == nullptr) {
-                    moduleManager.unload();
-                    return 0;
-                }
-                engine.setupSystems(state_sync);
-            }
+        
 
             // Initialise timekeeping
             ElapsedTime time_since_start = 0L; // microseconds
@@ -143,61 +132,7 @@ int main (int argc, char* argv[])
             // Run main loop
             spdlog::info("Game Running...");
             do {
-                // Gather and dispatch input
-                while (SDL_PollEvent(&event))
-                {
-                    switch (event.type) {
-                        case SDL_QUIT:
-                            running = false;
-                            break;
-                        case SDL_KEYDOWN:
-                        case SDL_KEYUP:
-                        {
-                            if (event.key.keysym.sym == SDLK_ESCAPE) {
-                                running = false;
-                            } else {
-                                // handleInput(engine, input_mapping, InputKeys::KeyType::KeyboardButton, event.key.keysym.scancode, [&event]() -> float {
-                                //     return event.key.state == SDL_PRESSED ? 1.0f : 0.0f;
-                                // });
-                            }
-                            break;
-                        }
-                        case SDL_CONTROLLERDEVICEADDED:
-                            gameController = SDL_GameControllerOpen(event.cdevice.which);
-                            if (gameController == 0) {
-                                spdlog::error("Could not open gamepad {}: {}", event.cdevice.which, SDL_GetError());
-                            } else {
-                                spdlog::info("Gamepad detected {}", SDL_GameControllerName(gameController));
-                            }
-                            break;
-                        case SDL_CONTROLLERDEVICEREMOVED:
-                            SDL_GameControllerClose(gameController);
-                            break;
-                        case SDL_CONTROLLERBUTTONDOWN:
-                        case SDL_CONTROLLERBUTTONUP:
-                        {
-                            // handleInput(engine, input_mapping, InputKeys::KeyType::ControllerButton, event.cbutton.button, [&event]() -> float {
-                            //     return event.cbutton.state ? 1.0f : 0.0f;
-                            // });
-                            break;
-                        }
-                        case SDL_CONTROLLERAXISMOTION:
-                        {
-                            // handleInput(engine, input_mapping, InputKeys::KeyType::ControllerAxis, event.caxis.axis, [&event]() -> float {
-                            //     float value = float(event.caxis.value) * Constants::GamePadAxisScaleFactor;
-                            //     if (std::fabs(value) < 0.15f /* TODO: configurable deadzones */) {
-                            //         return 0;
-                            //     }
-                            //     return value;
-                            // });
-                            break;
-                        }
-                        default:
-                            break;
-                    };
-                    // Send to event queue for render thread to access (used by Dear ImGui)
-                    // eventQueue.enqueue(event);
-                }
+                engine.handleInput(running);
 
                 // // Process previous frames events
                 // for (auto& event : utilities::const_iterate(engine.events())) {
