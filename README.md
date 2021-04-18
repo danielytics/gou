@@ -1,8 +1,10 @@
 # GOU
 
-The name **GOU** is in honour of the [Game of Ur](https://en.wikipedia.org/wiki/Royal_Game_of_Ur) (also known as The Royal Game of Ur), the oldest known boardgame, first played between 2600 to 2400 BC.
+The name **GOU** is in honour of the [Game of Ur](https://en.wikipedia.org/wiki/Royal_Game_of_Ur) (also known as *The Royal Game of Ur*), the oldest known boardgame, first played between 2600 to 2400 BC. Pronounced `gah-ow` like in `gouge`.
 
 **GOU** is a game engine, with the following key features:
+
+**This is an early work-in-progress, most of the below features do not yet exist!**
 
 1. Component Entity System based game entities
 2. Multi-threaded systems
@@ -23,7 +25,7 @@ Engine dependencies:
 * C++17 and OpenGL 4.1
 * [SDL2](http://libsdl.org/) - Windowing & Input (ZLIB License)
 * [EnTT](https://github.com/skypjack/entt) - Entity Component System (MIT License)
-* [GLEW](http://glew.sourceforge.net/) - OpenGL extension library (Modified BSD & MIT Licenses) TODO: Replace with GLAD
+* [GLAD](https://github.com/Dav1dde/glad) - OpenGL extension generator (MIT License)
 * [GLM](https://glm.g-truc.net/0.9.8/index.html) - OpenGL Mathematics library (The Happy Bunny/Modified MIT License)
 * [spdlog](https://github.com/gabime/spdlog) - Fast logging library (MIT License)
 * [LuaJIT](http://luajit.org/luajit.html) - Lua bindings and JIT runtime (MIT License)
@@ -53,14 +55,28 @@ Make sure you have Git, Clang, SDL2 and Tup installed.
 git clone git@github.com:danielytics/gou.git
 cd gou
 git submodule update --init
-tup build-default
+./generate_components.sh
+tup
 ```
 
-Now you can run the engine using `./release.sh`
+Now you can run the engine using one of:
 
-To build a debug build, use `tup build-debug` and run with `./debug.sh`
+* `./debug.sh` to run the debug build (no optimisations, debug and development features)
+* `./dev.sh` to run the development build (optimisations, development features)
+* `./release.sh` to run the release build (optimisations, development features & debugger symbols stripped)
 
+The development version is intended for developing games with GOU and includes access to editor tools.
+
+The debug version is intended for developing the engine itself, or when debugging a game. May run slowly.
+
+When developing GOU modules (or the engine itself), always building all three builds at once may be too slow. You can build each version in isolation with:
+
+* `tup build-debug` to build the debug build
+* `tup build-default` to build the dev build
+* `tup build-release` to build the release build
+
+Components are specified in `components.toml` files (in `engine/components.toml` for core engine components, or in `modules/*/components.toml` for module-specific components). If these files are modified, it is necessary to rerun `./generate_components.sh` to regenerate the component header and source files. The initial run also compiles the generator, but subsequent runs should be very quick.
 
 # License
 
-GOU is released under the terms of the MIT License.
+GOU is released under the terms of the [MIT License](https://github.com/danielytics/gou/blob/master/LICENSE).
