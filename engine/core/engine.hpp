@@ -29,6 +29,7 @@ namespace core {
         // Implement API interface
         gou::api::detail::type_context* type_context() final;
         void registerModule (std::uint32_t, gou::api::Module*) final;
+        gou::events::Event* event () final;
         entt::registry& registry() final;
         entt::organizer& organizer(std::uint32_t) final;
         entt::entity findEntity (entt::hashed_string) final;

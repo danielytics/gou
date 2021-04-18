@@ -71,6 +71,9 @@ namespace gou::api {
         // Used internally to register a modules callback hooks
         virtual void registerModule(std::uint32_t, Module*) = 0;
 
+        // Emit an event
+        virtual events::Event* event () = 0;
+
         // Access to the ECS registry
         virtual entt::registry& registry() = 0;
 

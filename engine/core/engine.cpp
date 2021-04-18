@@ -54,6 +54,12 @@ void core::Engine::registerModule (std::uint32_t flags, gou::api::Module* mod)
     }
 }
 
+// Get pointer to new event on the event bus
+gou::events::Event* core::Engine::event ()
+{
+    return nullptr;
+}
+
 entt::registry& core::Engine::registry()
 {
     return m_registry;
@@ -339,6 +345,9 @@ void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
 
 void core::Engine::reset ()
 {
+    // Unload the current scene
+    callModuleHook<CM::UNLOAD_SCENE>();
+    // Clear the registry
     m_registry = {};
 }
 

@@ -4,6 +4,8 @@
 #include "core/engine.hpp"
 #include <physfs.hpp>
 
+// Entity prototypes: https://gist.github.com/danielytics/ead773d5f3161c3eee2b23b7932f6ee9
+
 world::SceneManager::SceneManager (core::Engine& engine) :
     m_engine(engine)
 {

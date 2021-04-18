@@ -151,21 +151,53 @@ namespace gou {
             m_engine.mergeEntity(entity, id, overwrite);
         }
 
-        // Time accessors
+        /*
+         * Change to a different scene (unloads current scene and loads new one)
+         */
+        void changeToScene (entt::hashed_string scene) {
+            new (m_engine.event()) events::Event{
+                "scene/change"_hs,
+                entt::null,
+                entt::null,
+                {},
+                0,
+                scene.value(),
+            };
+        }
+
+        /*
+         * Access engine time
+         * current_time()   seconds since startup
+         * delta_time()     seconds since last frame
+         * current_frame()  the number of frames since startup
+         * TimeAware overloads scale the time by the TimeAware's scale factor
+         */
         Time current_time () const { return m_current_time; }
+        Time current_time (const components::TimeAware& time) const { return m_current_time * time.scale_factor; }
+
         DeltaTime delta_time() const { return m_delta_time; }
+        DeltaTime delta_time (const components::TimeAware& time) const { return m_delta_time * time.scale_factor; }
+
         uint64_t current_frame() const { return m_current_frame; }
+        uint64_t current_frame (const components::TimeAware& time) const { return uint64_t(float(m_current_frame) * time.scale_factor); }
 
         /*
          * Name of the scene
          */
-        entt::hashed_string name () const { return m_scene_name; }
+        std::string name () const { return m_scene_name; }
+
+        /*
+         * ID of the scene
+         * Use to do scene-specific logic: if (scene.id() == "my-scene"_hs) ...
+         */ 
+        entt::hashed_string id () const { return m_scene_id; }
     
     protected:
         Time m_current_time;
         DeltaTime m_delta_time;
         uint64_t m_current_frame;
-        entt::hashed_string m_scene_name;
+        std::string m_scene_name;
+        entt::hashed_string m_scene_id;
         Scene(entt::registry& registry, gou::api::Engine& engine)
             : m_registry(registry),
               m_engine(engine)
@@ -208,6 +240,17 @@ namespace gou {
 // Public Module API
 ///////////////////////////////////////////////////////////////////////////////
 
+    /*
+     * Emit an event
+     */
+    template <typename... Args>
+    void emit (entt::hashed_string event, Args... args) {
+        new (m_engine.event()) events::Event{args...};
+    }
+
+    /*
+     * Logging functions
+     */
     template <typename... Args> void info  (const std::string& text, Args... args)  {spdlog::info(m_moduleName + text, args...);}
     template <typename... Args> void warn  (const std::string& text, Args... args)  {spdlog::warn(m_moduleName + text, args...);}
     template <typename... Args> void error (const std::string& text, Args... args)  {spdlog::error(m_moduleName + text, args...);}
@@ -326,7 +369,8 @@ namespace gou {
                 m_current_frame = frame;
             }
             void setScene (entt::hashed_string name) {
-                m_scene_name = name;
+                m_scene_name = name.data();
+                m_scene_id = name;
             }
         } m_scene;
     };
