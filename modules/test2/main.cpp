@@ -1,22 +1,22 @@
 
 #include <gou.hpp>
 
-struct velocity {
-    double dx;
-    double dy;
-};
-
 class TestModule2 : public gou::Module<TestModule2> {
     GOU_CLASS(TestModule2)
 public:
 
     void onLoad (gou::Engine e)
     {
-        auto& engine = e.engine;
-        auto& registry = engine.registry();
-        registry.view<components::Position, velocity>().each([](components::Position &pos, velocity &vel) {
-            pos.z = static_cast<int>(vel.dx) + static_cast<int>(vel.dy);
-        });
+
+    }
+
+    void onLoadScene (gou::Scene& scene)
+    {
+        auto entity = scene.find("test-entity"_hs);
+        if (entity != entt::null) {
+            const auto& position = scene.get<components::Position>(entity);
+            info("Entity position = ({}, {}, {})", position.x, position.y, position.z);
+        }
     }
 };
 

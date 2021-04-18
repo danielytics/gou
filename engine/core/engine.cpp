@@ -29,9 +29,7 @@ int get_num_workers () {
 
 core::Engine::Engine ()
 {
-    for(auto i = 0.f; i < 3.f; ++i) {
-        m_registry.emplace<components::Position>(m_registry.create(), i, i, 0.f);
-    }
+    m_registry.on_construct<components::Named>().connect<&core::Engine::onNamedEntity>(this);
 }
 
 core::Engine::~Engine ()
@@ -70,12 +68,20 @@ entt::organizer& core::Engine::organizer(std::uint32_t type)
 
 entt::entity core::Engine::findEntity (entt::hashed_string name)
 {
+    auto it = m_named_entities.find(name.value());
+    if (it != m_named_entities.end()) {
+        return it->second;
+    }
     return entt::null;
 }
 
 entt::entity core::Engine::loadEntity (entt::hashed_string template_id)
 {
-    return entt::null;
+    if (true) {
+        return entt::null;
+    }
+    auto entity = m_registry.create();
+    return entity;
 }
 
 void core::Engine::mergeEntity (entt::entity entity, entt::hashed_string template_id, bool overwrite_components)
@@ -85,7 +91,7 @@ void core::Engine::mergeEntity (entt::entity entity, entt::hashed_string templat
 
 void core::Engine::registerLoader(entt::hashed_string name, gou::api::Engine::LoaderFn loader_fn)
 {
-
+    m_component_loaders[name] = loader_fn;
 }
 
 gou::resources::Handle core::Engine::findResource (entt::hashed_string::hash_type name)
@@ -322,10 +328,6 @@ void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
 
 void core::Engine::reset ()
 {
-    m_registry.view<components::Position>().each([](auto entity, auto &position) {
-        std::cout << "(" << position.x << ", " << position.y << ", " << position.z << "): " << static_cast<int>(entt::to_integral(entity) + 16u) << "\n";
-    });
-    
     m_registry = {};
 }
 
@@ -342,4 +344,10 @@ void core::Engine::pumpEvents () {
     //     const_cast<EventPoolIterator::Type*>(globalEventPool.begin()),
     //     globalEventPool.count()
     // };
+}
+
+void core::Engine::onNamedEntity (entt::registry& registry, entt::entity entity)
+{
+    const auto& named = registry.get<components::Named>(entity);
+    m_named_entities[named.name] = entity;
 }

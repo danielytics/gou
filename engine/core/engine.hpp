@@ -93,6 +93,8 @@ namespace core {
     private:
         // ECS registry to manage all entities
         entt::registry m_registry;
+        spp::sparse_hash_map<entt::hashed_string::hash_type, gou::api::Engine::LoaderFn, helpers::Identity> m_component_loaders;
+        spp::sparse_hash_map<entt::hashed_string::hash_type, entt::entity, helpers::Identity> m_named_entities;
 
         // System and task scheduling
         spp::sparse_hash_map<uint32_t, entt::organizer> m_organizers;
@@ -131,6 +133,8 @@ namespace core {
         void createTaskGraph ();
         // Make emitted events available to read and make a fresh event queue available to emit to
         void pumpEvents ();
+        // Callback to setup Named entities
+        void onNamedEntity (entt::registry&, entt::entity);
     };
 
 } // core::

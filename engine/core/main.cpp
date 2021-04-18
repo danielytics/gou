@@ -129,6 +129,8 @@ int main (int argc, char* argv[])
             const ElapsedTime update_interval = entt::monostate<"dev-mode/reload-interval"_hs>();
     #endif
 
+            engine.callModuleHook<gou::api::Module::CallbackMasks::LOAD_SCENE>();
+
             // Run main loop
             spdlog::info("Game Running...");
             do {
