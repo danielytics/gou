@@ -17,7 +17,6 @@ namespace gou {
 		
 		registry.prepare<components::Global>();
 		engine->registerLoader("global"_hs, [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
-			const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 			registry.emplace_or_replace<components::Global>(entity);
 		});
 		
@@ -40,7 +39,7 @@ namespace gou {
 			const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 			auto enter_event = table.at("enter_event");
 			auto exit_event = table.at("exit_event");
-			registry.emplace_or_replace<components::TriggerRegion>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), frenzy::events::Event{entt::hashed_string::value(toml::find<std::string>(enter_event, "type").c_str()), entity, entt::null, glm::vec3{float(toml::find<toml::floating>(enter_event, "x")), float(toml::find<toml::floating>(enter_event, "y")), float(toml::find<toml::floating>(enter_event, "z"))}}, frenzy::events::Event{entt::hashed_string::value(toml::find<std::string>(exit_event, "type").c_str()), entity, entt::null, glm::vec3{float(toml::find<toml::floating>(exit_event, "x")), float(toml::find<toml::floating>(exit_event, "y")), float(toml::find<toml::floating>(exit_event, "z"))}});
+			registry.emplace_or_replace<components::TriggerRegion>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), gou::events::Event{entt::hashed_string::value(toml::find<std::string>(enter_event, "type").c_str()), entity, entt::null, glm::vec3{float(toml::find<toml::floating>(enter_event, "x")), float(toml::find<toml::floating>(enter_event, "y")), float(toml::find<toml::floating>(enter_event, "z"))}}, gou::events::Event{entt::hashed_string::value(toml::find<std::string>(exit_event, "type").c_str()), entity, entt::null, glm::vec3{float(toml::find<toml::floating>(exit_event, "x")), float(toml::find<toml::floating>(exit_event, "y")), float(toml::find<toml::floating>(exit_event, "z"))}}, std::uint32_t(toml::find<toml::integer>(table, "trigger_mask")));
 		});
 		
 		registry.prepare<components::TimeAware>();
@@ -58,12 +57,11 @@ namespace gou {
 		registry.prepare<components::graphics::Layer>();
 		engine->registerLoader("layer"_hs, [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 			const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-			registry.emplace_or_replace<components::graphics::Layer>(entity);
+			registry.emplace_or_replace<components::graphics::Layer>(entity, std::uint8_t(toml::find<toml::integer>(table, "layer")));
 		});
 		
 		registry.prepare<components::graphics::Sprite>();
 		engine->registerLoader("sprite"_hs, [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
-			const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 			registry.emplace_or_replace<components::graphics::Sprite>(entity);
 		});
 		

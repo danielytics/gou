@@ -181,6 +181,17 @@ bool core::readGameConfig () {
         const auto config = parser::parse_toml(game_config);
         
         //******************************************************//
+        // GAME
+        //******************************************************//
+        if (! config.contains("game")) {
+            spdlog::error("Game config file did not contain a [game] section.");
+            return false;
+        }
+        const auto& game = config.at("game");
+        entt::monostate<"game/scene-list-file"_hs>{} = toml::find<std::string>(game, "scenes");
+        entt::monostate<"game/start-scene"_hs>{} = toml::find<std::string>(game, "start-scene");
+
+        //******************************************************//
         // GRAPHICS
         //******************************************************//
         // Default settings for [graphics] section

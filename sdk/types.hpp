@@ -26,8 +26,13 @@ namespace gou {
     namespace events {
 
         struct Event {
-
-        };
+            entt::hashed_string::hash_type type;
+            entt::entity source;
+            entt::entity target;
+            glm::vec3 attributes;
+            int32_t value;
+            uint32_t handle;
+        }; // 32 bytes
 
     }
 

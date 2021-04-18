@@ -2,6 +2,7 @@
 
 #include "gou_engine.hpp"
 #include <gou_api.hpp>
+#include "world/scenes.hpp"
 
 #include <SDL.h>
 
@@ -39,8 +40,8 @@ namespace core {
         // Time
         DeltaTime deltaTime () { return m_current_time_delta; }
 
-        // Initialise systems
-        void setupSystems (graphics::Sync*);
+        // Initialise systems and load game data
+        void setupGame (graphics::Sync*);
 
         // Process input events
         void handleInput (bool& running);
@@ -90,11 +91,15 @@ namespace core {
             }
         }
 
+        // Load component and add it to entity
+        void loadComponent (entt::hashed_string, entt::entity, const void*);
+
     private:
         // ECS registry to manage all entities
         entt::registry m_registry;
         spp::sparse_hash_map<entt::hashed_string::hash_type, gou::api::Engine::LoaderFn, helpers::Identity> m_component_loaders;
         spp::sparse_hash_map<entt::hashed_string::hash_type, entt::entity, helpers::Identity> m_named_entities;
+        world::SceneManager m_scene_manager;
 
         // System and task scheduling
         spp::sparse_hash_map<uint32_t, entt::organizer> m_organizers;
@@ -131,10 +136,13 @@ namespace core {
         void addModuleHook (gou::api::Module::CallbackMasks hook, gou::api::Module* module);
         // Create task execution graph
         void createTaskGraph ();
+        // Load game data and initialise games first scene
+        void setupInitialScene();
         // Make emitted events available to read and make a fresh event queue available to emit to
         void pumpEvents ();
-        // Callback to setup Named entities
-        void onNamedEntity (entt::registry&, entt::entity);
+        // Callbacks to manage Named entities
+        void onAddNamedEntity (entt::registry&, entt::entity);
+        void onRemoveNamedEntity (entt::registry&, entt::entity);
     };
 
 } // core::

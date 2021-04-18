@@ -40,8 +40,20 @@ public:
 
     void onLoadScene (gou::Scene& scene)
     {
-        auto entity = scene.create("test-entity"_hs);
-        scene.add<components::Position>(entity, 1.0f, 2.0f, 3.0f);
+        {
+            auto entity = scene.create("test-entity"_hs);
+            scene.add<components::Position>(entity, 1.0f, 2.0f, 3.0f);
+        }
+        {
+            auto entity = scene.find("test1"_hs);
+            if (entity == entt::null) {
+                warn("Entity 'test1' not found.");
+            } else {
+                const auto& position = scene.get<components::Position>(entity);
+                warn("Entity 'test1' has position: ({}, {}, {})", position.x, position.y, position.z);
+            }
+        }
+
     }
 };
 

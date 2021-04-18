@@ -39,8 +39,11 @@ LINKER += -pthread -ldl -lSDL2 -lGL
 # Compile Sources
 : foreach core/*.cpp |> !compile-engine |>
 : foreach graphics/*.cpp |> !compile-engine |>
+: foreach memory/*.cpp |> !compile-engine |>
 : foreach physics/*.cpp |> !compile-engine |>
 : foreach utils/*.cpp |> !compile-engine |>
+: foreach world/*.cpp |> !compile-engine |>
+: core_components.cpp |> !compile-engine |>
 : foreach $(VENDOR)/physfs/src/*.c |> !compile-c |>
 
 # Link binary

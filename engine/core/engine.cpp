@@ -5,6 +5,10 @@
 
 #include <SDL.h>
 
+namespace gou {
+    void register_components (gou::api::Engine*);
+}
+
 using CM = gou::api::Module::CallbackMasks;
 
 #include <entt/core/type_info.hpp>
@@ -18,18 +22,12 @@ int get_num_workers () {
     return max_workers > 1 ? max_workers - 1 : max_workers;
 }
 
-// void core::Engine::setup(std::shared_ptr<spdlog::logger> logger) {
-//     // physics::init(this);
-//     // createSystems();
-//     // loadModules(logger);
-//     createTaskGraph();
-//     // Make events generated during module loading available during first frame
-//     pumpEvents();
-// }
-
-core::Engine::Engine ()
+core::Engine::Engine () :
+    m_scene_manager(*this),
+    m_executor(get_num_workers())
 {
-    m_registry.on_construct<components::Named>().connect<&core::Engine::onNamedEntity>(this);
+    m_registry.on_construct<components::Named>().connect<&core::Engine::onAddNamedEntity>(this);
+    m_registry.on_destroy<components::Named>().connect<&core::Engine::onRemoveNamedEntity>(this);
 }
 
 core::Engine::~Engine ()
@@ -91,7 +89,7 @@ void core::Engine::mergeEntity (entt::entity entity, entt::hashed_string templat
 
 void core::Engine::registerLoader(entt::hashed_string name, gou::api::Engine::LoaderFn loader_fn)
 {
-    m_component_loaders[name] = loader_fn;
+    m_component_loaders[name.value()] = loader_fn;
 }
 
 gou::resources::Handle core::Engine::findResource (entt::hashed_string::hash_type name)
@@ -130,6 +128,17 @@ void core::Engine::addModuleHook (gou::api::Module::CallbackMasks hook, gou::api
             m_hooks_unloadScene.push_back(mod);
             break;
     };
+}
+
+void core::Engine::loadComponent (entt::hashed_string component, entt::entity entity, const void* table)
+{
+    auto it = m_component_loaders.find(component.value());
+    if (it != m_component_loaders.end()) {
+        const auto& loader = it->second;
+        loader(this, m_registry, table, entity);
+    } else {
+        spdlog::warn("Tried to load non-existent component: {}", component.data());
+    }
 }
 
 void core::Engine::createTaskGraph () {
@@ -195,7 +204,6 @@ void core::Engine::createTaskGraph () {
     tf::Task pump_events_task = m_coordinator.emplace([this](){
         pumpEvents(); // Copy current frames events for processing next frame
     }).name("Events/pump");
-    spdlog::info("Tasks setup, setting dependencies");
     pump_events_task.succeed(before_update_task, physics_task_prepare);
     physics_task_simulate.succeed(physics_task_prepare);
     
@@ -218,16 +226,19 @@ void core::Engine::createTaskGraph () {
         m_coordinator.dump(file);
     }
 #endif
-    spdlog::info("Done creating taskflow graph");
 }
 
-void core::Engine::setupSystems (graphics::Sync* state_sync)
+void core::Engine::setupGame (graphics::Sync* state_sync)
 {
     m_state_sync = state_sync;
+    // Register core components
+    gou::register_components(this);
     // Initialise subsystems
     m_physics_context = physics::init(*this);
     // Create task graph
     createTaskGraph();
+    // Load game data
+    setupInitialScene();
     // Make events generated during module loading available during first frame
     pumpEvents();
 }
@@ -331,6 +342,15 @@ void core::Engine::reset ()
     m_registry = {};
 }
 
+void core::Engine::setupInitialScene ()
+{
+    const std::string& scene_list_file = entt::monostate<"game/scene-list-file"_hs>();
+    m_scene_manager.loadSceneList(scene_list_file);
+
+    const std::string& start_scene = entt::monostate<"game/start-scene"_hs>();
+    m_scene_manager.loadScene(entt::hashed_string{start_scene.c_str()});
+}
+
 void core::Engine::pumpEvents () {
     // globalEventPool.reset();
     // // Copy thread local events into global pool and reset thread local pools
@@ -346,8 +366,14 @@ void core::Engine::pumpEvents () {
     // };
 }
 
-void core::Engine::onNamedEntity (entt::registry& registry, entt::entity entity)
+void core::Engine::onAddNamedEntity (entt::registry& registry, entt::entity entity)
 {
     const auto& named = registry.get<components::Named>(entity);
     m_named_entities[named.name] = entity;
+}
+
+void core::Engine::onRemoveNamedEntity (entt::registry& registry, entt::entity entity)
+{
+    const auto& named = registry.get<components::Named>(entity);
+    m_named_entities.erase(named.name);
 }

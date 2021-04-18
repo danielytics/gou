@@ -5,3 +5,7 @@ per-thread-pool-size = 96
 target-framerate = 30
 max-substeps = 10
 gravity = { y = -9.81 }
+
+[game]
+scenes = "scenes.toml"
+start-scene = "test"

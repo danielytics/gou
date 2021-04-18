@@ -1,0 +1,23 @@
+[metadata.info]
+    name = "Player"
+    description = "Player character template"
+
+[metadata.data]
+    position = { x = 0, y = 0, z = 0 }
+    physics-shape = { type = "sphere", data = [ 0, 0, 1 ] }
+
+[position]
+    x = "=> position.x"
+    y = "=> position.y"
+    z = "=> position.z"
+
+[velocity]
+
+[actor]
+
+["physics/rigid-body"]
+    mass = 80
+    shape = "=> physics-shape"
+
+[time-aware]
+    scale = 1

@@ -110,7 +110,7 @@ int main (int argc, char* argv[])
         if (graphics_context == nullptr || !moduleManager.load(logger, imgui_ctx)) {
             spdlog::critical("Could not load some required modules. Terminating.");
         } else {
-            engine.setupSystems(state_sync);
+            engine.setupGame(state_sync);
             // Scene scene;
             // input_mapping[InputKeys::make(InputKeys::KeyType::KeyboardButton, SDL_SCANCODE_SPACE)] = frenzy::events::Event{
             //     "character/jump"_event, entt::null, scene.playerEntity(), {0, 0, 0}, 0, 0
@@ -128,8 +128,6 @@ int main (int argc, char* argv[])
             ElapsedTime last_update_time = 0L; // microseconds
             const ElapsedTime update_interval = entt::monostate<"dev-mode/reload-interval"_hs>();
     #endif
-
-            engine.callModuleHook<gou::api::Module::CallbackMasks::LOAD_SCENE>();
 
             // Run main loop
             spdlog::info("Game Running...");

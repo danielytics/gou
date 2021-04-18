@@ -155,11 +155,17 @@ namespace gou {
         Time current_time () const { return m_current_time; }
         DeltaTime delta_time() const { return m_delta_time; }
         uint64_t current_frame() const { return m_current_frame; }
+
+        /*
+         * Name of the scene
+         */
+        entt::hashed_string name () const { return m_scene_name; }
     
     protected:
         Time m_current_time;
         DeltaTime m_delta_time;
         uint64_t m_current_frame;
+        entt::hashed_string m_scene_name;
         Scene(entt::registry& registry, gou::api::Engine& engine)
             : m_registry(registry),
               m_engine(engine)
@@ -295,8 +301,9 @@ namespace gou {
             }
         }
 
-        void on_load_scene () final {
+        void on_load_scene (entt::hashed_string name) final {
             if constexpr (detail::hasMember_onLoadScene<Derived>()) {
+                m_scene.setScene(name);
                 static_cast<Derived*>(this)->onLoadScene(m_scene);
             }
         }
@@ -317,6 +324,9 @@ namespace gou {
                 m_current_frame = time;
                 m_delta_time = delta;
                 m_current_frame = frame;
+            }
+            void setScene (entt::hashed_string name) {
+                m_scene_name = name;
             }
         } m_scene;
     };

@@ -114,7 +114,7 @@ std::string load_vec4 (const std::string& attribute) {
 }
 std::string load_event (const std::string& attribute) {
     std::ostringstream sstr;
-    sstr << "frenzy::events::Event{";
+    sstr << "gou::events::Event{";
     sstr <<   "entt::hashed_string::value(toml::find<std::string>(" << attribute << ", \"type\").c_str()), ";
     sstr <<   "entity, ";
     sstr <<   "entt::null, ";
@@ -148,7 +148,7 @@ std::map<std::string, std::pair<bool, std::function<std::string(const std::strin
     {"vec2",    {true,      load_vec2}},
     {"vec3",    {true,      load_vec3}},
     {"vec4",    {true,      load_vec4}},
-    {"event",   {true,     load_event}},
+    {"event",   {true,      load_event}},
     {"ref",     {false,     load_hashed_string}},
     {"resource",{false,     load_resource_handle}},
     //{"entity", "entt::entity"},
@@ -303,7 +303,17 @@ public:
         ~Component() {
             loader.out() << "engine->registerLoader(\"" << name << "\"_hs, [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {";
             loader.out.indent();
-            loader.out() << "const auto& table = *reinterpret_cast<const toml::value*>(tableptr);";
+            bool empty = true;
+            for (auto attribute : attributes) {
+                if (attribute.first != "_name_" && attribute.first != "_description_" && attribute.first != "_namespace_") {
+                    empty = false;
+                    break;
+                }
+            }
+            if (! empty) {
+                loader.out() << "const auto& table = *reinterpret_cast<const toml::value*>(tableptr);";
+            }
+            
             for (auto attribute : attributes) {
                 auto it = data_type_loaders.find(attribute.second);
                 if (it != data_type_loaders.end()) {
@@ -326,14 +336,17 @@ public:
                 } else {
                     auto it = data_types.find(attribute.second);
                     if (it != data_types.end()) {
-                        auto tdt = toml_data_types.find(it->second);
+                        auto tdt = toml_data_types.find(attribute.second);
                         if (tdt != toml_data_types.end()) {
-                            loader.out(false) << ", " << data_types[it->second] << "(";
+                            loader.out(false) << ", " << it->second << "(";
                             loader.out(false) << "toml::find<" << tdt->second << ">(table, \"" << attribute.first << "\"))";
                         }
                     } else {
                         // Unknown type, pass through
                         loader.out(false) << ", " << attribute.second;
+                        if (attribute.second != "nullptr") {
+                            std::cerr << "Unknown data type: " << attribute.second << "\n";
+                        }
                     }
                 }
             }
