@@ -1,12 +1,19 @@
 
 #include "engine.hpp"
 #include "graphics/graphics.hpp"
+#include "physics/physics.hpp"
 
 using CM = gou::api::Module::CallbackMasks;
 
 #include <entt/core/type_info.hpp>
 namespace gou::api::detail {
     #include <type_info.hpp>
+}
+
+// Taskflow workers = number of hardware threads - 1, unless there is only one hardware thread
+int get_num_workers () {
+    auto max_workers = std::thread::hardware_concurrency();
+    return max_workers > 1 ? max_workers - 1 : max_workers;
 }
 
 // void core::Engine::setup(std::shared_ptr<spdlog::logger> logger) {
@@ -43,7 +50,7 @@ void core::Engine::registerModule (std::uint32_t flags, gou::api::Module* mod)
 
     // Register optional hooks
     for (auto hook : {CM::AFTER_FRAME, CM::LOAD_SCENE, CM::UNLOAD_SCENE, CM::BEFORE_UPDATE, CM::BEFORE_RENDER, CM::AFTER_RENDER}) {
-        if (flags & utilities::enum_value(hook)) {
+        if (flags & helpers::enum_value(hook)) {
             addModuleHook(hook, mod);
         }
     }
@@ -121,11 +128,12 @@ void core::Engine::createTaskGraph () {
     // Setup Systems by creating a Taskflow graph for each stage
     using Stage = gou::api::SystemStage;
     auto registry = &m_registry;
+    spp::sparse_hash_map<Stage, tf::Taskflow*> taskflows;
     for (auto type : {Stage::GameLogic, Stage::Update}) {
-        auto it = m_organizers.find(utilities::enum_value(type));
+        auto it = m_organizers.find(helpers::enum_value(type));
         if (it != m_organizers.end()) {
             tf::Taskflow* taskflow = new tf::Taskflow();
-            m_taskflows.push_back(taskflow);
+            taskflows[type] = taskflow;
             std::vector<std::pair<entt::organizer::vertex, tf::Task>> tasks;
             auto graph = it->second.graph();
             // First pass, prepare registry and create taskflow task
@@ -155,24 +163,6 @@ void core::Engine::createTaskGraph () {
     // Any new additions will never be added to the Taskflow graph, so no point in keeping the organizers around
     m_organizers.clear();
 
-    // Add engine-internal tasks to graph and coordinate flow into one graph    
-    tf::Taskflow* game_logic_flow = m_taskflows[utilities::enum_value(Stage::GameLogic)];
-    tf::Taskflow* updater_flow = m_taskflows[utilities::enum_value(Stage::Update)];
-    game_logic_flow->name("Game Logic");
-    updater_flow->name("State Update");
-    tf::Task game_logic_tasks = m_coordinator.composed_of(*game_logic_flow).name("Systems");
-    tf::Task updater_tasks = m_coordinator.composed_of(*updater_flow).name("Systems");
-    // tf::Task physics_task_prepare = m_coordinator.emplace([this](){
-    //     physics::prepare(m_registry);
-    // }).name("Physics/prepare");
-    //tf::Task physics_task_simulate = m_coordinator.emplace(physics::simulate).name("Physics/simulate");
-    tf::Task before_update_task = m_coordinator.emplace([this](){
-        callModuleHook<CM::BEFORE_UPDATE>();
-    }).name("Hooks/before-update");
-    tf::Task pump_events_task = m_coordinator.emplace([this](){
-        pumpEvents(); // Copy current frames events for processing next frame
-    }).name("Events/pump");
-
     /** Task graph:
      * 
      *                  GAME LOGIC [*]
@@ -185,10 +175,33 @@ void core::Engine::createTaskGraph () {
      * 
      * [*] = GAME LOGIC & UPDATE LOGIC are modules of subtasks
      **/
-    game_logic_tasks.precede(before_update_task/*, physics_task_prepare*/);
-    pump_events_task.succeed(before_update_task/*, physics_task_prepare*/);
-    //physics_task_simulate.succeed(physics_task_prepare);
-    updater_tasks.succeed(pump_events_task/*, physics_task_simulate*/);
+    tf::Task physics_task_prepare = m_coordinator.emplace([this](){
+        physics::prepare(m_physics_context, m_registry);
+    }).name("Physics/prepare");
+    tf::Task physics_task_simulate = m_coordinator.emplace([this](){
+        physics::simulate(m_physics_context);
+    }).name("Physics/simulate");
+    tf::Task before_update_task = m_coordinator.emplace([this](){
+        callModuleHook<CM::BEFORE_UPDATE>();
+    }).name("Hooks/before-update");
+    tf::Task pump_events_task = m_coordinator.emplace([this](){
+        pumpEvents(); // Copy current frames events for processing next frame
+    }).name("Events/pump");
+    spdlog::info("Tasks setup, setting dependencies");
+    pump_events_task.succeed(before_update_task, physics_task_prepare);
+    physics_task_simulate.succeed(physics_task_prepare);
+    
+    // Add engine-internal tasks to graph and coordinate flow into one graph
+    if (tf::Taskflow* game_logic_flow = helpers::find_or(taskflows, Stage::GameLogic, nullptr)) {
+        game_logic_flow->name("Game Logic");
+        tf::Task game_logic_tasks = m_coordinator.composed_of(*game_logic_flow).name("Systems");
+        game_logic_tasks.precede(before_update_task, physics_task_prepare);
+    }
+    if (tf::Taskflow* updater_flow = helpers::find_or(taskflows, Stage::Update, nullptr)) {
+        updater_flow->name("State Update");
+        tf::Task updater_tasks = m_coordinator.composed_of(*updater_flow).name("Systems");
+        updater_tasks.succeed(pump_events_task, physics_task_simulate);
+    }
 
 #ifdef DEV_MODE
     const bool dev_mode = entt::monostate<"game/dev-mode"_hs>();
@@ -197,15 +210,22 @@ void core::Engine::createTaskGraph () {
         m_coordinator.dump(file);
     }
 #endif
+    spdlog::info("Done creating taskflow graph");
 }
 
 void core::Engine::setupSystems (graphics::Sync* state_sync)
 {
     m_state_sync = state_sync;
+    // Initialise subsystems
+    m_physics_context = physics::init(*this);
+    // Create task graph
+    createTaskGraph();
+    // Make events generated during module loading available during first frame
+    pumpEvents();
 }
 
 void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count) {
-    current_time_delta = delta;
+    m_current_time_delta = delta;
 
     // Run the before-frame hook for each module, updating the current time
     callModuleHook<CM::BEFORE_FRAME>(current_time, delta, frame_count);

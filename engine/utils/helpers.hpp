@@ -27,6 +27,9 @@ namespace helpers {
 
     } // impl::
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Defer calls to be run on scope exit
+    ///////////////////////////////////////////////////////////////////////////
     template <typename... T>
     auto defer (T... fns) {
         return impl::Defer<T...>(std::make_tuple(fns...));
@@ -41,10 +44,13 @@ namespace helpers {
         std::function<void()> func;
     };
     #define CONCAT_IDENTIFIERS_(a,b) a ## b
-    #define ON_SCOPE_EXIT_(name,num) helpers::exit_scope_obj CONCAT_IDENTIFIERS_(name, num)
+    #define ON_SCOPE_EXIT_(name,num) helpers::exit_scope_obj name ## num
     #define on_scope_exit ON_SCOPE_EXIT_(exit_scope_obj_, __LINE__)
     #define defer_calls auto CONCAT_IDENTIFIERS_(deferred_calls, __LINE__) = helpers::defer
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Remove 'index' from container by swapping it with the last item and then shrinking the container by one
+    ///////////////////////////////////////////////////////////////////////////
     template <typename ContainerType>
     void remove(ContainerType& container, std::size_t index)
     {
@@ -58,6 +64,9 @@ namespace helpers {
         container.pop_back();
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Move item at 'index' to back of the container and move 'data' into index
+    ///////////////////////////////////////////////////////////////////////////
     template <typename ContainerType>
     void move_back_and_replace(ContainerType& container, std::size_t index, typename ContainerType::reference&& data)
     {
@@ -65,6 +74,9 @@ namespace helpers {
         container[index] = std::move(data);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Move items from 'in' container to 'out' container using push_back
+    ///////////////////////////////////////////////////////////////////////////
     // If elements in 'in' have a deleted copy ctor, then _inserter may not work when compiling with EASTL, this is a workaround
     template <typename InputContainer, typename OutputContainer>
     void move_back (InputContainer& in, OutputContainer& out)
@@ -74,14 +86,24 @@ namespace helpers {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Pad a container with values until it contains the desired number of items
+    ///////////////////////////////////////////////////////////////////////////
     template <typename ContainerType>
     void pad_with (ContainerType& container, std::size_t size, typename ContainerType::value_type value)
     {
-        while (container.size() < size) {
-            container.push_back(value);
+        if (container.size() < size) {
+            auto required = container.size() - size;
+            for (auto i=required; i; --i) {
+                container.push_back(value);
+            }
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Binary search a container for an item, returning its index.
+    // WARNING: Item MUST exist and container must be sorted
+    ///////////////////////////////////////////////////////////////////////////
     template <typename ContainerType>
     std::size_t binary_search (ContainerType& container, typename ContainerType::value_type* item)
     {
@@ -105,8 +127,14 @@ namespace helpers {
         } while (true);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Read a file to a string, from PhysicsFS
+    ///////////////////////////////////////////////////////////////////////////
     std::string readToString(const std::string& filename);
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Unique pointer creation from constructor and destructor functions
+    ///////////////////////////////////////////////////////////////////////////
     template <typename T, typename Ctor, typename Dtor>
     struct unique_maker_obj {
         explicit unique_maker_obj (Ctor ctor, Dtor dtor) : ctor(ctor), dtor(dtor) {}
@@ -133,6 +161,9 @@ namespace helpers {
         return std::unique_ptr<T>(raw);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Pointer alignment
+    ///////////////////////////////////////////////////////////////////////////
     template <typename T = char>
     inline T* align(void* pointer, const uintptr_t bytes_alignment) {
         intptr_t value = reinterpret_cast<intptr_t>(pointer);
@@ -144,11 +175,17 @@ namespace helpers {
         return pointer + ((-pointer) & (bytes_alignment - 1));
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Number rounding
+    ///////////////////////////////////////////////////////////////////////////
     template <typename T>
     inline T roundDown(T n, T m) {
         return n >= 0 ? (n / m) * m : ((n - m + 1) / m) * m;
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Reverse iterator
+    ///////////////////////////////////////////////////////////////////////////
     template <typename T>
     struct reversion_wrapper { T& iterable; };
 
@@ -160,5 +197,30 @@ namespace helpers {
 
     template <typename T>
     reversion_wrapper<T> reverse (T&& iterable) { return { iterable }; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // In-place string search and replace
+    ///////////////////////////////////////////////////////////////////////////
+    void string_replace_inplace (std::string& input, const std::string& search, const std::string& replace);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Identity callable, for use with spp::sparse_hash_map when the key
+    // is already hashed (eg when using entt::hashed_string::hash_value as keys)
+    ///////////////////////////////////////////////////////////////////////////
+    struct Identity {
+        template <typename T> T operator()(T k) const { return k; }
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Return (copy of) value from container or 'default_value' if not found
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename Container>
+    typename Container::mapped_type find_or (const Container& container, typename Container::key_type key, typename Container::mapped_type default_value) {
+        auto it = container.find(key);
+        if (it != container.end()) {
+            return it->second;
+        }
+        return default_value;
+    }
 
 } // helpers::

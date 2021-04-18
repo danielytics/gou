@@ -5,23 +5,16 @@
 #include "constants.hpp"
 
 #include "utils/parser.hpp"
+#include "utils/helpers.hpp"
 
 #define CR_HOST
 #ifdef DEBUG_BUILD
 template <typename... Args>
 void cr_debug_log (const std::string& fmt, Args... args) {
     std::string format = fmt;
-    const std::string search = "%s";
-    const std::string replace = "{}";
-    std::string::size_type n = 0;
-    while ( ( n = format.find(search, n ) ) != std::string::npos ) {
-        format.replace(n, search.size(), replace);
-        n += replace.size();
-    }
-    if (format.back() == '\n') {
-        format.pop_back();
-    }
-    spdlog::debug(format, args...);
+    helpers::string_replace_inplace(format, "%s", "{}");
+    helpers::string_replace_inplace(format, "%d", "{}");
+    spdlog::debug(std::string{"cr: "} + format, args...);
 }
 #define CR_DEBUG
 #define CR_TRACE

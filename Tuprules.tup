@@ -1,5 +1,7 @@
 .gitignore
 
+PROJECT_ROOT = $(TUP_CWD)
+
 CFLAGS += -ffast-math -ffp-contract=fast -msse4.1 -mfma -mavx2
 CPPFLAGS += -std=c++17
 

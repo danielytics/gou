@@ -1,6 +1,6 @@
 [graphics]
 resolution = "720p"
-fullscreen = true
+fullscreen = false
 vsync = false
 fov = 60
 debug = false # Only in debug builds

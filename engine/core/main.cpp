@@ -29,19 +29,21 @@ void setupPhysFS (const char* argv0)
 
 std::shared_ptr<spdlog::logger> setupLogging () {
     std::map<std::string,spdlog::level::level_enum> log_levels{
-#ifdef DEBUG_BUILD
         {"trace", spdlog::level::trace},
         {"debug", spdlog::level::debug},
-#else
-        {"trace", spdlog::level::info},
-        {"debug", spdlog::level::info},
-#endif
         {"info", spdlog::level::info},
         {"warn", spdlog::level::warn},
         {"error", spdlog::level::err},
         {"off", spdlog::level::off},
     };
-    const std::string& log_level = entt::monostate<"tools/log-level"_hs>{};
+    const std::string& raw_log_level = entt::monostate<"tools/log-level"_hs>{};
+    std::string log_level = raw_log_level;
+#ifndef DEBUG_BUILD
+    // Only debug builds have debug or trace log levels
+    if (log_level == "debug" || log_level == "trace") {
+        log_level = "info";
+    }
+#endif
     // TODO: Error checking for invalid values of log_level
     spdlog::level::level_enum level = log_levels[log_level];
     std::vector<spdlog::sink_ptr> sinks;
@@ -97,13 +99,7 @@ int main (int argc, char* argv[])
         }
     }
 
-    entt::monostate<"test"_hs>{} = float(2);
-    entt::monostate<"test"_hs>{} = int(3);
-    entt::monostate<"test"_hs>{} = bool(true);
-    spdlog::warn("int: {}", int(entt::monostate<"test"_hs>()));
-    spdlog::warn("float: {}", float(entt::monostate<"test"_hs>()));
-    spdlog::warn("bool: {}", bool(entt::monostate<"test"_hs>()));
-
+    bool clean_exit = true;
     try {
         bool running = true;
         SDL_Event event;
@@ -265,10 +261,13 @@ int main (int argc, char* argv[])
     } catch (const std::exception& e) {
         spdlog::error("Uncaught exception: {}", e.what());
         spdlog::critical("Terminating.");
+        clean_exit = false;
     }
     SDL_Quit();
     physfs::deinit();
-    spdlog::info("Goodbye, until next time.");
+    if (clean_exit) {
+        spdlog::info("Goodbye, until next time.");
+    }
     return 0;
 }
 

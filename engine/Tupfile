@@ -1,8 +1,7 @@
 include_rules
 
 PCH = gou_engine
-ROOT_LOCATION = ..
-VENDOR = $(ROOT_LOCATION)/vendor
+VENDOR = $(PROJECT_ROOT)/vendor
 
 # Needed because source files aren't in the build artifact root directory, but some headers (eg PCH) are
 INCLUDES += -I.
@@ -21,11 +20,12 @@ INCLUDES += -I$(VENDOR)/physfs-hpp/include
 INCLUDES += -I$(VENDOR)/imgui
 INCLUDES += -I$(VENDOR)/bullet3/src
 INCLUDES += -I$(VENDOR)/orderedmap/include
+INCLUDES += -I$(VENDOR)/sparsepp
 
 ifdef CONFIG_DEBUG_BUILD
-INCLUDES += -I$(VENDOR)/glad/debug/include
+    INCLUDES += -I$(VENDOR)/glad/debug/include
 else
-INCLUDES += -I$(VENDOR)/glad/release/include
+    INCLUDES += -I$(VENDOR)/glad/release/include
 endif
 
 LINKER += -pthread -ldl -lSDL2 -lGL
@@ -39,6 +39,7 @@ LINKER += -pthread -ldl -lSDL2 -lGL
 # Compile Sources
 : foreach core/*.cpp |> !compile-engine |>
 : foreach graphics/*.cpp |> !compile-engine |>
+: foreach physics/*.cpp |> !compile-engine |>
 : foreach utils/*.cpp |> !compile-engine |>
 : foreach $(VENDOR)/physfs/src/*.c |> !compile-c |>
 

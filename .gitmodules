@@ -37,3 +37,6 @@
 [submodule "vendor/orderedmap"]
 	path = vendor/orderedmap
 	url = git@github.com:Tessil/ordered-map.git
+[submodule "vendor/sparsepp"]
+	path = vendor/sparsepp
+	url = https://github.com/greg7mdp/sparsepp

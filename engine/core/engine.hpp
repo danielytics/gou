@@ -8,6 +8,9 @@
 namespace graphics {
     struct Sync;
 }
+namespace physics {
+    struct Context;
+}
 
 namespace core {
     /**
@@ -30,6 +33,9 @@ namespace core {
         void mergeEntity (entt::entity, entt::hashed_string, bool) final;
         void registerLoader(entt::hashed_string, gou::api::Engine::LoaderFn) final;
         gou::resources::Handle findResource (entt::hashed_string::hash_type) final;
+
+        // Time
+        DeltaTime deltaTime () { return m_current_time_delta; }
 
         // Initialise systems
         void setupSystems (graphics::Sync*);
@@ -79,13 +85,12 @@ namespace core {
         entt::registry m_registry;
 
         // System and task scheduling
-        std::map<uint32_t, entt::organizer> m_organizers;
-        std::vector<tf::Taskflow*> m_taskflows;
+        spp::sparse_hash_map<uint32_t, entt::organizer> m_organizers;
         tf::Taskflow m_coordinator;
         tf::Executor m_executor;
 
         // Timing
-        DeltaTime current_time_delta = 0;
+        DeltaTime m_current_time_delta = 0;
 
         // Module Hooks
         std::vector<gou::api::Module*> m_hooks_beforeFrame;
@@ -97,7 +102,10 @@ namespace core {
         std::vector<gou::api::Module*> m_hooks_afterRender;
 
         // Render state
-        graphics::Sync* m_state_sync; 
+        graphics::Sync* m_state_sync;
+
+        // Physics state
+        physics::Context* m_physics_context;
 
         // Implement API interface
         void* allocModule (std::size_t bytes) final;

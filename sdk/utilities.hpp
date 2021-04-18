@@ -2,6 +2,9 @@
 
 namespace utilities {
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Create an iterator from an object with a 'data' pointer and a 'count' variable
+    ///////////////////////////////////////////////////////////////////////////
     template <typename T>
     class Iterator {
     public:
@@ -36,6 +39,9 @@ namespace utilities {
         return ConstIterator<T>(iterable);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Get the underlying value from a class enum
+    ///////////////////////////////////////////////////////////////////////////
     template <typename T>
     constexpr typename std::underlying_type<T>::type enum_value (T enumeration) {
         return static_cast<typename std::underlying_type<T>::type>(enumeration);

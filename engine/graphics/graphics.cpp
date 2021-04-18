@@ -17,7 +17,6 @@ struct graphics::Context {
     SDL_GLContext init_context;
     std::atomic_bool running;
     SDL_Thread* render_thread;
-    // moodycamel::ConcurrentQueue<SDL_Event>& eventQueue;
     core::Engine& engine;
     graphics::Sync state_sync;
 };
@@ -140,7 +139,7 @@ int render (void* data) {
     auto& engine = context->engine;
     //engine.setImguiContext(imgui_context);
 
-    spdlog::info("Renderer running...");
+    spdlog::info("Render thread running");
 
     // SDL_Event event;
     

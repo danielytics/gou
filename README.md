@@ -34,13 +34,14 @@ Engine dependencies:
 * [PhysFS++](https://github.com/Ybalrid/physfs-hpp) - C++ wrapper for PhysicsFS (zlib License + [notes](https://github.com/Ybalrid/physfs-hpp/blob/master/LICENSE.txt))
 * [toml11](https://github.com/ToruNiina/toml11) - TOML data file loader (MIT License)
 * [cr.h](https://github.com/fungos/cr) - Module live reload library (MIT License)
-* [stb_image](https://github.com/nothings/stb) - Image loader (Public domain)
-* [Bullet Physics](https://github.com/bulletphysics/bullet3) - Physics engine (zlib license)
+* [stb_image](https://github.com/nothings/stb) - Image loader (Public Domain)
+* [Bullet Physics](https://github.com/bulletphysics/bullet3) - Physics engine (zlib License)
 * [cxxopts](https://github.com/jarro2783/cxxopts) - Lightweight C++ command line option parser (MIT License)
-* [taskflow](https://github.com/taskflow/taskflow) - Parallel task programming framework (MIT-like [Taskflow Licence](https://github.com/taskflow/taskflow/blob/master/LICENSE))
+* [taskflow](https://github.com/taskflow/taskflow) - Parallel task programming framework (MIT-like [Taskflow Lisence](https://github.com/taskflow/taskflow/blob/master/LICENSE))
 * [Dear ImGui](https://github.com/ocornut/imgui) - Bloat-free graphical user interface library for C++ (MIT License)
 * [vecmath](https://github.com/GaijinEntertainment/vecmath) - SIMD vector math HAL (BSD 3-Clause License)
 * [ordered-map](https://github.com/Tessil/ordered-map) - Order-preserving hash map/set (MIT License)
+* [Sparsepp](https://github.com/greg7mdp/sparsepp) - A fast, memory efficient hash map for C++ ([Custom do-almost-anything License](https://github.com/greg7mdp/sparsepp/blob/master/LICENSE))
 * [Catch2](https://github.com/catchorg/Catch2) - C++ testing library (Boost Software License)
 
 Building from surce:

@@ -4,13 +4,14 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include <map>
 #include <cstdint>
 
 // From vendor dependencies
 #include <entt/core/hashed_string.hpp>
 #include <entt/core/monostate.hpp>
 #include <entt/entity/registry.hpp>
+#include <sparsepp/spp.h>
+#include <tsl/ordered_map.h>
 
 using namespace entt::literals;
 
@@ -29,7 +30,11 @@ using namespace entt::literals;
 #include <types.hpp>
 #include <components/core.hpp>
 //#include <events.hpp>
-#include <utilities.hpp>
+namespace helpers {
+    #include <utilities.hpp>
+    using namespace utilities;
+}
+
 
 namespace gou::api::detail {
     #include <type_info.hpp>
