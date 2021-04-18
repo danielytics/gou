@@ -5,6 +5,10 @@
 
 #include <taskflow/taskflow.hpp>
 
+namespace graphics {
+    struct Sync;
+}
+
 namespace core {
     /**
      * Engine is the API through which functionality is registered with the engine.
@@ -27,8 +31,13 @@ namespace core {
         void registerLoader(entt::hashed_string, gou::api::Engine::LoaderFn) final;
         gou::resources::Handle findResource (entt::hashed_string::hash_type) final;
 
+        // Initialise systems
+        void setupSystems (graphics::Sync*);
+
         // Execute the Taskflow graph of tasks
         void execute (Time current_time, DeltaTime delta, uint64_t frame_count);
+
+        // Reset the engine internal state
         void reset ();
 
         // Call all modules that are added as a specific engine hook
@@ -87,6 +96,9 @@ namespace core {
         std::vector<gou::api::Module*> m_hooks_beforeRender;
         std::vector<gou::api::Module*> m_hooks_afterRender;
 
+        // Render state
+        graphics::Sync* m_state_sync; 
+
         // Implement API interface
         void* allocModule (std::size_t bytes) final;
         void deallocModule (void* ptr) final;
@@ -98,5 +110,5 @@ namespace core {
         // Make emitted events available to read and make a fresh event queue available to emit to
         void pumpEvents ();
     };
-}
 
+} // core::

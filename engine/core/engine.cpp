@@ -1,5 +1,7 @@
 
 #include "engine.hpp"
+#include "graphics/graphics.hpp"
+
 using CM = gou::api::Module::CallbackMasks;
 
 #include <entt/core/type_info.hpp>
@@ -197,6 +199,11 @@ void core::Engine::createTaskGraph () {
 #endif
 }
 
+void core::Engine::setupSystems (graphics::Sync* state_sync)
+{
+    m_state_sync = state_sync;
+}
+
 void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count) {
     current_time_delta = delta;
 
@@ -208,6 +215,24 @@ void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
 
     // Run the after-frame hook for each module
     callModuleHook<CM::AFTER_FRAME>();
+
+    /*
+     * Hand over exclusive access to engine state to renderer.
+     * Renderer will access the ECS registry to gather all components needed for rendering, accumulate
+     * a render list and hand exclusive access back to the engine. The renderer wil then asynchronously
+     * render from its locally owned render list.
+     */
+
+    // First, signal to the renderer that it has exclusive access to the engines state
+    {
+        std::scoped_lock<std::mutex> lock(m_state_sync->state_mutex);
+        m_state_sync->owner = graphics::Sync::Owner::Renderer;
+    }
+    m_state_sync->sync_cv.notify_one();
+
+    // Now wait for the renderer to relinquish exclusive access back to the engine
+    std::unique_lock<std::mutex> lock(m_state_sync->state_mutex);
+    m_state_sync->sync_cv.wait(lock, [this]{ return m_state_sync->owner == graphics::Sync::Owner::Engine; });
 }
 
 void core::Engine::reset ()

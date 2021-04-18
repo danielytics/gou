@@ -50,7 +50,6 @@ CR_EXPORT int cr_main(cr_plugin* ctx, cr_op operation)
         // Close and unload module
         case CR_CLOSE:
         {
-            std::cout << "CLOSE: " << ctx->userdata << "\n";
             gou::ctx::gou_module->on_unload();
             break;
         }

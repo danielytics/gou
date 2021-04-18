@@ -1,13 +1,13 @@
 [graphics]
 resolution = "720p"
-fullscreen = false
-vsync = true
+fullscreen = true
+vsync = false
 fov = 60
 debug = false # Only in debug builds
 
 [telemetry]
+# trace, debug, info, warn, error, off. Both trace and debug are only available in debug builds.
 logging = "debug"
-profiling = false
 
 [dev-mode] # Only in dev builds
 enabled = true

@@ -1,27 +1,38 @@
 include_rules
 
+# Build GLAD
+ifdef CONFIG_DEBUG_BUILD
+    INCLUDES += -Iglad/debug/include
+    : foreach glad/debug/src/*.c |> !compile-c |> glad__%B.o
+else
+    INCLUDES += -Iglad/release/include
+    : foreach glad/release/src/*.c |> !compile-c |> glad__%B.o
+endif
+: glad__*.o |> !ar |> libglad.a
+
 # Build ImGUI
 INCLUDES += `sdl2-config --cflags` -Iimgui
-: foreach imgui/*.cpp |> !compile-c++ |> build/imgui_%B.o
-: imgui/backends/imgui_impl_sdl.cpp |> !compile-c++ |> build/imgui_%B.o
-: imgui/backends/imgui_impl_opengl3.cpp |> !compile-c++ |> build/imgui_%B.o
-: build/imgui_*.o |> !ar |> libdearimgui.a
+CPPFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
+: foreach imgui/*.cpp |> !compile-c++ |> imgui__%B.o
+: imgui/backends/imgui_impl_sdl.cpp |> !compile-c++ |> imgui__%d_%B.o
+: imgui/backends/imgui_impl_opengl3.cpp |> !compile-c++ |>imgui__%d_%B.o
+: imgui__*.o |> !ar |> libdearimgui.a
 
 # Build Bullet3 Physics
 INCLUDES = -Ibullet3/src
-: foreach bullet3/src/*.cpp |> !compile-c++ |> build/bullet_%B.o
-: foreach bullet3/src/BulletCollision/*.cpp |> !compile-c++ |> build/bullet_%B.o
-: foreach bullet3/src/BulletCollision/BroadphaseCollision/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletCollision/CollisionDispatch/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletCollision/CollisionShapes/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletCollision/Gimpact/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletCollision/NarrowPhaseCollision/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletDynamics/Character/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletDynamics/ConstraintSolver/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletDynamics/Dynamics/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletDynamics/Featherstone/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletDynamics/MLCPSolvers/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/BulletDynamics/Vehicle/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/LinearMath/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: foreach bullet3/src/LinearMath/TaskScheduler/*.cpp |> !compile-c++ |> build/bullet_%d_%B.o
-: build/bullet_*.o |> !ar |> libbulletphysics.a
+: foreach bullet3/src/*.cpp |> !compile-c++ |> bullet__%B.o
+: foreach bullet3/src/BulletCollision/*.cpp |> !compile-c++ |> bullet__%B.o
+: foreach bullet3/src/BulletCollision/BroadphaseCollision/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletCollision/CollisionDispatch/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletCollision/CollisionShapes/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletCollision/Gimpact/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletCollision/NarrowPhaseCollision/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletDynamics/Character/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletDynamics/ConstraintSolver/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletDynamics/Dynamics/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletDynamics/Featherstone/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletDynamics/MLCPSolvers/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/BulletDynamics/Vehicle/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/LinearMath/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: foreach bullet3/src/LinearMath/TaskScheduler/*.cpp |> !compile-c++ |> bullet__%d_%B.o
+: bullet__*.o |> !ar |> libbulletphysics.a

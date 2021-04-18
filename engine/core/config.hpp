@@ -9,4 +9,4 @@ namespace core {
     // Read game configuration (not meant for player editing)
     bool readGameConfig ();
 
-} // namespace core
+} // core::

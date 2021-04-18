@@ -5,4 +5,5 @@ namespace gou::constants {
     const float GamePadAxisScaleFactor = (1.0f / float(2>>15));
 
     const char PathSeparator = '/';
-};
+
+} // gou::constants::

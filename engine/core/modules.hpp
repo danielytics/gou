@@ -3,9 +3,11 @@
 #include <spdlog/logger.h>
 
 namespace core {
+
     namespace detail {
         struct ModuleData;
-    }
+    } // detail::
+    
     /**
      * ModuleManager is the API through which modules are loaded into the engine.
      * Modules then register functionality with the Engine, after which runtime systems will call the correct callbacks at runtime.
@@ -24,4 +26,4 @@ namespace core {
         detail::ModuleData* m_data;
     };
 
-}
+} // core::

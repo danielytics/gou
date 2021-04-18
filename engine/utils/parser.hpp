@@ -21,4 +21,5 @@ namespace parser {
      * Read a file (from PhysicsFS or filesystem) and parse as TOML
      */
     const TomlValue parse_toml (const std::string& filename, FileLocation location=FileLocation::PhysicsFS);
-}
+
+} // parser::

@@ -61,6 +61,7 @@ bool core::readUserConfig (int argc, char* argv[])
         //******************************************************//
         // Set default settings for [game] section
         entt::monostate<"game/sources"_hs>{} = std::vector<std::string>{"common"};
+
         // Overwrite with settings
         if (config.contains("game")) {
             const auto& game = config.at("game");
@@ -180,10 +181,42 @@ bool core::readGameConfig () {
         const auto config = parser::parse_toml(game_config);
         
         //******************************************************//
+        // GRAPHICS
+        //******************************************************//
+        // Default settings for [graphics] section
+        entt::monostate<"graphics/window/title"_hs>{} = std::string{"The GOU Engine"};
+        entt::monostate<"graphics/opengl/minimum-red-bits"_hs>{} = int{8};
+        entt::monostate<"graphics/opengl/minimum-green-bits"_hs>{} = int{8};
+        entt::monostate<"graphics/opengl/minimum-blue-bits"_hs>{} = int{8};
+        entt::monostate<"graphics/opengl/minimum-alpha-bits"_hs>{} = int{8};
+        entt::monostate<"graphics/opengl/minimum-framebuffer-bits"_hs>{} = int{32};
+        entt::monostate<"graphics/opengl/minimum-depthbuffer-bits"_hs>{} = int{8};
+        entt::monostate<"graphics/opengl/double-buffered"_hs>{} = bool{true};
+
+        // Overwrite with settings
+        if (config.contains("graphics")) {
+            const auto& graphics = config.at("graphics");
+            if (graphics.contains("window")) {
+                maybe_set<"graphics/window/title"_hs, std::string>(graphics.at("window"), "title");
+            }
+            if (graphics.contains("opengl")) {
+                const auto& opengl = graphics.at("opengl");
+                maybe_set<"graphics/opengl/minimum-red-bits"_hs, int>(opengl, "minimum-red-bits");
+                maybe_set<"graphics/opengl/minimum-green-bits"_hs, int>(opengl, "minimum-green-bits");
+                maybe_set<"graphics/opengl/minimum-blue-bits"_hs, int>(opengl, "minimum-blue-bits");
+                maybe_set<"graphics/opengl/minimum-alpha-bits"_hs, int>(opengl, "minimum-alpha-bits");
+                maybe_set<"graphics/opengl/minimum-framebuffer-bits"_hs, int>(opengl, "minimum-framebuffer-bits");
+                maybe_set<"graphics/opengl/minimum-depthbuffer-bits"_hs, int>(opengl, "minimum-depthbuffer-bits");
+                maybe_set<"graphics/opengl/double-buffered"_hs, bool>(opengl, "double-buffered");
+            }
+        }
+
+        //******************************************************//
         // MEMORY
         //******************************************************//
-        // Default settings for [memory] section, use default settings
+        // Default settings for [memory] section
         entt::monostate<"memory/events/pool-size"_hs>{} = std::uint32_t{96};
+
         // Overwrite with settings
         if (config.contains("memory")) {
             const auto& memory = config.at("memory");

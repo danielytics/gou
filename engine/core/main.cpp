@@ -4,6 +4,7 @@
 #include "core/engine.hpp"
 #include "core/modules.hpp"
 #include "utils/clock.hpp"
+#include "graphics/graphics.hpp"
 
 #define SPDLOG_HEADER_ONLY
 #include <spdlog/spdlog.h>
@@ -31,6 +32,9 @@ std::shared_ptr<spdlog::logger> setupLogging () {
 #ifdef DEBUG_BUILD
         {"trace", spdlog::level::trace},
         {"debug", spdlog::level::debug},
+#else
+        {"trace", spdlog::level::info},
+        {"debug", spdlog::level::info},
 #endif
         {"info", spdlog::level::info},
         {"warn", spdlog::level::warn},
@@ -93,8 +97,15 @@ int main (int argc, char* argv[])
         }
     }
 
+    entt::monostate<"test"_hs>{} = float(2);
+    entt::monostate<"test"_hs>{} = int(3);
+    entt::monostate<"test"_hs>{} = bool(true);
+    spdlog::warn("int: {}", int(entt::monostate<"test"_hs>()));
+    spdlog::warn("float: {}", float(entt::monostate<"test"_hs>()));
+    spdlog::warn("bool: {}", bool(entt::monostate<"test"_hs>()));
+
     try {
-        bool running = false;
+        bool running = true;
         SDL_Event event;
         SDL_GameController* gameController;
         // bool inputLearnMode = false;
@@ -105,16 +116,21 @@ int main (int argc, char* argv[])
         if (!moduleManager.load(logger)) {
             spdlog::critical("Could not load some required modules. Terminating.");
         } else {
+            graphics::Context* graphics_context;
             // Scene scene;
             // input_mapping[InputKeys::make(InputKeys::KeyType::KeyboardButton, SDL_SCANCODE_SPACE)] = frenzy::events::Event{
             //     "character/jump"_event, entt::null, scene.playerEntity(), {0, 0, 0}, 0, 0
             // };
             
-            // Barrier barrier; // TODO: Replace with std::barrier when support is more widely available
-            // moodycamel::ConcurrentQueue<SDL_Event> eventQueue;
-            // graphics::Context* graphics_context = graphics::init(barrier, eventQueue, engine);
-
-            // barrier.init(Barrier::Which::Updating);
+            {
+                graphics::Sync* state_sync;
+                graphics_context = graphics::init(engine, &state_sync);
+                if (graphics_context == nullptr) {
+                    moduleManager.unload();
+                    return 0;
+                }
+                engine.setupSystems(state_sync);
+            }
 
             // Initialise timekeeping
             ElapsedTime time_since_start = 0L; // microseconds
@@ -209,11 +225,6 @@ int main (int argc, char* argv[])
                 // // Execute systems and copy current frames events for processing next frame
                 engine.execute(time_since_start / 1000000.0, frame_time_micros / 1000000.0, total_frames);
 
-                // // Handoff render data to renderer
-                // // ...handoff...
-                // // Sync after updating to ensure that an update cycle is complete for the renderer to render
-                // barrier.sync(Barrier::Which::Updating);
-
                 // Update timekeeping
                 previous_time = current_time;
                 current_time = Clock::now();
@@ -236,7 +247,6 @@ int main (int argc, char* argv[])
     #endif
 
             } while (running);
-            logger->flush();
 
             auto micros_per_frame = time_since_start / total_frames;
             if (micros_per_frame == 0) {
@@ -244,10 +254,13 @@ int main (int argc, char* argv[])
             }
             spdlog::info("Average framerate: {:d} ({:.2f}ms per frame)", 1000000 / micros_per_frame, micros_per_frame / 1000.0f);
 
-            // graphics::term(graphics_context);
+            // Shut down graphics thread
+            graphics::term(graphics_context);
+
             // Clear data before unloading modules, to avoid referencing memory owned by modules after they are unloaded
             engine.reset();
             moduleManager.unload();
+            logger->flush();
         }
     } catch (const std::exception& e) {
         spdlog::error("Uncaught exception: {}", e.what());
