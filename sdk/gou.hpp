@@ -137,14 +137,14 @@ namespace gou {
         }
 
         /*
-         * Create a new entity from an entity template
+         * Create a new entity from an entity prototype
          */
         entt::entity loadEntity (entt::hashed_string id) {
             return m_engine.loadEntity(id);
         }
 
         /*
-         * Merge an entity template into an existing entity
+         * Merge an entity prototype into an existing entity
          * Any components from the entity that are also in the template will be overwritten with the template ones, unless 'overwrite' is unset
          */
         void mergeEntity (entt::entity entity, entt::hashed_string id, bool overwrite=true) {

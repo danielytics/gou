@@ -21,6 +21,54 @@ struct graphics::Context {
     graphics::Sync state_sync;
 };
 
+#ifdef DEBUG_BUILD
+void GLAPIENTRY opengl_messageCallback (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+    std::string type_string;
+	switch (type) {
+        case GL_DEBUG_TYPE_ERROR:
+            type_string = "error";
+            break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            type_string = "deprecated_behavior";
+            break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+            type_string = "undefined_behavior";
+            break;
+        case GL_DEBUG_TYPE_PORTABILITY:
+            type_string = "portability";
+            break;
+        case GL_DEBUG_TYPE_PERFORMANCE:
+            type_string = "performance";
+            break;
+        case GL_DEBUG_TYPE_OTHER:
+        default:
+            type_string = "other";
+            break;
+	}
+
+    std::string severity_string = "unknown";
+	switch (severity){
+        case GL_DEBUG_SEVERITY_LOW:
+            severity_string = "low";
+            break;
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            severity_string = "medium";
+            break;
+        case GL_DEBUG_SEVERITY_HIGH:
+            severity_string = "high";
+            break;
+	}
+
+    #define OPENGL_MESSAGE "OpenGL Message (id={:#x}, type={}, severity={}): {}", id, type_string, severity_string, message
+    if (type == GL_DEBUG_TYPE_ERROR) {
+        spdlog::error(OPENGL_MESSAGE);
+    } else {
+        spdlog::debug(OPENGL_MESSAGE);
+    }
+}
+#endif
+
 int render (void* data);
 
 graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_sync, ImGuiContext*& imgui_context) {
@@ -112,6 +160,13 @@ int render (void* data) {
 
     graphics::Context* context = reinterpret_cast<graphics::Context*>(data);
     SDL_GL_MakeCurrent(context->window, context->gl_context);
+
+#ifdef DEBUG_BUILD
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(opengl_messageCallback, 0);
+	GLuint unused_ids = 0;
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unused_ids, true);
+#endif
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);

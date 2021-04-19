@@ -21,6 +21,7 @@ INCLUDES += -I$(VENDOR)/imgui
 INCLUDES += -I$(VENDOR)/bullet3/src
 INCLUDES += -I$(VENDOR)/orderedmap/include
 INCLUDES += -I$(VENDOR)/sparsepp
+INCLUDES += -I$(VENDOR)/stb
 
 ifdef CONFIG_DEBUG_BUILD
     INCLUDES += -I$(VENDOR)/glad/debug/include
