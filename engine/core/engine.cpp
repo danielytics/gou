@@ -26,8 +26,12 @@ core::Engine::Engine () :
     m_scene_manager(*this),
     m_executor(get_num_workers())
 {
+    // Manage Named entities
     m_registry.on_construct<components::Named>().connect<&core::Engine::onAddNamedEntity>(this);
     m_registry.on_destroy<components::Named>().connect<&core::Engine::onRemoveNamedEntity>(this);
+    // Manage prototype entities
+    m_prototype_registry.on_construct<core::EntityPrototypeID>().connect<&core::Engine::onAddPrototypeEntity>(this);
+    m_prototype_registry.on_destroy<core::EntityPrototypeID>().connect<&core::Engine::onRemovePrototypeEntity>(this);
 }
 
 core::Engine::~Engine ()
@@ -72,30 +76,16 @@ entt::organizer& core::Engine::organizer(std::uint32_t type)
 
 entt::entity core::Engine::findEntity (entt::hashed_string name)
 {
-    auto it = m_named_entities.find(name.value());
+    auto it = m_named_entities.find(name);
     if (it != m_named_entities.end()) {
         return it->second;
     }
     return entt::null;
 }
 
-entt::entity core::Engine::loadEntity (entt::hashed_string template_id)
-{
-    if (true) {
-        return entt::null;
-    }
-    auto entity = m_registry.create();
-    return entity;
-}
-
-void core::Engine::mergeEntity (entt::entity entity, entt::hashed_string template_id, bool overwrite_components)
-{
-
-}
-
 void core::Engine::registerLoader(entt::hashed_string name, gou::api::Engine::LoaderFn loader_fn)
 {
-    m_component_loaders[name.value()] = loader_fn;
+    m_component_loaders[name] = loader_fn;
 }
 
 gou::resources::Handle core::Engine::findResource (entt::hashed_string::hash_type name)
@@ -136,16 +126,23 @@ void core::Engine::addModuleHook (gou::api::Module::CallbackMasks hook, gou::api
     };
 }
 
-void core::Engine::loadComponent (entt::hashed_string component, entt::entity entity, const void* table)
+void core::Engine::loadComponent (core::Engine::EntityLoadType loadType, entt::hashed_string component, entt::entity entity, const void* table)
 {
-    auto it = m_component_loaders.find(component.value());
+    auto it = m_component_loaders.find(component);
     if (it != m_component_loaders.end()) {
         const auto& loader = it->second;
-        loader(this, m_registry, table, entity);
+        auto& registry = (loadType == core::Engine::EntityLoadType::LoadToScene) ? m_registry : m_prototype_registry;
+        loader(this, registry, table, entity);
     } else {
         spdlog::warn("Tried to load non-existent component: {}", component.data());
     }
 }
+
+entt::registry& core::Engine::prototypeRegistry ()
+{
+    return m_prototype_registry;
+}
+
 
 void core::Engine::createTaskGraph () {
     // Setup Systems by creating a Taskflow graph for each stage
@@ -349,6 +346,8 @@ void core::Engine::reset ()
     callModuleHook<CM::UNLOAD_SCENE>();
     // Clear the registry
     m_registry = {};
+    // Clear the prototype registry
+    m_prototype_registry = {};
 }
 
 void core::Engine::setupInitialScene ()

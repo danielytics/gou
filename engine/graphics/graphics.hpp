@@ -23,7 +23,7 @@ namespace graphics {
     };
 
     Context* init (core::Engine&, graphics::Sync*&, ImGuiContext*&);
-    // void update(Context*);
+    void windowChanged (Context*);
     void term (Context*);
 
 } // graphics::

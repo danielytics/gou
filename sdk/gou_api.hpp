@@ -93,6 +93,9 @@ namespace gou::api {
         using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
         virtual void registerLoader(entt::hashed_string, LoaderFn) = 0;
 
+        // Get the prototype registry, used by the component loader setup code, not meant for module users
+        virtual entt::registry& prototypeRegistry () = 0;
+
         // Retrieve a resource handle by name
         virtual gou::resources::Handle findResource (entt::hashed_string::hash_type) = 0;
 

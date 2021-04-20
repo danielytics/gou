@@ -44,6 +44,9 @@ namespace gou {
     // API for accessing rendering
     class Renderer {
     public:
+        void setViewport (const glm::vec4&) {
+            
+        }
     };
 
     // API for manipulating scenes
@@ -155,14 +158,7 @@ namespace gou {
          * Change to a different scene (unloads current scene and loads new one)
          */
         void changeToScene (entt::hashed_string scene) {
-            new (m_engine.event()) events::Event{
-                "scene/change"_hs,
-                entt::null,
-                entt::null,
-                {},
-                0,
-                scene.value(),
-            };
+
         }
 
         /*
@@ -172,14 +168,14 @@ namespace gou {
          * current_frame()  the number of frames since startup
          * TimeAware overloads scale the time by the TimeAware's scale factor
          */
-        Time current_time () const { return m_current_time; }
-        Time current_time (const components::TimeAware& time) const { return m_current_time * time.scale_factor; }
+        Time currentTime () const { return m_current_time; }
+        Time currentTime (const components::TimeAware& time) const { return m_current_time * time.scale_factor; }
 
-        DeltaTime delta_time() const { return m_delta_time; }
-        DeltaTime delta_time (const components::TimeAware& time) const { return m_delta_time * time.scale_factor; }
+        DeltaTime deltaTime() const { return m_delta_time; }
+        DeltaTime deltaTime (const components::TimeAware& time) const { return m_delta_time * time.scale_factor; }
 
-        uint64_t current_frame() const { return m_current_frame; }
-        uint64_t current_frame (const components::TimeAware& time) const { return uint64_t(float(m_current_frame) * time.scale_factor); }
+        uint64_t currentFrame() const { return m_current_frame; }
+        uint64_t currentFrame (const components::TimeAware& time) const { return uint64_t(float(m_current_frame) * time.scale_factor); }
 
         /*
          * Name of the scene
@@ -364,7 +360,7 @@ namespace gou {
             SettableScene (entt::registry& registry, gou::api::Engine& engine) : Scene(registry, engine) {}
             ~SettableScene() {}
             void set (Time time, DeltaTime delta, uint64_t frame)  {
-                m_current_frame = time;
+                m_current_time = time;
                 m_delta_time = delta;
                 m_current_frame = frame;
             }
@@ -405,7 +401,7 @@ struct entt::type_seq<Type> {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Add module class boilerplate
-#define GOU_CLASS(ClassName) public: ClassName(const std::string& name, gou::api::Engine& e) : gou::Module<ClassName>(name, e) {} virtual ~ClassName() {} private:
+#define GOU_MODULE_CLASS(ClassName) public: ClassName(const std::string& name, gou::api::Engine& e) : gou::Module<ClassName>(name, e) {} virtual ~ClassName() {} private:
 
 // Declare module
 #define GOU_MODULE(ClassName) GOU_MODULE_INIT(gou::) { GOU_REGISTER_COMPONENTS; return engine->createModule<ClassName>(name); }

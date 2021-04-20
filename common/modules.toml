@@ -1,10 +1,15 @@
 [[module]]
     path = "modules/"
     name = "test"
-    enabled = true
+    enabled = false
     required = true
 
 [[module]]
     path = "modules/"
     name = "test2"
+    enabled = false
+
+[[module]]
+    path = "modules/"
+    name = "editor"
     enabled = true

@@ -11,6 +11,11 @@
 
 #include <atomic>
 
+namespace imgui {
+    void initTheme ();
+}
+
+
 struct graphics::Context {
     SDL_Window* window;
     SDL_GLContext gl_context;
@@ -19,6 +24,14 @@ struct graphics::Context {
     SDL_Thread* render_thread;
     core::Engine& engine;
     graphics::Sync state_sync;
+
+    struct {
+        glm::mat4 projection_matrix;
+        glm::vec4 viewport;
+
+        std::atomic_bool dirty;
+    } config;
+    
 };
 
 #ifdef DEBUG_BUILD
@@ -95,12 +108,17 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
     bool fullscreen = entt::monostate<"graphics/fullscreen"_hs>();
+
+    const int width = entt::monostate<"graphics/resolution/width"_hs>();
+    const int height = entt::monostate<"graphics/resolution/height"_hs>();
+    entt::monostate<"graphics/renderer/width"_hs>{} = float(width);
+    entt::monostate<"graphics/renderer/height"_hs>{} = float(height);
     auto window = SDL_CreateWindow(
         std::string(entt::monostate<"graphics/window/title"_hs>()).c_str(),
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        int(entt::monostate<"graphics/resolution/width"_hs>()),
-        int(entt::monostate<"graphics/resolution/height"_hs>()),
+        width,
+        height,
         SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
 
     SDL_GLContext render_context = SDL_GL_CreateContext(window);
@@ -129,7 +147,13 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_
     glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &max_frag_uniform_vec);
     glGetIntegerv(GL_MAX_VARYING_VECTORS, &max_varying_vec);
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
-    spdlog::debug("Shader limits: {} vertex attributes, {} varying vectors, {} vertex vectors, {} fragment vectors", max_vertex_attribs, max_varying_vec, max_vert_uniform_vec, max_frag_uniform_vec);
+    spdlog::debug("Shader limits: {}     ImGui::StyleColorsDark();
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }vertex attributes, {} varying vectors, {} vertex vectors, {} fragment vectors", max_vertex_attribs, max_varying_vec, max_vert_uniform_vec, max_frag_uniform_vec);
 #endif
 
     // Setup Dear ImGui context
@@ -145,6 +169,8 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_
         nullptr,
         engine,
     };
+    // Setup window
+    windowChanged(context);
 
     // Share sync object with engine
     state_sync = &context->state_sync;
@@ -182,7 +208,9 @@ int render (void* data) {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    ImGui::StyleColorsDark();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+    imgui::initTheme();
+
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(context->window, context->gl_context);
     ImGui_ImplOpenGL3_Init("#version 150");
@@ -193,10 +221,12 @@ int render (void* data) {
     auto& state_sync = context->state_sync;
     auto& cv = state_sync.sync_cv;
     auto& engine = context->engine;
-    //engine.setImguiContext(imgui_context);
+    auto& config = context->config;
 
-    spdlog::info("Render thread running");
+    glm::mat4 projection_matrix;
+    glm::vec4 viewport;
     
+    spdlog::info("Render thread running");
     // Run render loop
     do {
         /*********************************************************************/
@@ -209,6 +239,11 @@ int render (void* data) {
             // Wait for exclusive access to engine state
             std::unique_lock<std::mutex> lock(state_sync.state_mutex);
             cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
+
+            if (config.dirty.exchange(false)) {
+                projection_matrix = config.projection_matrix;
+                viewport = config.viewport;
+            }
 
             // Gather render data into render list
             // entt::registry& registry = context->engine.registry();
@@ -246,7 +281,6 @@ int render (void* data) {
 
         // Game Rendering here
 
-
         // Call module hook onAfterRender before ending the frame
         engine.callModuleHook<CM::AFTER_RENDER>();
 
@@ -266,6 +300,21 @@ int render (void* data) {
     ImGui::DestroyContext();
 
     return 0;
+}
+
+void graphics::windowChanged (Context* context)
+{
+    const float field_of_view = entt::monostate<"graphics/renderer/field-of-view"_hs>();
+    const float near_distance = entt::monostate<"graphics/renderer/near-distance"_hs>();
+    const float far_distance = entt::monostate<"graphics/renderer/far-distance"_hs>();
+    const float width = entt::monostate<"graphics/renderer/width"_hs>();
+    const float height = entt::monostate<"graphics/renderer/height"_hs>();
+
+    ImGui::GetIO().DisplaySize = ImVec2(width, height);
+
+    context->config.projection_matrix = glm::perspective(glm::radians(field_of_view), float(width) / float(height), near_distance, far_distance);
+    context->config.viewport = glm::vec4(0, 0, int(width), int(height));
+    context->config.dirty.store(true);
 }
 
 void graphics::term (graphics::Context* context) {

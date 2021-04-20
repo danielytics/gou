@@ -4,8 +4,6 @@
 #include "core/engine.hpp"
 #include <physfs.hpp>
 
-// Entity prototypes: https://gist.github.com/danielytics/ead773d5f3161c3eee2b23b7932f6ee9
-
 world::SceneManager::SceneManager (core::Engine& engine) :
     m_engine(engine)
 {
@@ -29,7 +27,7 @@ void world::SceneManager::loadSceneList (const std::string& filename)
         for (const auto& [name, path]  : scenes.as_table()) {
             auto filename = path.as_string();
             if (physfs::exists(filename)) {
-                m_scenes[entt::hashed_string{name.c_str()}.value()] = filename;
+                m_scenes[entt::hashed_string{name.c_str()}] = filename;
             } else {
                 spdlog::warn("Scene \"{}\" file does not exist: {}", name, filename);
             }
@@ -42,9 +40,10 @@ void world::SceneManager::loadScene (entt::hashed_string scene)
 {
     using CM = gou::api::Module::CallbackMasks;
 
-    auto it = m_scenes.find(scene.value());
+    auto it = m_scenes.find(scene);
     if (it != m_scenes.end()) {
         auto& registry = m_engine.registry();
+        auto& prototype_registry = m_engine.prototypeRegistry();
 
         // Unload previous scene, if there is one
         if (m_current_scene != entt::hashed_string{}) {
@@ -56,18 +55,43 @@ void world::SceneManager::loadScene (entt::hashed_string scene)
                     registry.destroy(entity);
                 }
             });
+            // Destroy all prototype entities that aren't marked as global
+            prototype_registry.each([&prototype_registry](auto entity){
+                if (! prototype_registry.all_of<components::Global>(entity)) {
+                    prototype_registry.destroy(entity);
+                }
+            });
         }
         spdlog::info("[SceneManager] Loading scene: {}", scene.data());
         const auto config = parser::parse_toml(it->second);
 
+        // Load prototype entities
+        if (config.contains("prototypes")) {
+            for (const auto& entity : config.at("prototypes").as_array()) {
+                if (entity.contains("_name_")) {
+                    const auto& name = entity.at("_name_").as_string().str;
+                    SPDLOG_TRACE("[SceneManager] Creating new prototype entity: {}", name);
+                    auto entity_id = prototype_registry.create();
+                    prototype_registry.emplace<core::EntityPrototypeID>(entity_id, entt::hashed_string::value(name.c_str()));
+                    for (const auto& [name_str, component]  : entity.as_table()) {
+                        SPDLOG_TRACE("[SceneManager] Adding component to prototype entity {}: {}", name, name_str);
+                        toml::value value = component;
+                        m_engine.loadComponent(core::Engine::EntityLoadType::LoadToPrototype, entt::hashed_string{name_str.c_str()}, entity_id, reinterpret_cast<const void*>(&value));
+                    }
+                } else {
+                    spdlog::warn("[SceneManager] Entity prototype without _name_!");
+                }
+            }
+        }
+        // Load entities to scene
         if (config.contains("entity")) {
             for (const auto& entity : config.at("entity").as_array()) {
-                auto e = registry.create();
-                SPDLOG_TRACE("[SceneManager] Creating new entity: {}", entt::to_integral(e));
+                auto entity_id = registry.create();
+                SPDLOG_TRACE("[SceneManager] Creating new entity: {}", entt::to_integral(entity_id));
                 for (const auto& [name_str, component]  : entity.as_table()) {
-                    SPDLOG_TRACE("[SceneManager] Adding component to entity {}: {}", entt::to_integral(e), name_str);
+                    SPDLOG_TRACE("[SceneManager] Adding component to entity {}: {}", entt::to_integral(entity_id), name_str);
                     toml::value value = component;
-                    m_engine.loadComponent(entt::hashed_string{name_str.c_str()}, e, reinterpret_cast<const void*>(&value));
+                    m_engine.loadComponent(core::Engine::EntityLoadType::LoadToScene, entt::hashed_string{name_str.c_str()}, entity_id, reinterpret_cast<const void*>(&value));
                 }
             }
         }

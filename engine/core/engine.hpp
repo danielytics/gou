@@ -16,6 +16,12 @@ namespace physics {
 }
 
 namespace core {
+
+    // Component used by the prototypes registry to identify the prototype entity
+    struct EntityPrototypeID {
+        entt::hashed_string::hash_type id;
+    };
+
     /**
      * Engine is the API through which functionality is registered with the engine.
      * This is responsible for accessing the ECS registry, registering up ECS system tasks, registering components and providing "core" services.
@@ -31,6 +37,7 @@ namespace core {
         void registerModule (std::uint32_t, gou::api::Module*) final;
         gou::events::Event* event () final;
         entt::registry& registry() final;
+        entt::registry& prototypeRegistry () final;
         entt::organizer& organizer(std::uint32_t) final;
         entt::entity findEntity (entt::hashed_string) final;
         entt::entity loadEntity (entt::hashed_string) final;
@@ -62,7 +69,7 @@ namespace core {
         template <gou::api::Module::CallbackMasks Hook, typename... T> void callModuleHook (T... args) {
             using CM = gou::api::Module::CallbackMasks;
             if constexpr (Hook == CM::BEFORE_FRAME) {
-                for (auto& mod : m_hooks_afterFrame) {
+                for (auto& mod : m_hooks_beforeFrame) {
                     mod->on_before_frame(args...);
                 }
             } else if constexpr (Hook == CM::AFTER_FRAME) {
@@ -92,14 +99,20 @@ namespace core {
             }
         }
 
+        enum class EntityLoadType {
+            LoadToScene,
+            LoadToPrototype,
+        };
         // Load component and add it to entity
-        void loadComponent (entt::hashed_string, entt::entity, const void*);
+        void loadComponent (EntityLoadType, entt::hashed_string, entt::entity, const void*);
 
     private:
         // ECS registry to manage all entities
         entt::registry m_registry;
+        entt::registry m_prototype_registry;
         spp::sparse_hash_map<entt::hashed_string::hash_type, gou::api::Engine::LoaderFn, helpers::Identity> m_component_loaders;
         spp::sparse_hash_map<entt::hashed_string::hash_type, entt::entity, helpers::Identity> m_named_entities;
+        spp::sparse_hash_map<entt::hashed_string::hash_type, entt::entity, helpers::Identity> m_prototype_entities;
         world::SceneManager m_scene_manager;
 
         // System and task scheduling
@@ -141,9 +154,15 @@ namespace core {
         void setupInitialScene();
         // Make emitted events available to read and make a fresh event queue available to emit to
         void pumpEvents ();
+        // Merge a prototype entity into an entity
+        void mergeEntityInternal (entt::entity, entt::entity, bool);
+
         // Callbacks to manage Named entities
         void onAddNamedEntity (entt::registry&, entt::entity);
         void onRemoveNamedEntity (entt::registry&, entt::entity);
+        // Callbacks to manage prototype entities
+        void onAddPrototypeEntity (entt::registry&, entt::entity);
+        void onRemovePrototypeEntity (entt::registry&, entt::entity);
     };
 
 } // core::

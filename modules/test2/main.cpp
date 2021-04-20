@@ -2,7 +2,7 @@
 #include <gou.hpp>
 
 class TestModule2 : public gou::Module<TestModule2> {
-    GOU_CLASS(TestModule2)
+    GOU_MODULE_CLASS(TestModule2)
 public:
     void onLoad (gou::Engine e)
     {

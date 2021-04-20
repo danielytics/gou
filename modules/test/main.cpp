@@ -3,7 +3,7 @@
 #include <imgui.h>
 
 class TestModule : public gou::Module<TestModule> {
-    GOU_CLASS(TestModule)
+    GOU_MODULE_CLASS(TestModule)
 public:
 
     void onLoad (gou::Engine e)

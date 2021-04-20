@@ -203,6 +203,8 @@ bool core::readGameConfig () {
         entt::monostate<"graphics/opengl/minimum-framebuffer-bits"_hs>{} = int{32};
         entt::monostate<"graphics/opengl/minimum-depthbuffer-bits"_hs>{} = int{8};
         entt::monostate<"graphics/opengl/double-buffered"_hs>{} = bool{true};
+        entt::monostate<"graphics/renderer/near-distance"_hs>{} = 0.01f;
+        entt::monostate<"graphics/renderer/far-distance"_hs>{} = 100.0f;
 
         // Overwrite with settings
         if (config.contains("graphics")) {
@@ -219,6 +221,11 @@ bool core::readGameConfig () {
                 maybe_set<"graphics/opengl/minimum-framebuffer-bits"_hs, int>(opengl, "minimum-framebuffer-bits");
                 maybe_set<"graphics/opengl/minimum-depthbuffer-bits"_hs, int>(opengl, "minimum-depthbuffer-bits");
                 maybe_set<"graphics/opengl/double-buffered"_hs, bool>(opengl, "double-buffered");
+            }
+            if (graphics.contains("renderer")) {
+                const auto& renderer = graphics.at("renderer");
+                maybe_set<"graphics/renderer/near-distance"_hs, float>(renderer, "near-distance");
+                maybe_set<"graphics/renderer/far-distance"_hs, float>(renderer, "far-distance");
             }
         }
 

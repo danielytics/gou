@@ -6,7 +6,7 @@ namespace = ""
 [[component]]
     _name_ = "named"
     _description_ = "Provides a name by which to look this component up by in the scene"
-    name = "ref"
+    name = "hashed-string"
 
 [[component]]
     _name_ = "global"

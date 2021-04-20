@@ -82,7 +82,8 @@ std::map<std::string, std::string> data_types{
     {"double", "double"},
     {"bool", "bool"},
     {"event", "gou::events::Event"},
-    {"ref", "entt::hashed_string::hash_type"}
+    {"ref", "entt::hashed_string::hash_type"},
+    {"hashed-string", "entt::hashed_string"},
 };
 
 std::string load_vec2 (const std::string& attribute) {
@@ -117,7 +118,6 @@ std::string load_event (const std::string& attribute) {
     sstr << "gou::events::Event{";
     sstr <<   "entt::hashed_string::value(toml::find<std::string>(" << attribute << ", \"type\").c_str()), ";
     sstr <<   "entity, ";
-    sstr <<   "entt::null, ";
     sstr <<   "glm::vec3{";
     sstr <<     "float(toml::find<toml::floating>(" << attribute << ", \"x\")), ";
     sstr <<     "float(toml::find<toml::floating>(" << attribute << ", \"y\")), ";
@@ -126,11 +126,18 @@ std::string load_event (const std::string& attribute) {
     sstr << "}";
     return sstr.str();
 }
-std::string load_hashed_string (const std::string& attribute) {
+std::string load_hash_value (const std::string& attribute) {
     std::ostringstream sstr;
     sstr << "entt::hashed_string::value(";
     sstr <<   "toml::find<std::string>(table, \"" << attribute << "\").c_str()";
     sstr << ")";
+    return sstr.str();
+}
+std::string load_hashed_string (const std::string& attribute) {
+    std::ostringstream sstr;
+    sstr << "entt::hashed_string{";
+    sstr <<   "toml::find<std::string>(table, \"" << attribute << "\").c_str()";
+    sstr << "}";
     return sstr.str();
 }
 std::string load_resource_handle (const std::string& attribute) {
@@ -144,13 +151,14 @@ std::string load_resource_handle (const std::string& attribute) {
 }
 
 std::map<std::string, std::pair<bool, std::function<std::string(const std::string&)>>> data_type_loaders{
-    // type     sub-table   loader-function
-    {"vec2",    {true,      load_vec2}},
-    {"vec3",    {true,      load_vec3}},
-    {"vec4",    {true,      load_vec4}},
-    {"event",   {true,      load_event}},
-    {"ref",     {false,     load_hashed_string}},
-    {"resource",{false,     load_resource_handle}},
+    // type             sub-table   loader-function
+    {"vec2",            {true,      load_vec2}},
+    {"vec3",            {true,      load_vec3}},
+    {"vec4",            {true,      load_vec4}},
+    {"event",           {true,      load_event}},
+    {"ref",             {false,     load_hash_value}},
+    {"hashed-string",   {false,     load_hashed_string}},
+    {"resource",        {false,     load_resource_handle}},
     //{"entity", "entt::entity"},
     //{"entity-set", "frenzy::resources::EntitySetHandle"},
 };
@@ -389,11 +397,14 @@ public:
 
     void add (const std::string& ns, const std::string& component) {
         out();
-        out() << "registry.prepare<components::";
-        if (! ns.empty()) {
-            out(false) << ns << "::";
+        for (const auto& registry : {"registry", "prototype_registry"}) {
+            out() << registry << ".prepare<components::";
+            if (! ns.empty()) {
+                out(false) << ns << "::";
+            }
+            out(false) << component << ">();";
         }
-        out(false) << component << ">();";
+
     }
 
 private:
@@ -415,6 +426,7 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
     source() << "{";
     source.indent();
     source() << "entt::registry& registry = engine->registry();";
+    source() << "entt::registry& prototype_registry = engine->prototypeRegistry();";
     
     HeaderGenerator header(header_file);
     RegistrationGenerator registration(source);
