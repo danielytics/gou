@@ -83,9 +83,9 @@ entt::entity core::Engine::findEntity (entt::hashed_string name)
     return entt::null;
 }
 
-const std::string& core::Engine::findEntityName (entt::hashed_string name)
+const std::string& core::Engine::findEntityName (const components::Named& named)
 {
-    auto it = m_named_entities.find(name);
+    auto it = m_named_entities.find(named.name);
     if (it != m_named_entities.end()) {
         return it->second.name;
     }

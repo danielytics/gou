@@ -253,6 +253,9 @@ int render (void* data) {
                 ImGui_ImplSDL2_ProcessEvent(&event);
             }
 
+            // Call module hook onBeforeRender before performing any rendering
+            engine.callModuleHook<CM::BEFORE_RENDER>();
+
             // Hand exclusive access back to engine
             state_sync.owner = graphics::Sync::Owner::Engine;
             lock.unlock();
@@ -276,8 +279,7 @@ int render (void* data) {
         glClearColor(147.f/255.f, 237.f/255.f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Call module hook onBeforeRender before performing any game rendering
-        engine.callModuleHook<CM::BEFORE_RENDER>();
+
 
         // Game Rendering here
 

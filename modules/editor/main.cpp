@@ -11,7 +11,8 @@
 class EditorModule : public gou::Module<EditorModule> {
     GOU_MODULE_CLASS(EditorModule)
 public:
-    void onLoad (gou::Engine) {
+    void onLoad (gou::Engine)
+    {
         m_window_flags = ImGuiWindowFlags_MenuBar
                        | ImGuiWindowFlags_NoTitleBar
                        | ImGuiWindowFlags_NoCollapse
@@ -24,6 +25,11 @@ public:
     void onBeforeFrame (gou::Scene& scene) {
         m_stats_panel.current_frame = scene.currentFrame();
         m_stats_panel.current_time = scene.currentTime();
+    }
+
+    void onBeforeRender (gou::Engine engine)
+    {
+        m_scene_panel.beforeRender(engine);
     }
 
     void onAfterRender (gou::Renderer& renderer)

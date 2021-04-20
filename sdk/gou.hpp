@@ -44,12 +44,7 @@ namespace gou {
     // API for accessing rendering
     class Renderer {
     public:
-        Renderer (gou::api::Engine& engine) : m_engine(engine), registry(engine.registry()) {}
-        const entt::registry& registry;
-
-        const std::string& entityName (entt::hashed_string name) {
-            return m_engine.findEntityName(name);
-        }
+        Renderer (gou::api::Engine& engine) : m_engine(engine) {}
 
         void setViewport (const glm::vec4&) {
             
@@ -82,6 +77,14 @@ namespace gou {
          */
         entt::entity find (entt::hashed_string name) {
             return m_engine.findEntity(name);
+        }
+
+        /*
+         * Look up entity by Named, returning its human-readable string name
+         *
+         */
+        const std::string& readableName (const components::Named& named) {
+            return m_engine.findEntityName(named);
         }
 
         /*
@@ -229,7 +232,7 @@ namespace gou {
         HAS_MEMBER_FUNCTION(onBeforeFrame, (std::declval<Scene&>()))
         HAS_MEMBER_FUNCTION(onBeforeUpdate,(std::declval<Scene&>()))
         HAS_MEMBER_FUNCTION(onAfterFrame,  (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onBeforeRender,(std::declval<Renderer&>()))
+        HAS_MEMBER_FUNCTION(onBeforeRender,(std::declval<Engine>()))
         HAS_MEMBER_FUNCTION(onAfterRender, (std::declval<Renderer&>()))
         HAS_MEMBER_FUNCTION(onLoadScene,   (std::declval<Scene&>()))
         HAS_MEMBER_FUNCTION(onUnloadScene, (std::declval<Scene&>()))
@@ -337,8 +340,7 @@ namespace gou {
 
         void on_before_render () final {
             if constexpr (detail::hasMember_onBeforeRender<Derived>()) {
-                Renderer renderer{m_engine};
-                static_cast<Derived*>(this)->onBeforeRender(renderer);
+                static_cast<Derived*>(this)->onBeforeRender(Engine{m_engine});
             }
         }
 

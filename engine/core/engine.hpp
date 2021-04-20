@@ -40,7 +40,7 @@ namespace core {
         entt::registry& prototypeRegistry () final;
         entt::organizer& organizer(std::uint32_t) final;
         entt::entity findEntity (entt::hashed_string) final;
-        const std::string& findEntityName (entt::hashed_string) final;
+        const std::string& findEntityName (const components::Named& named) final;
         entt::entity loadEntity (entt::hashed_string) final;
         void mergeEntity (entt::entity, entt::hashed_string, bool) final;
         void registerLoader(entt::hashed_string, gou::api::Engine::LoaderFn) final;

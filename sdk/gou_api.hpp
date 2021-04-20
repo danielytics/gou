@@ -13,6 +13,10 @@
 
 struct ImGuiContext;
 
+namespace components {
+    struct Named;
+}
+
 namespace gou::api {
     class Engine;
     namespace detail {
@@ -84,7 +88,7 @@ namespace gou::api {
         virtual entt::entity findEntity (entt::hashed_string) = 0;
 
         // Get the string name of a named entity
-        virtual const std::string& findEntityName (entt::hashed_string) = 0;
+        virtual const std::string& findEntityName (const components::Named& named) = 0;
 
         // Load an entity from a template
         virtual entt::entity loadEntity (entt::hashed_string) = 0;
