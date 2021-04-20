@@ -4,5 +4,6 @@ include_rules
 CPPFLAGS += -DNO_COMPONENTS
 
 : foreach *.cpp |> !compile-module |>
+: foreach panels/*.cpp |> !compile-module |>
 : ../../vendor/imgui/imgui_demo.cpp |> !compile-module |>
 : *.o |> !link-module |>

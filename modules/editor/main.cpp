@@ -1,6 +1,12 @@
 
 #include <gou.hpp>
-#include <imgui.h>
+
+#include "panels/scene.hpp"
+#include "panels/entity_properties.hpp"
+#include "panels/global_settings.hpp"
+#include "panels/viewport.hpp"
+#include "panels/assets.hpp"
+#include "panels/stats.hpp"
 
 class EditorModule : public gou::Module<EditorModule> {
     GOU_MODULE_CLASS(EditorModule)
@@ -16,8 +22,8 @@ public:
     }
 
     void onBeforeFrame (gou::Scene& scene) {
-        current_frame = scene.currentFrame();
-        current_time = scene.currentTime();
+        m_stats_panel.current_frame = scene.currentFrame();
+        m_stats_panel.current_time = scene.currentTime();
     }
 
     void onAfterRender (gou::Renderer& renderer)
@@ -30,20 +36,20 @@ public:
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace Demo", nullptr, m_window_flags);
+		ImGui::Begin("DockSpace", nullptr, m_window_flags);
 		ImGui::PopStyleVar(3);
 
 		// DockSpace
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiStyle& style = ImGui::GetStyle();
-		float minWinSizeX = style.WindowMinSize.x;
+		float min_win_size_x = style.WindowMinSize.x;
 		style.WindowMinSize.x = 200.0f;
 		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
-			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 		}
-		style.WindowMinSize.x = minWinSizeX;
+		style.WindowMinSize.x = min_win_size_x;
 
 		if (ImGui::BeginMenuBar())
 		{
@@ -52,15 +58,17 @@ public:
 				if (ImGui::MenuItem("New", "Ctrl+N")) {
                     newScene();
                 }
-
 				if (ImGui::MenuItem("Open...", "Ctrl+O")) {
                     openScene();
                 }	
-
 				if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S")) {
                     saveSceneAs();
                 }
-
+#ifdef DEBUG_BUILD
+				if (ImGui::MenuItem(m_show_demo ? "Hide ImGUI Demo" : "Show ImGUI Demo")) {
+                    m_show_demo = !m_show_demo;
+                }
+#endif
 				if (ImGui::MenuItem("Exit")) {
                     emit("engine/exit"_hs);
                 }
@@ -70,40 +78,52 @@ public:
 			ImGui::EndMenuBar();
 		}
 
-		ImGui::Begin("Stats");
+        m_stats_panel.renderPanel();
+        m_global_settings_panel.renderPanel();
+        m_assets_panel.renderPanel();
+        m_viewport_panel.renderPanel(renderer);
+        m_properties_panel.renderPanel();
+        m_scene_panel.renderPanel(renderer);
 
-		// auto stats = Renderer2D::GetStats();
-		// ImGui::Text("Renderer2D Stats:");
-		// ImGui::Text("Draw Calls: %d", stats.DrawCalls);
-		// ImGui::Text("Quads: %d", stats.QuadCount);
-		// ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
-		// ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
 
-		ImGui::End();
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-		ImGui::Begin("Viewport");
-		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-		auto viewportOffset = ImGui::GetWindowPos();
-
-        renderer.setViewport({
-            viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y,
-            viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y,
-        });
-
-		ImGui::End();
-		ImGui::PopStyleVar();
-
-        ImGui::ShowDemoWindow();
+#ifdef DEBUG_BUILD
+        if (m_show_demo) {
+            ImGui::ShowDemoWindow();
+        }
+#endif
+#ifndef DEV_TOOLS
+        noDevToolsWarning();
+#endif
 
 		ImGui::End();
     }
 
 private:
-    std::uint64_t current_frame;
-    Time current_time;
     ImGuiWindowFlags m_window_flags;
+#ifdef DEBUG_BUILD
+    bool m_show_demo = false;
+#endif
+#ifndef DEV_TOOLS
+    bool m_dev_mode_warning_open = true;
+    void noDevToolsWarning () 
+    {
+        if (m_dev_mode_warning_open) {
+            ImGui::SetNextWindowPos(ImVec2{500, 400});
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
+            ImGui::Begin("WARNING", &m_dev_mode_warning_open, ImGuiWindowFlags_Modal | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
+            ImGui::Text("You are using the editor, but not running a 'dev' build.");
+            ImGui::End();
+            ImGui::PopStyleColor();
+        }
+    }
+#endif
+
+    ScenePanel m_scene_panel;
+    EntityPropertiesPanel m_properties_panel;
+    AssetsPanel m_assets_panel;
+    StatsPanel m_stats_panel;
+    ViewportPanel m_viewport_panel;
+    GlobalSettingsPanel m_global_settings_panel;
 
     void newScene ()
     {

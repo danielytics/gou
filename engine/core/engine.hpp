@@ -40,6 +40,7 @@ namespace core {
         entt::registry& prototypeRegistry () final;
         entt::organizer& organizer(std::uint32_t) final;
         entt::entity findEntity (entt::hashed_string) final;
+        const std::string& findEntityName (entt::hashed_string) final;
         entt::entity loadEntity (entt::hashed_string) final;
         void mergeEntity (entt::entity, entt::hashed_string, bool) final;
         void registerLoader(entt::hashed_string, gou::api::Engine::LoaderFn) final;
@@ -107,13 +108,19 @@ namespace core {
         void loadComponent (EntityLoadType, entt::hashed_string, entt::entity, const void*);
 
     private:
+        struct NamedEntityInfo {
+            entt::entity entity;
+            std::string name;
+        };
+
         // ECS registry to manage all entities
         entt::registry m_registry;
         entt::registry m_prototype_registry;
         spp::sparse_hash_map<entt::hashed_string::hash_type, gou::api::Engine::LoaderFn, helpers::Identity> m_component_loaders;
-        spp::sparse_hash_map<entt::hashed_string::hash_type, entt::entity, helpers::Identity> m_named_entities;
+        spp::sparse_hash_map<entt::hashed_string::hash_type, NamedEntityInfo, helpers::Identity> m_named_entities;
         spp::sparse_hash_map<entt::hashed_string::hash_type, entt::entity, helpers::Identity> m_prototype_entities;
         world::SceneManager m_scene_manager;
+        const std::string m_empty_string = {};
 
         // System and task scheduling
         spp::sparse_hash_map<uint32_t, entt::organizer> m_organizers;

@@ -83,6 +83,9 @@ namespace gou::api {
         // Find a named entity
         virtual entt::entity findEntity (entt::hashed_string) = 0;
 
+        // Get the string name of a named entity
+        virtual const std::string& findEntityName (entt::hashed_string) = 0;
+
         // Load an entity from a template
         virtual entt::entity loadEntity (entt::hashed_string) = 0;
 

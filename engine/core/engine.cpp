@@ -78,9 +78,18 @@ entt::entity core::Engine::findEntity (entt::hashed_string name)
 {
     auto it = m_named_entities.find(name);
     if (it != m_named_entities.end()) {
-        return it->second;
+        return it->second.entity;
     }
     return entt::null;
+}
+
+const std::string& core::Engine::findEntityName (entt::hashed_string name)
+{
+    auto it = m_named_entities.find(name);
+    if (it != m_named_entities.end()) {
+        return it->second.name;
+    }
+    return m_empty_string;
 }
 
 void core::Engine::registerLoader(entt::hashed_string name, gou::api::Engine::LoaderFn loader_fn)
@@ -377,7 +386,7 @@ void core::Engine::pumpEvents () {
 void core::Engine::onAddNamedEntity (entt::registry& registry, entt::entity entity)
 {
     const auto& named = registry.get<components::Named>(entity);
-    m_named_entities[named.name] = entity;
+    m_named_entities[named.name] = {entity, named.name.data()};
 }
 
 void core::Engine::onRemoveNamedEntity (entt::registry& registry, entt::entity entity)
