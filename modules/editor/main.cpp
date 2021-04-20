@@ -4,9 +4,23 @@
 #include "panels/scene.hpp"
 #include "panels/entity_properties.hpp"
 #include "panels/global_settings.hpp"
-#include "panels/viewport.hpp"
 #include "panels/assets.hpp"
 #include "panels/stats.hpp"
+
+#include <imgui_internal.h>
+
+glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
+{
+    auto centeralNode = ImGui::DockBuilderGetCentralNode(dockspaceId);
+
+    return {
+        centeralNode->Pos.x,
+        centeralNode->Pos.y,
+        centeralNode->Size.x,
+        centeralNode->Size.y
+    };
+}
+
 
 class EditorModule : public gou::Module<EditorModule> {
     GOU_MODULE_CLASS(EditorModule)
@@ -19,6 +33,7 @@ public:
                        | ImGuiWindowFlags_NoResize
                        | ImGuiWindowFlags_NoMove
                        | ImGuiWindowFlags_NoBringToFrontOnFocus
+                       | ImGuiWindowFlags_NoBackground
                        | ImGuiWindowFlags_NoNavFocus;
     }
 
@@ -50,11 +65,8 @@ public:
 		ImGuiStyle& style = ImGui::GetStyle();
 		float min_win_size_x = style.WindowMinSize.x;
 		style.WindowMinSize.x = 200.0f;
-		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
-			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-		}
+        ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoDockingInCentralNode);
 		style.WindowMinSize.x = min_win_size_x;
 
 		if (ImGui::BeginMenuBar())
@@ -87,7 +99,6 @@ public:
         m_stats_panel.renderPanel();
         m_global_settings_panel.renderPanel();
         m_assets_panel.renderPanel();
-        m_viewport_panel.renderPanel(renderer);
         m_properties_panel.renderPanel();
         m_scene_panel.renderPanel(renderer);
 
@@ -100,6 +111,8 @@ public:
 #ifndef DEV_TOOLS
         noDevToolsWarning();
 #endif
+
+        renderer.setViewport(getCentralNodeRect(dockspace_id));
 
 		ImGui::End();
     }
@@ -128,7 +141,6 @@ private:
     EntityPropertiesPanel m_properties_panel;
     AssetsPanel m_assets_panel;
     StatsPanel m_stats_panel;
-    ViewportPanel m_viewport_panel;
     GlobalSettingsPanel m_global_settings_panel;
 
     void newScene ()

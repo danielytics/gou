@@ -35,22 +35,12 @@ namespace gou {
 // Public Module API
 ///////////////////////////////////////////////////////////////////////////////
 
+    using Renderer = api::Renderer;
+
     // API for managing engine setup
     class Engine {
     public:
         gou::api::Engine& engine;
-    };
-
-    // API for accessing rendering
-    class Renderer {
-    public:
-        Renderer (gou::api::Engine& engine) : m_engine(engine) {}
-
-        void setViewport (const glm::vec4&) {
-            
-        }
-    private:
-        gou::api::Engine& m_engine;
     };
 
     // API for manipulating scenes
@@ -346,8 +336,7 @@ namespace gou {
 
         void on_after_render () final {
             if constexpr (detail::hasMember_onAfterRender<Derived>()) {
-                Renderer renderer{m_engine};
-                static_cast<Derived*>(this)->onAfterRender(renderer);
+                static_cast<Derived*>(this)->onAfterRender(m_engine.renderer());
             }
         }
 

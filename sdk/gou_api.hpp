@@ -35,9 +35,16 @@ namespace gou::api {
         Update = 1
     };
 
+    class Renderer {
+    public:
+        virtual ~Renderer() {}
+        virtual void setViewport (const glm::vec4&) = 0;
+    };
+
     // The module-provided API to the engine
     class Module {
     public:
+        virtual ~Module() {}
         enum class CallbackMasks : std::uint32_t {
             // load, unload and before_frame are always called. reload functions are handled by the module (not the engine)
             BEFORE_FRAME  = 0x00, // Doesn't need to set a bit because its always registered for every module
@@ -69,11 +76,15 @@ namespace gou::api {
     // The engine-provided API to modules
     class Engine {
     public:
+        virtual ~Engine() {}
         // Used internally by module boilerplate to ensure ECS type ID's are consistent across modules
-        virtual detail::type_context* type_context() = 0;
+        virtual detail::type_context* type_context() const = 0;
 
         // Used internally to register a modules callback hooks
         virtual void registerModule(std::uint32_t, Module*) = 0;
+
+        // Used internally to provide the module with access to the renderer
+        virtual Renderer& renderer () const = 0;
 
         // Emit an event
         virtual events::Event* event () = 0;
@@ -85,10 +96,10 @@ namespace gou::api {
         virtual entt::organizer& organizer(std::uint32_t) = 0;
 
         // Find a named entity
-        virtual entt::entity findEntity (entt::hashed_string) = 0;
+        virtual entt::entity findEntity (entt::hashed_string) const = 0;
 
         // Get the string name of a named entity
-        virtual const std::string& findEntityName (const components::Named& named) = 0;
+        virtual const std::string& findEntityName (const components::Named& named) const = 0;
 
         // Load an entity from a template
         virtual entt::entity loadEntity (entt::hashed_string) = 0;

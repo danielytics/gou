@@ -1,11 +1,8 @@
 
-#include "graphics/graphics.hpp"
+#include "graphics.hpp"
+#include "render_api.hpp"
 #include "core/engine.hpp"
 
-#include <SDL.h>
-#include <glad/glad.h>
-
-#include <imgui.h>
 #include <backends/imgui_impl_sdl.h>
 #include <backends/imgui_impl_opengl3.h>
 
@@ -14,25 +11,6 @@
 namespace imgui {
     void initTheme ();
 }
-
-
-struct graphics::Context {
-    SDL_Window* window;
-    SDL_GLContext gl_context;
-    SDL_GLContext init_context;
-    std::atomic_bool running;
-    SDL_Thread* render_thread;
-    core::Engine& engine;
-    graphics::Sync state_sync;
-
-    struct {
-        glm::mat4 projection_matrix;
-        glm::vec4 viewport;
-
-        std::atomic_bool dirty;
-    } config;
-    
-};
 
 #ifdef DEBUG_BUILD
 void GLAPIENTRY opengl_messageCallback (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
@@ -84,7 +62,7 @@ void GLAPIENTRY opengl_messageCallback (GLenum source, GLenum type, GLuint id, G
 
 int render (void* data);
 
-graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_sync, ImGuiContext*& imgui_context) {
+gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state_sync, ImGuiContext*& imgui_context) {
     // Set the OpenGL attributes for our context
 #ifdef __APPLE__
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on OS X
@@ -113,7 +91,10 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_
     const int height = entt::monostate<"graphics/resolution/height"_hs>();
     entt::monostate<"graphics/renderer/width"_hs>{} = float(width);
     entt::monostate<"graphics/renderer/height"_hs>{} = float(height);
-    auto window = SDL_CreateWindow(
+
+    // Create renderer and context to share with render thread and graphics API. Context is opague to the engine
+    auto renderer = new graphics::RenderAPI(engine);
+    renderer->window = SDL_CreateWindow(
         std::string(entt::monostate<"graphics/window/title"_hs>()).c_str(),
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
@@ -121,9 +102,9 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_
         height,
         SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
 
-    SDL_GLContext render_context = SDL_GL_CreateContext(window);
-    SDL_GLContext init_context = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, init_context);
+    renderer->gl_render_context = SDL_GL_CreateContext(renderer->window);
+    renderer->gl_init_context = SDL_GL_CreateContext(renderer->window);
+    SDL_GL_MakeCurrent(renderer->window, renderer->gl_init_context);
 
     SDL_GL_SetSwapInterval(bool(entt::monostate<"graphics/v-sync"_hs>()) ? 1 : 0);
 
@@ -147,9 +128,8 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_
     glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &max_frag_uniform_vec);
     glGetIntegerv(GL_MAX_VARYING_VECTORS, &max_varying_vec);
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
-    spdlog::debug("Shader limits: {}     ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    spdlog::debug("Shader limits: {}    
+    Renderer* renderer = static_cast<Rs_ViewportsEnable)
     {
         style.WindowRounding = 0.0f;
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
@@ -160,32 +140,23 @@ graphics::Context* graphics::init (core::Engine& engine, graphics::Sync*& state_
     IMGUI_CHECKVERSION();
     imgui_context = ImGui::CreateContext();
 
-    // Create context to share with render thread and graphics API. Context is opague to the engine
-    auto context = new graphics::Context{
-        window,
-        render_context,
-        init_context,
-        {true},
-        nullptr,
-        engine,
-    };
     // Setup window
-    windowChanged(context);
+    renderer->windowChanged();
 
     // Share sync object with engine
-    state_sync = &context->state_sync;
+    state_sync = &renderer->state_sync;
 
     // Start render thread
-    context->render_thread = SDL_CreateThread(render, "render", reinterpret_cast<void*>(context));
+    renderer->render_thread = SDL_CreateThread(render, "render", reinterpret_cast<void*>(renderer));
 
-    return context;
+    return renderer;
 }
 
 int render (void* data) {
     using CM = gou::api::Module::CallbackMasks;
 
-    graphics::Context* context = reinterpret_cast<graphics::Context*>(data);
-    SDL_GL_MakeCurrent(context->window, context->gl_context);
+    graphics::RenderAPI* render_api = static_cast<graphics::RenderAPI*>(data);
+    SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
 
 #ifdef DEBUG_BUILD
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -212,16 +183,15 @@ int render (void* data) {
     imgui::initTheme();
 
     // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(context->window, context->gl_context);
+    ImGui_ImplSDL2_InitForOpenGL(render_api->window, render_api->gl_render_context);
     ImGui_ImplOpenGL3_Init("#version 150");
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Get context data
-    auto& running = context->running;
-    auto& state_sync = context->state_sync;
+    auto& running = render_api->running;
+    auto& state_sync = render_api->state_sync;
     auto& cv = state_sync.sync_cv;
-    auto& engine = context->engine;
-    auto& config = context->config;
+    auto& engine = render_api->engine;
 
     glm::mat4 projection_matrix;
     glm::vec4 viewport;
@@ -240,14 +210,6 @@ int render (void* data) {
             std::unique_lock<std::mutex> lock(state_sync.state_mutex);
             cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
 
-            if (config.dirty.exchange(false)) {
-                projection_matrix = config.projection_matrix;
-                viewport = config.viewport;
-            }
-
-            // Gather render data into render list
-            // entt::registry& registry = context->engine.registry();
-
             // Let Dear ImGui process events from event queue
             for (const auto& event : engine.inputEvents()) {
                 ImGui_ImplSDL2_ProcessEvent(&event);
@@ -255,6 +217,21 @@ int render (void* data) {
 
             // Call module hook onBeforeRender before performing any rendering
             engine.callModuleHook<CM::BEFORE_RENDER>();
+
+            // Gather render data into render list
+            // entt::registry& registry = context->engine.registry();
+
+            // Gather render data, if there is any
+            if (render_api->dirty) {
+                viewport = render_api->viewport();
+
+                if (render_api->resolution_changed) {
+                    projection_matrix = render_api->projectionMatrix();
+                    ImGui::GetIO().DisplaySize = ImVec2(viewport.z, viewport.w);
+                    render_api->resolution_changed = false;
+                }
+                render_api->dirty = false;
+            }
 
             // Hand exclusive access back to engine
             state_sync.owner = graphics::Sync::Owner::Engine;
@@ -266,7 +243,7 @@ int render (void* data) {
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(context->window);
+        ImGui_ImplSDL2_NewFrame(render_api->window);
         ImGui::NewFrame();
 
         // glm::mat4 view_matrix = services::locator::camera::ref().view();
@@ -274,12 +251,9 @@ int render (void* data) {
 
         // auto frustum = math::frustum(projection_view_matrix);
 
-        // glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
-        glViewport(0, 0, 640, 480);
+        glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
         glClearColor(147.f/255.f, 237.f/255.f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
 
         // Game Rendering here
 
@@ -294,7 +268,7 @@ int render (void* data) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // End Frame
-        SDL_GL_SwapWindow(context->window);
+        SDL_GL_SwapWindow(render_api->window);
     } while (running.load());
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -304,33 +278,7 @@ int render (void* data) {
     return 0;
 }
 
-void graphics::windowChanged (Context* context)
+void graphics::term (gou::api::Renderer* render_api)
 {
-    const float field_of_view = entt::monostate<"graphics/renderer/field-of-view"_hs>();
-    const float near_distance = entt::monostate<"graphics/renderer/near-distance"_hs>();
-    const float far_distance = entt::monostate<"graphics/renderer/far-distance"_hs>();
-    const float width = entt::monostate<"graphics/renderer/width"_hs>();
-    const float height = entt::monostate<"graphics/renderer/height"_hs>();
-
-    ImGui::GetIO().DisplaySize = ImVec2(width, height);
-
-    context->config.projection_matrix = glm::perspective(glm::radians(field_of_view), float(width) / float(height), near_distance, far_distance);
-    context->config.viewport = glm::vec4(0, 0, int(width), int(height));
-    context->config.dirty.store(true);
-}
-
-void graphics::term (graphics::Context* context) {
-    // Mark the thread as stopped
-    context->running.store(false);
-    // Unblock engine state, in case the render thread is currently waiting for it
-    context->state_sync.state_mutex.unlock();
-    context->state_sync.sync_cv.notify_one();
-    // Wait for the thread to finish
-    SDL_WaitThread(context->render_thread, nullptr);
-    // Clean up OpenGL and the window
-    spdlog::info("Deleting graphics context.");
-    SDL_GL_DeleteContext(context->gl_context);
-    SDL_GL_DeleteContext(context->init_context);
-    SDL_DestroyWindow(context->window);
-    delete context;
+    delete render_api;
 }

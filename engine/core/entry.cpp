@@ -4,7 +4,6 @@
 #include "core/engine.hpp"
 #include "core/modules.hpp"
 #include "utils/clock.hpp"
-#include "graphics/graphics.hpp"
 
 #define SPDLOG_HEADER_ONLY
 #include <spdlog/spdlog.h>
@@ -99,23 +98,14 @@ int main (int argc, char* argv[])
     bool clean_exit = true;
     try {
         bool running = true;
-        // bool inputLearnMode = false;
-        // std::unordered_map<InputKeys::Type, frenzy::events::Event> input_mapping;
 
         core::Engine engine;
         core::ModuleManager moduleManager(engine);
-        graphics::Sync* state_sync;
-        struct ImGuiContext* imgui_ctx;
-        graphics::Context* graphics_context = graphics::init(engine, state_sync, imgui_ctx);
-        if (graphics_context == nullptr || !moduleManager.load(logger, imgui_ctx)) {
+        struct ImGuiContext* imgui_ctx = engine.init();
+        if (!imgui_ctx || !moduleManager.load(logger, imgui_ctx)) {
             spdlog::critical("Could not load some required modules. Terminating.");
         } else {
-            engine.setupGame(state_sync);
-            // Scene scene;
-            // input_mapping[InputKeys::make(InputKeys::KeyType::KeyboardButton, SDL_SCANCODE_SPACE)] = frenzy::events::Event{
-            //     "character/jump"_event, entt::null, scene.playerEntity(), {0, 0, 0}, 0, 0
-            // };
-        
+            engine.setupGame();
 
             // Initialise timekeeping
             ElapsedTime time_since_start = 0L; // microseconds
@@ -133,25 +123,6 @@ int main (int argc, char* argv[])
             spdlog::info("Game Running...");
             do {
                 engine.handleInput(running);
-
-                // // Process previous frames events
-                // for (auto& event : utilities::const_iterate(engine.events())) {
-                //     switch (event.type) {
-                //         case events::animation::Rotated::Type:
-                //         {
-                //             SPDLOG_DEBUG("Got 'rotated' event from entity {}", event.source);
-                //             break;
-                //         }
-                //         case "input/toggle-learn-mode"_event:
-                //         {
-                //             inputLearnMode = !inputLearnMode;
-                //             break;
-                //         }
-                //         default:
-                //             SPDLOG_DEBUG("Unhandled event: {}", event.type);
-                //             break;
-                //     }
-                // }
 
                 // // Execute systems and copy current frames events for processing next frame
                 engine.execute(time_since_start / 1000000.0, frame_time_micros / 1000000.0, total_frames);
@@ -183,10 +154,7 @@ int main (int argc, char* argv[])
             if (micros_per_frame == 0) {
                 micros_per_frame = 1;
             }
-            spdlog::info("Average framerate: {:d} ({:.2f}ms per frame)", 1000000 / micros_per_frame, micros_per_frame / 1000.0f);
-
-            // Shut down graphics thread
-            graphics::term(graphics_context);
+            spdlog::info("Average framerate: {:d} ({:.3f}ms per frame)", 1000000 / micros_per_frame, micros_per_frame / 1000.0f);
 
             // Clear data before unloading modules, to avoid referencing memory owned by modules after they are unloaded
             engine.reset();

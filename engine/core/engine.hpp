@@ -15,6 +15,8 @@ namespace physics {
     struct Context;
 }
 
+ struct ImGuiContext;
+
 namespace core {
 
     // Component used by the prototypes registry to identify the prototype entity
@@ -33,14 +35,15 @@ namespace core {
         virtual ~Engine();
 
         // Implement API interface
-        gou::api::detail::type_context* type_context() final;
+        gou::api::detail::type_context* type_context() const final;
         void registerModule (std::uint32_t, gou::api::Module*) final;
+        gou::api::Renderer& renderer () const final;
         gou::events::Event* event () final;
         entt::registry& registry() final;
         entt::registry& prototypeRegistry () final;
         entt::organizer& organizer(std::uint32_t) final;
-        entt::entity findEntity (entt::hashed_string) final;
-        const std::string& findEntityName (const components::Named& named) final;
+        entt::entity findEntity (entt::hashed_string) const final;
+        const std::string& findEntityName (const components::Named&) const final;
         entt::entity loadEntity (entt::hashed_string) final;
         void mergeEntity (entt::entity, entt::hashed_string, bool) final;
         void registerLoader(entt::hashed_string, gou::api::Engine::LoaderFn) final;
@@ -49,8 +52,11 @@ namespace core {
         // Time
         DeltaTime deltaTime () { return m_current_time_delta; }
 
-        // Initialise systems and load game data
-        void setupGame (graphics::Sync*);
+        // Initialise engine, before modules are loaded
+        ImGuiContext* init ();
+
+        // Initialise systems and load game data, after modules are loaded
+        void setupGame ();
 
         // Process input events
         void handleInput (bool& running);
@@ -140,7 +146,8 @@ namespace core {
         std::vector<gou::api::Module*> m_hooks_afterRender;
 
         // Render state
-        graphics::Sync* m_state_sync;
+        gou::api::Renderer* m_renderer;
+        graphics::Sync* m_graphics_sync;
 
         // Physics state
         physics::Context* m_physics_context;

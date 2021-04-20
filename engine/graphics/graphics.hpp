@@ -9,9 +9,11 @@ namespace core {
     class Engine;
 }
 
-namespace graphics {
+namespace gou::api {
+    class Renderer;
+}
 
-    struct Context;
+namespace graphics {
 
     struct Sync {
         std::mutex state_mutex;
@@ -22,8 +24,7 @@ namespace graphics {
         } owner = Owner::Engine;
     };
 
-    Context* init (core::Engine&, graphics::Sync*&, ImGuiContext*&);
-    void windowChanged (Context*);
-    void term (Context*);
+    gou::api::Renderer* init (core::Engine&, graphics::Sync*&, ImGuiContext*&);
+    void term (gou::api::Renderer*);
 
 } // graphics::

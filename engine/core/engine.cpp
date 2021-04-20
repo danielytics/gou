@@ -39,7 +39,8 @@ core::Engine::~Engine ()
 
 }
 
-gou::api::detail::type_context* core::Engine::type_context() {
+gou::api::detail::type_context* core::Engine::type_context() const
+{
     return gou::api::detail::type_context::instance();
 }
 
@@ -58,6 +59,11 @@ void core::Engine::registerModule (std::uint32_t flags, gou::api::Module* mod)
     }
 }
 
+gou::api::Renderer& core::Engine::renderer () const
+{
+    return *m_renderer;
+}
+
 // Get pointer to new event on the event bus
 gou::events::Event* core::Engine::event ()
 {
@@ -74,7 +80,7 @@ entt::organizer& core::Engine::organizer(std::uint32_t type)
     return m_organizers[type];
 }
 
-entt::entity core::Engine::findEntity (entt::hashed_string name)
+entt::entity core::Engine::findEntity (entt::hashed_string name) const
 {
     auto it = m_named_entities.find(name);
     if (it != m_named_entities.end()) {
@@ -83,7 +89,7 @@ entt::entity core::Engine::findEntity (entt::hashed_string name)
     return entt::null;
 }
 
-const std::string& core::Engine::findEntityName (const components::Named& named)
+const std::string& core::Engine::findEntityName (const components::Named& named) const
 {
     auto it = m_named_entities.find(named.name);
     if (it != m_named_entities.end()) {
@@ -231,7 +237,7 @@ void core::Engine::createTaskGraph () {
         updater_tasks.succeed(pump_events_task, physics_task_simulate);
     }
 
-#ifdef DEV_MODE
+#ifdef DEBUG_BUILD
     const bool dev_mode = entt::monostate<"game/dev-mode"_hs>();
     if (dev_mode) {
         std::ofstream file("task_graph.dot", std::ios_base::out);
@@ -240,11 +246,18 @@ void core::Engine::createTaskGraph () {
 #endif
 }
 
-void core::Engine::setupGame (graphics::Sync* state_sync)
+ImGuiContext* core::Engine::init ()
 {
-    m_state_sync = state_sync;
+    // Setup renderer
+    ImGuiContext* imgui_ctx;
+    m_renderer = graphics::init(*this, m_graphics_sync, imgui_ctx);
     // Register core components
     gou::register_components(this);
+    return imgui_ctx;
+}
+
+void core::Engine::setupGame ()
+{
     // Initialise subsystems
     m_physics_context = physics::init(*this);
     // Create task graph
@@ -321,6 +334,13 @@ void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
 {
     m_current_time_delta = delta;
 
+    // // Process previous frames events
+    // for (auto& event : helpers::const_iterate(engine.events())) {
+    //     if (event.type == "input/toggle-learn-mode"_event) {
+    //         m_input_learn_mode = !m_input_learn_mode;
+    //     }
+    // }
+
     // Run the before-frame hook for each module, updating the current time
     callModuleHook<CM::BEFORE_FRAME>(current_time, delta, frame_count);
 
@@ -339,20 +359,22 @@ void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
 
     // First, signal to the renderer that it has exclusive access to the engines state
     {
-        std::scoped_lock<std::mutex> lock(m_state_sync->state_mutex);
-        m_state_sync->owner = graphics::Sync::Owner::Renderer;
+        std::scoped_lock<std::mutex> lock(m_graphics_sync->state_mutex);
+        m_graphics_sync->owner = graphics::Sync::Owner::Renderer;
     }
-    m_state_sync->sync_cv.notify_one();
+    m_graphics_sync->sync_cv.notify_one();
 
     // Now wait for the renderer to relinquish exclusive access back to the engine
-    std::unique_lock<std::mutex> lock(m_state_sync->state_mutex);
-    m_state_sync->sync_cv.wait(lock, [this]{ return m_state_sync->owner == graphics::Sync::Owner::Engine; });
+    std::unique_lock<std::mutex> lock(m_graphics_sync->state_mutex);
+    m_graphics_sync->sync_cv.wait(lock, [this]{ return m_graphics_sync->owner == graphics::Sync::Owner::Engine; });
 }
 
 void core::Engine::reset ()
 {
     // Unload the current scene
     callModuleHook<CM::UNLOAD_SCENE>();
+    // Shut down graphics thread
+    graphics::term(m_renderer);
     // Clear the registry
     m_registry = {};
     // Clear the prototype registry
