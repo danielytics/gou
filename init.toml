@@ -1,4 +1,6 @@
+# Graphics settings
 [graphics]
+# Resolution can be: "720p", "1080p", "1440p", "4k" or any combination of "<width>x<height>", eg "640x480"
 resolution = "720p"
 fullscreen = false
 vsync = false
@@ -6,14 +8,21 @@ fov = 60
 resizable = false
 debug = false # Only in debug builds
 
+# Metrics, profiling and logging
 [telemetry]
 # trace, debug, info, warn, error, off. Both trace and debug are only available in debug builds.
 logging = "debug"
 
+# Developer mode
 [dev-mode] # Only in dev builds
 enabled = true
 reload-interval = 5.0
 
+# Engine UI (not in-game UI)
+[ui]
+theme = "ui-dark-theme.toml"
+
+# Where to find the game files
 [game]
 sources = ["game.data", "game/", "common/"]
 modules = "modules.toml"

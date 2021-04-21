@@ -150,6 +150,15 @@ bool core::readUserConfig (int argc, char* argv[])
 #endif
 
         //******************************************************//
+        // UI (imgui engine UI, not in-game UI)
+        //******************************************************//
+        entt::monostate<"ui/theme-file"_hs>{} = std::string{};
+        if (config.contains("ui")) {
+            const auto& ui = config.at("ui");
+            maybe_set<"ui/theme-file"_hs, std::string>(ui, "theme");
+        }
+
+        //******************************************************//
         // DEVELOPMENT MODE
         //******************************************************//
 #ifdef DEV_MODE

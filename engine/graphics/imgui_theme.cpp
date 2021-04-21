@@ -1,42 +1,87 @@
 
+#include "gou_engine.hpp"
 #include <imgui.h>
+#include "utils/parser.hpp"
+#include "utils/colors.hpp"
 
 namespace imgui {
     void initTheme ();
 }
 
+spp::sparse_hash_map<std::string, ImGuiCol_> theme_names {
+    {"window.base",         ImGuiCol_WindowBg},
+    {"header.base",         ImGuiCol_Header},
+    {"header.hovered",      ImGuiCol_HeaderHovered},
+    {"header.active",       ImGuiCol_HeaderActive},
+    {"button.base",         ImGuiCol_Button},
+    {"button.hovered",      ImGuiCol_ButtonHovered},
+    {"button.active",       ImGuiCol_ButtonActive},
+    {"frame.base",          ImGuiCol_FrameBg},
+    {"frame.hovered",       ImGuiCol_FrameBgHovered},
+    {"frame.active",        ImGuiCol_FrameBgActive},
+    {"tab.base",            ImGuiCol_Tab},
+    {"tab.hovered",         ImGuiCol_TabHovered},
+    {"tab.active",          ImGuiCol_TabActive},
+    {"tab.unfocused",       ImGuiCol_TabUnfocused},
+    {"tab.unfocused-active",ImGuiCol_TabUnfocusedActive},
+    {"title.base",          ImGuiCol_TitleBg},
+    {"title.active",        ImGuiCol_TitleBgActive},
+    {"title.collapsed",     ImGuiCol_TitleBgCollapsed},
+};
+
 void imgui::initTheme ()
 {
-    ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
-    
-    auto& colors = style.Colors;
-    colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
+    const std::string& themeFilename = entt::monostate<"ui/theme-file"_hs>();
+    if (themeFilename != "") {
+        ImGuiStyle& style = ImGui::GetStyle();
+        auto& style_colors = style.Colors;
 
-    // Headers
-    colors[ImGuiCol_Header] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-    colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-    colors[ImGuiCol_HeaderActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-    
-    // Buttons
-    colors[ImGuiCol_Button] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-    colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-    colors[ImGuiCol_ButtonActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        const auto theme = parser::parse_toml(themeFilename);
 
-    // Frame BG
-    colors[ImGuiCol_FrameBg] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-    colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-    colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        std::string base_theme = "classic";
+        if (theme.contains("imgui")) {
+            const auto& imgui = theme.at("imgui");
+            base_theme = toml::find_or(imgui, "default", "classic");
+        }
+        if (base_theme == "light") {
+            ImGui::StyleColorsLight();
+        } else if (base_theme == "dark") {
+            ImGui::StyleColorsDark();
+        } else {
+            ImGui::StyleColorsClassic();
+        }
 
-    // Tabs
-    colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-    colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.3805f, 0.381f, 1.0f };
-    colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.2805f, 0.281f, 1.0f };
-    colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-    colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-
-    // Title
-    colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-    colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-    colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        if (theme.contains("colors")) {
+            const auto& colors = theme.at("colors");
+            for (const auto& what : {"window", "header", "button", "frame", "tab", "title"}) {
+                if (colors.contains(what)) {
+                    for (const auto& [key, value] : colors.at(what).as_table()) {
+                        auto key_name = what + std::string{"."} + key;
+                        auto it = theme_names.find(key_name);
+                        if (it != theme_names.end()) {
+                            float opacity = 1.0f;
+                            glm::vec3 rgb;
+                            if (value.is_table()) {
+                                if (value.contains("rgb")) {
+                                    rgb = colors::parse_rgb(toml::get<std::string>(value.at("rgb")));
+                                } else {
+                                    spdlog::warn("Theme setting \"{}\" is missing \"rgb\" value", key_name);
+                                    continue;
+                                }
+                                if (value.contains("opacity")) {
+                                    opacity = float(value.at("opacity").as_floating());
+                                }
+                            } else if (value.is_string()) {
+                                rgb = colors::parse_rgb(value.as_string().str);
+                            } else {
+                                spdlog::warn("Theme setting \"{}\" has invalid data type, expected hex string or [hex string, alpha]", key_name);
+                                continue;
+                            }
+                            style_colors[it->second] = ImVec4{ rgb.r, rgb.g, rgb.b, opacity};
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
