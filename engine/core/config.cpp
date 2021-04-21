@@ -134,10 +134,12 @@ bool core::readUserConfig (int argc, char* argv[])
             entt::monostate<"graphics/v-sync"_hs>{} = toml::find_or<bool>(graphics, "vsync", true);
             entt::monostate<"graphics/field-of-view"_hs>{} = toml::find_or<float>(graphics, "fov", 60.0f);
             entt::monostate<"graphics/debug-rendering"_hs>{} = toml::find_or<bool>(graphics, "debug", false);
+            entt::monostate<"graphics/resolution/resizable"_hs>{} = toml::find_or<bool>(graphics, "resizable", false);
         } else {
             // No [graphics] section, use default settings
             entt::monostate<"graphics/resolution/width"_hs>{} = int{640};
             entt::monostate<"graphics/resolution/height"_hs>{} = int{480};
+            entt::monostate<"graphics/resolution/resizable"_hs>{} = false;
             entt::monostate<"graphics/fullscreen"_hs>{} = false;
             entt::monostate<"graphics/v-sync"_hs>{} = true;
             entt::monostate<"graphics/field-of-view"_hs>{} = 60.0f;

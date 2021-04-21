@@ -25,6 +25,7 @@ namespace graphics {
     };
 
     gou::api::Renderer* init (core::Engine&, graphics::Sync*&, ImGuiContext*&);
+    void windowChanged(gou::api::Renderer*);
     void term (gou::api::Renderer*);
 
 } // graphics::

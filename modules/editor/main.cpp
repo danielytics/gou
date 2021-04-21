@@ -49,6 +49,8 @@ public:
 
     void onAfterRender (gou::Renderer& renderer)
     {
+        m_properties_panel.select(m_scene_panel.selected());
+
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);

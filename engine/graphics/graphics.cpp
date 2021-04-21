@@ -89,6 +89,7 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
 
     const int width = entt::monostate<"graphics/resolution/width"_hs>();
     const int height = entt::monostate<"graphics/resolution/height"_hs>();
+    const bool resizable = entt::monostate<"graphics/resolution/resizable"_hs>();
     entt::monostate<"graphics/renderer/width"_hs>{} = float(width);
     entt::monostate<"graphics/renderer/height"_hs>{} = float(height);
 
@@ -100,7 +101,7 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
         SDL_WINDOWPOS_CENTERED,
         width,
         height,
-        SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
+        SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : (resizable ? SDL_WINDOW_RESIZABLE : 0)));
 
     renderer->gl_render_context = SDL_GL_CreateContext(renderer->window);
     renderer->gl_init_context = SDL_GL_CreateContext(renderer->window);
@@ -276,6 +277,11 @@ int render (void* data) {
     ImGui::DestroyContext();
 
     return 0;
+}
+
+void graphics::windowChanged(gou::api::Renderer* render_api)
+{
+    static_cast<graphics::RenderAPI*>(render_api)->windowChanged();
 }
 
 void graphics::term (gou::api::Renderer* render_api)

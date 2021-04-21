@@ -279,6 +279,20 @@ void core::Engine::handleInput (bool& running)
             case SDL_QUIT:
                 running = false;
                 break;
+            case SDL_WINDOWEVENT:
+            {
+                switch (event.window.event) {
+                case SDL_WINDOWEVENT_RESIZED:
+                case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    entt::monostate<"graphics/resolution/width"_hs>{} = int(event.window.data1);
+                    entt::monostate<"graphics/resolution/height"_hs>{} = int(event.window.data2);
+                    graphics::windowChanged(m_renderer);
+                    break;
+                default:
+                    break;
+                };
+                break;
+            }
             case SDL_KEYDOWN:
             case SDL_KEYUP:
             {

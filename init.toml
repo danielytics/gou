@@ -3,6 +3,7 @@ resolution = "720p"
 fullscreen = false
 vsync = false
 fov = 60
+resizable = false
 debug = false # Only in debug builds
 
 [telemetry]

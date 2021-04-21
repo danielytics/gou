@@ -15,6 +15,9 @@ public:
     void beforeRender (gou::Engine& engine);
     void render (gou::Renderer& renderer);
 
+    entt::entity selected () const { return m_selected_entity; }
+
 private:
-    std::vector<EntityInfo> entities;
+    std::vector<EntityInfo> m_entities;
+    entt::entity m_selected_entity = entt::null;
 };

@@ -8,4 +8,9 @@ public:
     ~EntityPropertiesPanel() {}
 
     void render ();
+
+    void select (entt::entity entity) { m_selected_entity = entity; }
+
+private:
+    entt::entity m_selected_entity;
 };

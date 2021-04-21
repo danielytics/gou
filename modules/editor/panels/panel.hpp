@@ -4,8 +4,8 @@
 #include <gou.hpp>
 
 namespace detail {
-    HAS_MEMBER_FUNCTION(beforeRender, ())
-    HAS_MEMBER_FUNCTION(afterRender,  ())
+    HAS_MEMBER_FUNCTION(preRender,   ())
+    HAS_MEMBER_FUNCTION(afterRender, ())
 }
 
 template <typename Derived>
@@ -20,16 +20,32 @@ public:
     template <typename... Args>
     void renderPanel (Args&&... args)
     {
-        ImGui::Begin(m_title, nullptr, m_window_flags);
-        if constexpr (detail::hasMember_beforeRender<Derived>()) {
-            static_cast<Derived*>(this)->beforeRender();
+        if constexpr (detail::hasMember_preRender<Derived>()) {
+            static_cast<Derived*>(this)->preRender();
         }
+        ImGui::Begin(m_title, nullptr, m_window_flags);
         static_cast<Derived*>(this)->render(std::forward<Args>(args)...);
+        ImGui::End();
         if constexpr (detail::hasMember_afterRender<Derived>()) {
             static_cast<Derived*>(this)->afterRender();    
         }
-        ImGui::End();
     }
+
+    /* USER FUNCTIONS:
+     *
+     * This class will detect and call the following methods:
+     * void preRender ()        - called during render but before the panel ImGui::Begin()
+     * void render (...)        - main render function, called after ImGui::Begin() and before ImGui::End()
+     * void afterRender ()      - called after ImGui::End()
+     * 
+     * These functions all run with the render thread lock and must not modify engine data.
+     * The only safe API to use is the gou::Renderer API.
+     * 
+     * Sometimes a panel will declare:
+     *  void beforeRender (...)
+     * and manually call it from Module::onBeforeRender(Engine&), this will run while holding the engine
+     * lock, making it safe to call gou::Engine methods, access the EnTT registry, etc
+     */
 
 private:
     const char* m_title;
