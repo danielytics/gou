@@ -3,7 +3,7 @@
 # Resolution can be: "720p", "1080p", "1440p", "4k" or any combination of "<width>x<height>", eg "640x480"
 resolution = "720p"
 fullscreen = false
-vsync = false
+vsync = true
 fov = 60
 resizable = false
 debug = false # Only in debug builds

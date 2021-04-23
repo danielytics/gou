@@ -7,9 +7,9 @@ default = "dark" # "dark", "light" or "classic"
 base = "#1a1b1c"
 
 [colors.header]
-base = "#333436"
-hovered = "#4d4e4f"
-active = "#262627"
+base = "#4E5905"
+hovered = "#92A60A"
+active = "#D5F30F"
 
 [colors.button]
 base = "#333436"

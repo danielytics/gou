@@ -156,125 +156,130 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
 int render (void* data) {
     using CM = gou::api::Module::CallbackMasks;
 
-    graphics::RenderAPI* render_api = static_cast<graphics::RenderAPI*>(data);
-    SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
+    try {
+        graphics::RenderAPI* render_api = static_cast<graphics::RenderAPI*>(data);
+        SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
 
 #ifdef DEBUG_BUILD
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(opengl_messageCallback, 0);
-	GLuint unused_ids = 0;
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unused_ids, true);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(opengl_messageCallback, 0);
+        GLuint unused_ids = 0;
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unused_ids, true);
 #endif
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glDisable(GL_BLEND);
-    glDisable(GL_STENCIL_TEST);
-    glClearDepth(1.0);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LEQUAL);
+        glDisable(GL_BLEND);
+        glDisable(GL_STENCIL_TEST);
+        glClearDepth(1.0);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-    imgui::initTheme();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+        imgui::initTheme();
 
-    // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(render_api->window, render_api->gl_render_context);
-    ImGui_ImplOpenGL3_Init("#version 150");
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+        // Setup Platform/Renderer backends
+        ImGui_ImplSDL2_InitForOpenGL(render_api->window, render_api->gl_render_context);
+        ImGui_ImplOpenGL3_Init("#version 150");
+        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    // Get context data
-    auto& running = render_api->running;
-    auto& state_sync = render_api->state_sync;
-    auto& cv = state_sync.sync_cv;
-    auto& engine = render_api->engine;
+        // Get context data
+        auto& running = render_api->running;
+        auto& state_sync = render_api->state_sync;
+        auto& cv = state_sync.sync_cv;
+        auto& engine = render_api->engine;
 
-    glm::mat4 projection_matrix;
-    glm::vec4 viewport;
-    
-    spdlog::info("Render thread running");
-    // Run render loop
-    do {
-        /*********************************************************************/
-        /* Wait for engine to hand over exclusive access to engine state.
-         * Renderer will then access the ECS registry to gather all components needed for rengering,
-         * accumulate a render list and hand exclusive access back to the engine. The renderer will
-         * then asynchronously render from its locally owned render list.
-         *********************************************************************/
-        {
-            // Wait for exclusive access to engine state
-            std::unique_lock<std::mutex> lock(state_sync.state_mutex);
-            cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
+        glm::mat4 projection_matrix;
+        glm::vec4 viewport;
+        
+        spdlog::info("Render thread running");
+        // Run render loop
+        do {
+            /*********************************************************************/
+            /* Wait for engine to hand over exclusive access to engine state.
+            * Renderer will then access the ECS registry to gather all components needed for rengering,
+            * accumulate a render list and hand exclusive access back to the engine. The renderer will
+            * then asynchronously render from its locally owned render list.
+            *********************************************************************/
+            {
+                // Wait for exclusive access to engine state
+                std::unique_lock<std::mutex> lock(state_sync.state_mutex);
+                cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
 
-            // Let Dear ImGui process events from event queue
-            for (const auto& event : engine.inputEvents()) {
-                ImGui_ImplSDL2_ProcessEvent(&event);
-            }
-
-            // Call module hook onBeforeRender before performing any rendering
-            engine.callModuleHook<CM::BEFORE_RENDER>();
-
-            // Gather render data into render list
-            // entt::registry& registry = context->engine.registry();
-
-            // Gather render data, if there is any
-            if (render_api->dirty) {
-                viewport = render_api->viewport();
-
-                if (render_api->resolution_changed) {
-                    projection_matrix = render_api->projectionMatrix();
-                    ImGui::GetIO().DisplaySize = ImVec2(viewport.z, viewport.w);
-                    render_api->resolution_changed = false;
+                // Let Dear ImGui process events from event queue
+                for (const auto& event : engine.inputEvents()) {
+                    ImGui_ImplSDL2_ProcessEvent(&event);
                 }
-                render_api->dirty = false;
+
+                // Call module hook onBeforeRender before performing any rendering
+                engine.callModuleHook<CM::BEFORE_RENDER>();
+
+                // Gather render data into render list
+                // entt::registry& registry = context->engine.registry();
+
+                // Gather render data, if there is any
+                if (render_api->dirty) {
+                    viewport = render_api->viewport();
+
+                    if (render_api->resolution_changed) {
+                        projection_matrix = render_api->projectionMatrix();
+                        ImGui::GetIO().DisplaySize = ImVec2(viewport.z, viewport.w);
+                        render_api->resolution_changed = false;
+                    }
+                    render_api->dirty = false;
+                }
+
+                // Hand exclusive access back to engine
+                state_sync.owner = graphics::Sync::Owner::Engine;
+                lock.unlock();
+                cv.notify_one();
             }
+            // Now render frame from render list
+            /*********************************************************************/
 
-            // Hand exclusive access back to engine
-            state_sync.owner = graphics::Sync::Owner::Engine;
-            lock.unlock();
-            cv.notify_one();
-        }
-        // Now render frame from render list
-        /*********************************************************************/
+            // Start the Dear ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplSDL2_NewFrame(render_api->window);
+            ImGui::NewFrame();
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(render_api->window);
-        ImGui::NewFrame();
+            // glm::mat4 view_matrix = services::locator::camera::ref().view();
+            // glm::mat4 projection_view_matrix = projection_matrix * view_matrix;
 
-        // glm::mat4 view_matrix = services::locator::camera::ref().view();
-        // glm::mat4 projection_view_matrix = projection_matrix * view_matrix;
+            // auto frustum = math::frustum(projection_view_matrix);
 
-        // auto frustum = math::frustum(projection_view_matrix);
+            glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
+            glClearColor(147.f/255.f, 237.f/255.f, 1.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
-        glClearColor(147.f/255.f, 237.f/255.f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // Game Rendering here
 
-        // Game Rendering here
+            // Call module hook onAfterRender before ending the frame
+            engine.callModuleHook<CM::AFTER_RENDER>();
 
-        // Call module hook onAfterRender before ending the frame
-        engine.callModuleHook<CM::AFTER_RENDER>();
+            // Render Dear ImGUI interface
+            ImGui::Render();
+            glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+            glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+            glClear(GL_COLOR_BUFFER_BIT);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Render Dear ImGUI interface
-        ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            // End Frame
+            SDL_GL_SwapWindow(render_api->window);
+        } while (running.load());
 
-        // End Frame
-        SDL_GL_SwapWindow(render_api->window);
-    } while (running.load());
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
+        ImGui::DestroyContext();
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
+    } catch (const std::exception& e) {
+        spdlog::error("Uncaught exception in graphics thread: {}", e.what());
+    }
 
     return 0;
 }

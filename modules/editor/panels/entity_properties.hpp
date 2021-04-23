@@ -1,16 +1,58 @@
 #pragma once
 
 #include "panel.hpp"
+#include <functional>
+#include <entt/core/type_info.hpp>
+#include <unordered_map>
+#include "component_editors.hpp"
 
 class EntityPropertiesPanel : public Panel<EntityPropertiesPanel> {
 public:
     EntityPropertiesPanel () : Panel<EntityPropertiesPanel>("Entity Properties") {}
-    ~EntityPropertiesPanel() {}
+    virtual ~EntityPropertiesPanel() {}
 
+    void beforeRender (gou::Engine& engine);
     void render ();
 
     void select (entt::entity entity) { m_selected_entity = entity; }
 
 private:
-    entt::entity m_selected_entity;
+    entt::entity m_selected_entity = entt::null;
+    entt::entity m_prev_selected_entity = entt::null;
+    std::unordered_map<entt::id_type, DataEditor*> m_data_editors;
+
+    template <typename Component>
+    void make_editor (gou::Engine& engine) {
+        auto& registry = engine.engine.registry();
+        auto type = entt::type_id<Component>().seq();
+        if (registry.any_of<Component>(m_selected_entity)) {
+            auto it = m_data_editors.find(type);
+            if (it == m_data_editors.end()) {
+                // Add new editor
+                auto [iterator, _] = m_data_editors.emplace(type, new TemlpatedDataEditor<Component>());
+                it = iterator;
+            }
+            TemlpatedDataEditor<Component>* editor = static_cast<TemlpatedDataEditor<Component>*>(it->second);
+            auto& position = registry.get<Component>(m_selected_entity);
+            editor->update(engine, position);
+        } else {
+            // Remove existing editor, if any
+            auto it = m_data_editors.find(type);
+            if (it != m_data_editors.end()) {
+                delete it->second;
+                m_data_editors.erase(it);
+            }
+        }
+    }
+
+    void maybe_clear ()
+    {
+        if (m_selected_entity != m_prev_selected_entity) {
+            m_prev_selected_entity = m_selected_entity;
+            for (auto& [_, editor] : m_data_editors) {
+                delete editor;
+            }
+            m_data_editors.clear();
+        }
+    }
 };

@@ -85,7 +85,7 @@ bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger, ImGuiCon
                              spdlog::error("Failed to load required module \"{}\": {}", info->name, result);
                              success = false;
                          } else {
-                            spdlog::warn("Failed to load module \"{}\" {}", info->name, result);
+                            spdlog::warn("Failed to load module \"{}\": {}", info->name, result);
                          }
                      }
                 } else {

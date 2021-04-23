@@ -84,6 +84,8 @@ std::map<std::string, std::string> data_types{
     {"event", "gou::events::Event"},
     {"ref", "entt::hashed_string::hash_type"},
     {"hashed-string", "entt::hashed_string"},
+    {"rgb", "glm::vec3"},
+    {"rgba", "glm::vec4"},
 };
 
 std::string load_vec2 (const std::string& attribute) {

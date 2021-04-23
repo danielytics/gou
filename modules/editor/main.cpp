@@ -45,6 +45,7 @@ public:
     void onBeforeRender (gou::Engine engine)
     {
         m_scene_panel.beforeRender(engine);
+        m_properties_panel.beforeRender(engine);
     }
 
     void onAfterRender (gou::Renderer& renderer)

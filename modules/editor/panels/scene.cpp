@@ -23,16 +23,45 @@ void ScenePanel::render (gou::Renderer& renderer)
 		m_selected_entity = entt::null;
 	}
 
-    for (const auto& info : m_entities) {
-		ImGuiTreeNodeFlags flags =  ImGuiTreeNodeFlags_SpanAvailWidth;
-		flags |= (m_selected_entity == info.entity) ? ImGuiTreeNodeFlags_Selected : 0;
-		bool opened = ImGui::TreeNodeEx((void*)(std::uint64_t)entt::to_integral(info.entity), flags, "%s", info.name.c_str());
-		if (opened) {
-			ImGui::TreePop();
+	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+	if (ImGui::TreeNode("Entities")) {
+		for (const auto& info : m_entities) {
+			ImGuiTreeNodeFlags flags =  ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf;
+			flags |= (m_selected_entity == info.entity) ? ImGuiTreeNodeFlags_Selected : 0;
+			if (ImGui::TreeNodeEx((void*)(std::uint64_t)entt::to_integral(info.entity), flags, "%s", info.name.c_str())) {
+				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+				{
+					m_selected_entity = info.entity;
+				} else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+					m_selected_entity = info.entity;
+					if (ImGui::BeginPopup("Entity Menu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings)) {
+						if (ImGui::MenuItem("Remove Entity")) {
+
+						}
+						ImGui::EndPopup();
+					}
+				}
+				ImGui::TreePop();
+			}
 		}
-		if (ImGui::IsItemClicked())
-		{
-			m_selected_entity = info.entity;
+		ImGui::TreePop();
+	}
+	if (ImGui::TreeNode("Prototypes")) {
+		ImGui::TreePop();
+	}
+	if (ImGui::BeginPopupContextWindow("Scene Menu", ImGuiMouseButton_Right, false))
+	{
+		if (ImGui::MenuItem("Add Entity")) {
+
 		}
-    }
+		ImGui::EndPopup();
+	}
+	if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+		if (ImGui::BeginPopup("Entity Menu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings)) {
+			if (ImGui::MenuItem("Remove Entity")) {
+
+			}
+			ImGui::EndPopup();
+		}
+	}
 }
