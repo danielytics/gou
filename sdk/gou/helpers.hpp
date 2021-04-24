@@ -1,6 +1,6 @@
 #pragma once
 
-namespace utilities {
+namespace helpers {
 
     ///////////////////////////////////////////////////////////////////////////
     // Create an iterator from an object with a 'data' pointer and a 'count' variable

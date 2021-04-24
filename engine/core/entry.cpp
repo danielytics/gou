@@ -97,8 +97,6 @@ int main (int argc, char* argv[])
 
     bool clean_exit = true;
     try {
-        bool running = true;
-
         core::Engine engine;
         core::ModuleManager moduleManager(engine);
         struct ImGuiContext* imgui_ctx = engine.init();
@@ -122,10 +120,10 @@ int main (int argc, char* argv[])
             // Run main loop
             spdlog::info("Game Running...");
             do {
-                engine.handleInput(running);
-
                 // // Execute systems and copy current frames events for processing next frame
-                engine.execute(time_since_start / 1000000.0, frame_time_micros / 1000000.0, total_frames);
+                if (!engine.execute(time_since_start / 1000000.0, frame_time_micros / 1000000.0, total_frames)) {
+                    break;
+                }
 
                 // Update timekeeping
                 previous_time = current_time;
@@ -147,8 +145,7 @@ int main (int argc, char* argv[])
                     moduleManager.update();
                 }
     #endif
-
-            } while (running);
+            } while (true);
 
             auto micros_per_frame = time_since_start / total_frames;
             if (micros_per_frame == 0) {

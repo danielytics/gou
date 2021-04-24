@@ -34,11 +34,14 @@ namespace core {
         Engine();
         virtual ~Engine();
 
+        using EventPool = memory::StackPool<gou::events::Event, memory::AlignCacheLine>;
+
         // Implement API interface
         gou::api::detail::type_context* type_context() const final;
         void registerModule (std::uint32_t, gou::api::Module*) final;
         gou::api::Renderer& renderer () const final;
-        gou::events::Event* event () final;
+        gou::events::Event* emit () final;
+        const gou::api::detail::EventsIterator& events () final;
         entt::registry& registry() final;
         entt::registry& prototypeRegistry () final;
         entt::organizer& organizer(std::uint32_t) final;
@@ -58,16 +61,13 @@ namespace core {
         // Initialise systems and load game data, after modules are loaded
         void setupGame ();
 
-        // Process input events
-        void handleInput (bool& running);
-
         // Provide access to input events
         const std::vector<SDL_Event>& inputEvents () {
             return m_input_events;
         }
 
-        // Execute the Taskflow graph of tasks
-        void execute (Time current_time, DeltaTime delta, uint64_t frame_count);
+        // Execute the Taskflow graph of tasks, returns true if still running
+        bool execute (Time current_time, DeltaTime delta, uint64_t frame_count);
 
         // Reset the engine internal state
         void reset ();
@@ -108,6 +108,11 @@ namespace core {
                     mod->on_before_update(args...);
                 }
             }
+        }
+
+        template <typename... Args>
+        gou::events::Event& emit (Args&&... args) {
+            return gou::api::helpers::emitEvent(*this, std::forward<Args>(args)...);
         }
 
         enum class EntityLoadType {
@@ -161,6 +166,11 @@ namespace core {
         SDL_GameController* m_game_controller;
         std::vector<SDL_Event> m_input_events;
 
+        // Events
+        gou::api::detail::EventsIterator m_events_iterator;
+        std::vector<EventPool*> m_event_pools;
+        EventPool m_event_pool;
+
         // Implement API interface
         void* allocModule (std::size_t bytes) final;
         void deallocModule (void* ptr) final;
@@ -171,6 +181,8 @@ namespace core {
         void createTaskGraph ();
         // Load game data and initialise games first scene
         void setupInitialScene();
+        // Process input events
+        void handleInput ();
         // Make emitted events available to read and make a fresh event queue available to emit to
         void pumpEvents ();
         // Merge a prototype entity into an entity

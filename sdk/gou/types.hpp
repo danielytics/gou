@@ -9,6 +9,10 @@ using DeltaTime = Time;
 #include <entt/core/hashed_string.hpp>
 #include <entt/entity/entity.hpp>
 
+[[nodiscard]] constexpr entt::hashed_string::hash_type operator"" _event(const char *str, std::size_t) ENTT_NOEXCEPT {
+    return entt::hashed_string{str}.value();
+}
+
 namespace gou {
 
     namespace resources {

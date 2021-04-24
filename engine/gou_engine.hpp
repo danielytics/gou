@@ -29,11 +29,7 @@ using namespace entt::literals;
 // From SDK
 #include <gou/types.hpp>
 #include <components/core.hpp>
-//#include <events.hpp>
-namespace helpers {
-    #include <gou/helpers.hpp>
-    using namespace utilities;
-}
+#include <gou/helpers.hpp>
 
 
 namespace gou::api::detail {

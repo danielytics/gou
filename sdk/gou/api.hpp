@@ -28,6 +28,12 @@ namespace gou::api {
             const std::shared_ptr<spdlog::logger> logger;
             ImGuiContext* imgui_context;
         };
+
+        struct EventsIterator {
+            using Type = gou::events::Event;
+            Type* data;
+            std::size_t count;
+        };
     }
 
     enum class SystemStage {
@@ -114,7 +120,10 @@ namespace gou::api {
         virtual Renderer& renderer () const = 0;
 
         // Emit an event
-        virtual events::Event* event () = 0;
+        virtual events::Event* emit () = 0;
+
+        // Access events emitted last frame
+        virtual const detail::EventsIterator& events () = 0;
 
         // Access to the ECS registry
         virtual entt::registry& registry() = 0;
@@ -157,4 +166,11 @@ namespace gou::api {
         virtual void* allocModule (std::size_t) = 0;
         virtual void deallocModule (void*) = 0;
     };
+
+    namespace helpers {
+        template <typename... Args>
+        gou::events::Event& emitEvent (Engine& engine, Args&&... args) {
+            return *new (engine.emit())gou:: events::Event{args...};
+        }
+    }
 }

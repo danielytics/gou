@@ -3,6 +3,7 @@
 #include "utils/helpers.hpp"
 
 #include <type_traits>
+#include <stdexcept>
 #include <new>
 
 namespace memory {
@@ -45,20 +46,26 @@ namespace memory {
         ~StackPool() {
             delete [] memory;
         }
-            
-        template <typename... Args>
-        T* allocate (Args... args) {
+
+        // Allocate, but don't construct
+        T* allocate () {
             if (next < size) {
-                return new(pool + next++) T{args...};
+                return (pool + next++);
             } else {
-                throw "StackPool allocated more items than reserved space";
+                throw std::runtime_error("StackPool allocated more items than reserved space");
             }
+        }
+            
+        // Allocate and construct
+        template <typename... Args>
+        T* emplace (Args&&... args) {
+            return new(allocate()) T{args...};
         }
 
         void discard (T* object) const {
         }
 
-        void push_back (T* item) {
+        void push_back (const T& item) {
             std::memcpy(reinterpret_cast<void*>(pool + next++), reinterpret_cast<const void*>(item), sizeof(T));
         }
 
@@ -97,7 +104,7 @@ namespace memory {
         // Copy buffer into StackPool
         void copy (T* buffer, uint32_t count) {
             if (remaining() < count) {
-                throw "StackPool attempted to copy more elements than remaining space allows";
+                throw std::runtime_error("StackPool attempted to copy more elements than remaining space allows");
             }
             std::memcpy(reinterpret_cast<void*>(pool + next), reinterpret_cast<const void*>(buffer), sizeof(T) * count);
             next += count;
@@ -140,17 +147,22 @@ namespace memory {
                 auto item = next;
                 next = next->next;
                 --free;
-                return new(&item->object) T{args...};
+                return &item->object;
             } else {
-                throw "Pool allocated more items than reserved space";
+                throw std::runtime_error("Pool allocated more items than reserved space");
             }
+        }
+
+        template <typename... Args>
+        [[nodiscard]] T* emplace (Args&&... args) {
+            return new(allocate()) T{args...};
         }
 
         void discard (T* object) {
             uint64_t addr = reinterpret_cast<uint64_t>(object);
             uint64_t first =  reinterpret_cast<uint64_t>(pool);
             if (addr < first || addr > first + (sizeof(Item) * size)) {
-                throw "Pool discarded object not belonging to pool";
+                throw std::runtime_error("Pool discarded object not belonging to pool");
             }
             Item* item = reinterpret_cast<Item*>(object);
             item->next = next;
@@ -203,9 +215,14 @@ namespace memory {
         }
 
         template <typename... Args>
-        [[nodiscard]] T* allocate (Args... args) {
+        [[nodiscard]] T* push (Args... args) {
             pool.push_back(T{args...});
             return &pool.back();
+        }
+
+        template <typename... Args>
+        [[nodiscard]] T* emplace (Args&&... args) {
+            return pool.emplace_back(std::forward<Args>(args)...);
         }
 
         void discard (T* object) {
@@ -260,8 +277,8 @@ namespace memory {
         }
 
         template <typename... Args>
-        [[nodiscard]] auto allocate (Args... args) {
-            return pools[index].allocate(args...);
+        [[nodiscard]] auto emplace (Args&&... args) {
+            return pools[index].emplace(std::forward<Args>(args)...);
         }    
         void discard (typename PoolType::Type* object) {
             pools[index].discard(object);

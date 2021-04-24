@@ -41,6 +41,14 @@ namespace gou {
     class Engine {
     public:
         gou::api::Engine& engine;
+
+        /*
+         * Emit an event
+         */
+        template <typename... Args>
+        events::Event& emit (Args&&... args) {
+            return api::helpers::emitEvent(engine, std::forward<Args>(args)...);
+        }
     };
 
     // API for manipulating scenes
@@ -164,6 +172,21 @@ namespace gou {
         }
 
         /*
+         * Emit an event
+         */
+        template <typename... Args>
+        events::Event& emit (Args&&... args) {
+            return api::helpers::emitEvent(m_engine, std::forward<Args>(args)...);
+        }
+
+        /*
+         * Get an iterator to a read-only iterator to events emitted by the previous frame
+         */
+        helpers::ConstIterator<api::detail::EventsIterator> events () {
+            return helpers::const_iterate(m_engine.events());
+        }
+
+        /*
          * Access engine time
          * current_time()   seconds since startup
          * delta_time()     seconds since last frame
@@ -240,14 +263,6 @@ namespace gou {
 ///////////////////////////////////////////////////////////////////////////////
 
     /*
-     * Emit an event
-     */
-    template <typename... Args>
-    void emit (entt::hashed_string event, Args... args) {
-        new (m_engine.event()) events::Event{args...};
-    }
-
-    /*
      * Logging functions
      */
     template <typename... Args> void info  (const std::string& text, Args... args)  {spdlog::info(m_moduleName + text, args...);}
@@ -272,25 +287,25 @@ namespace gou {
             uint32_t flags = 0;
             using CM = gou::api::Module::CallbackMasks;
             if constexpr (detail::hasMember_onBeforeUpdate<Derived>()) {
-                flags |= utilities::enum_value(CM::BEFORE_UPDATE);
+                flags |= helpers::enum_value(CM::BEFORE_UPDATE);
             }
             if constexpr (detail::hasMember_onAfterFrame<Derived>()) {
-                flags |= utilities::enum_value(CM::AFTER_FRAME);
+                flags |= helpers::enum_value(CM::AFTER_FRAME);
             }
             if constexpr (detail::hasMember_onPrepareRender<Derived>()) {
-                flags |= utilities::enum_value(CM::PREPARE_RENDER);
+                flags |= helpers::enum_value(CM::PREPARE_RENDER);
             }
             if constexpr (detail::hasMember_onBeforeRender<Derived>()) {
-                flags |= utilities::enum_value(CM::BEFORE_RENDER);
+                flags |= helpers::enum_value(CM::BEFORE_RENDER);
             }
             if constexpr (detail::hasMember_onAfterRender<Derived>()) {
-                flags |= utilities::enum_value(CM::AFTER_RENDER);
+                flags |= helpers::enum_value(CM::AFTER_RENDER);
             }
             if constexpr (detail::hasMember_onLoadScene<Derived>()) {
-                flags |= utilities::enum_value(CM::LOAD_SCENE);
+                flags |= helpers::enum_value(CM::LOAD_SCENE);
             }
             if constexpr (detail::hasMember_onUnloadScene<Derived>()) {
-                flags |= utilities::enum_value(CM::UNLOAD_SCENE);
+                flags |= helpers::enum_value(CM::UNLOAD_SCENE);
             }
             return flags;
         }

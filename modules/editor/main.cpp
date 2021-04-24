@@ -44,6 +44,9 @@ public:
 
     void onPrepareRender (gou::Engine engine)
     {
+        if (m_exit) {
+            engine.emit("engine/exit"_hs);
+        }
         m_scene_panel.beforeRender(engine);
         m_properties_panel.beforeRender(engine);
     }
@@ -91,7 +94,7 @@ public:
                 }
 #endif
 				if (ImGui::MenuItem("Exit")) {
-                    emit("engine/exit"_hs);
+                    m_exit = true;
                 }
 				ImGui::EndMenu();
 			}
@@ -145,6 +148,7 @@ private:
     AssetsPanel m_assets_panel;
     StatsPanel m_stats_panel;
     GlobalSettingsPanel m_global_settings_panel;
+    bool m_exit = false;
 
     void newScene ()
     {

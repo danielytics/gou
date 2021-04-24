@@ -23,9 +23,15 @@ int get_num_workers () {
     return max_workers > 1 ? max_workers - 1 : max_workers;
 }
 
+int get_global_event_pool_size () {
+    const std::uint32_t pool_size = entt::monostate<"memory/events/pool-size"_hs>();
+    return pool_size * get_num_workers();
+}
+
 core::Engine::Engine () :
     m_scene_manager(*this),
-    m_executor(get_num_workers())
+    m_executor(get_num_workers()),
+    m_event_pool(get_global_event_pool_size())
 {
     // Manage Named entities
     m_registry.on_construct<components::Named>().connect<&core::Engine::onAddNamedEntity>(this);
@@ -63,12 +69,6 @@ void core::Engine::registerModule (std::uint32_t flags, gou::api::Module* mod)
 gou::api::Renderer& core::Engine::renderer () const
 {
     return *m_renderer;
-}
-
-// Get pointer to new event on the event bus
-gou::events::Event* core::Engine::event ()
-{
-    return nullptr;
 }
 
 entt::registry& core::Engine::registry()
@@ -272,7 +272,7 @@ void core::Engine::setupGame ()
     pumpEvents();
 }
 
-void core::Engine::handleInput (bool& running)
+void core::Engine::handleInput ()
 {
     SDL_Event event;
     m_input_events.clear();
@@ -281,7 +281,7 @@ void core::Engine::handleInput (bool& running)
     {
         switch (event.type) {
             case SDL_QUIT:
-                running = false;
+                emit("engine/exit"_event);
                 break;
             case SDL_WINDOWEVENT:
             {
@@ -301,7 +301,7 @@ void core::Engine::handleInput (bool& running)
             case SDL_KEYUP:
             {
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    running = false;
+                    emit("engine/exit"_event);
                 } else {
                     // handleInput(engine, input_mapping, InputKeys::KeyType::KeyboardButton, event.key.keysym.scancode, [&event]() -> float {
                     //     return event.key.state == SDL_PRESSED ? 1.0f : 0.0f;
@@ -348,16 +348,20 @@ void core::Engine::handleInput (bool& running)
     }
 }
 
-void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count)
+bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count)
 {
     m_current_time_delta = delta;
 
-    // // Process previous frames events
-    // for (auto& event : helpers::const_iterate(engine.events())) {
-    //     if (event.type == "input/toggle-learn-mode"_event) {
-    //         m_input_learn_mode = !m_input_learn_mode;
-    //     }
-    // }
+    // // Process previous frames events, looking for ones the core engine cares about
+    // Yes, its a bit wasteful to loop them all like this, but they should be hot in cache so ¯\_(ツ)_/¯
+    for (auto& event : helpers::const_iterate(events())) {
+        if (event.type == "engine/exit"_event) {
+            return false;
+        }
+    }
+
+    // Read input device states and dispatch events
+    handleInput();
 
     // Run the before-frame hook for each module, updating the current time
     callModuleHook<CM::BEFORE_FRAME>(current_time, delta, frame_count);
@@ -385,6 +389,8 @@ void core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
     // Now wait for the renderer to relinquish exclusive access back to the engine
     std::unique_lock<std::mutex> lock(m_graphics_sync->state_mutex);
     m_graphics_sync->sync_cv.wait(lock, [this]{ return m_graphics_sync->owner == graphics::Sync::Owner::Engine; });
+
+    return true;
 }
 
 void core::Engine::reset ()
@@ -393,6 +399,10 @@ void core::Engine::reset ()
     callModuleHook<CM::UNLOAD_SCENE>();
     // Shut down graphics thread
     graphics::term(m_renderer);
+    // Delete event pools
+    for (auto pool : m_event_pools) {
+        delete pool;
+    }
     // Clear the registry
     m_registry = {};
     // Clear the prototype registry
@@ -406,21 +416,6 @@ void core::Engine::setupInitialScene ()
 
     const std::string& start_scene = entt::monostate<"game/start-scene"_hs>();
     m_scene_manager.loadScene(entt::hashed_string{start_scene.c_str()});
-}
-
-void core::Engine::pumpEvents () {
-    // globalEventPool.reset();
-    // // Copy thread local events into global pool and reset thread local pools
-    // for (auto& eventPool : eventPools) {
-    //     auto& pool = eventPool->pool;
-    //     globalEventPool.copy<EventPool::PoolType>(pool);
-    //     pool.reset();
-    // }
-    // // Create iterator for consumers
-    // eventPoolIterator = {
-    //     const_cast<EventPoolIterator::Type*>(globalEventPool.begin()),
-    //     globalEventPool.count()
-    // };
 }
 
 void core::Engine::onAddNamedEntity (entt::registry& registry, entt::entity entity)
