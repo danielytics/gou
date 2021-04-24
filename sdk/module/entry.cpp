@@ -1,5 +1,5 @@
 
-#include <gou.hpp>
+#include <gou/gou.hpp>
 
 #include <cr.h>
 #include <entt/core/type_info.hpp>

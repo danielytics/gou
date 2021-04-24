@@ -1,5 +1,5 @@
 #include <components/core.hpp>
-#include <gou_api.hpp>
+#include <gou/api.hpp>
 #include <toml.hpp>
 
 using namespace entt::literals;

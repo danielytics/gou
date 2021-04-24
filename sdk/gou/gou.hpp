@@ -1,9 +1,9 @@
 #pragma once
 
 // Common API between engine and modules
-#include "gou_api.hpp"
+#include "api.hpp"
 
-#include "components/core.hpp"
+#include <components/core.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation Details, not part of public API
@@ -29,7 +29,7 @@ namespace supports_detail {                                                     
 // Module-specific API
 namespace gou {
 
-    #include <utilities.hpp>
+    #include "helpers.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Public Module API
@@ -215,17 +215,18 @@ namespace gou {
 ///////////////////////////////////////////////////////////////////////////////
 
     namespace detail {
-        HAS_MEMBER_FUNCTION(onLoad,        (std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onUnload,      (std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onBeforeReload,(std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onAfterReload, (std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onBeforeFrame, (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onBeforeUpdate,(std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onAfterFrame,  (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onBeforeRender,(std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onAfterRender, (std::declval<Renderer&>()))
-        HAS_MEMBER_FUNCTION(onLoadScene,   (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onUnloadScene, (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onLoad,         (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onUnload,       (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onBeforeReload, (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onAfterReload,  (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onBeforeFrame,  (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onBeforeUpdate, (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onAfterFrame,   (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onPrepareRender,(std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onBeforeRender, (std::declval<Renderer&>()))
+        HAS_MEMBER_FUNCTION(onAfterRender,  (std::declval<Renderer&>()))
+        HAS_MEMBER_FUNCTION(onLoadScene,    (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onUnloadScene,  (std::declval<Scene&>()))
     }
 
     template <typename Derived>
@@ -275,6 +276,9 @@ namespace gou {
             }
             if constexpr (detail::hasMember_onAfterFrame<Derived>()) {
                 flags |= utilities::enum_value(CM::AFTER_FRAME);
+            }
+            if constexpr (detail::hasMember_onPrepareRender<Derived>()) {
+                flags |= utilities::enum_value(CM::PREPARE_RENDER);
             }
             if constexpr (detail::hasMember_onBeforeRender<Derived>()) {
                 flags |= utilities::enum_value(CM::BEFORE_RENDER);
@@ -328,9 +332,15 @@ namespace gou {
             }
         }
 
+        void on_prepare_render () final {
+            if constexpr (detail::hasMember_onPrepareRender<Derived>()) {
+                static_cast<Derived*>(this)->onPrepareRender(Engine{m_engine});
+            }            
+        }
+
         void on_before_render () final {
             if constexpr (detail::hasMember_onBeforeRender<Derived>()) {
-                static_cast<Derived*>(this)->onBeforeRender(Engine{m_engine});
+                static_cast<Derived*>(this)->onBeforeRender(m_engine.renderer());
             }
         }
 
@@ -372,7 +382,7 @@ namespace gou {
     };
 
     namespace api::detail {
-        #include <type_info.hpp>
+        #include "type_info.hpp"
     }
     struct ctx {
         static gou::api::detail::type_context* ref;

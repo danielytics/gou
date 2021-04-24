@@ -1,7 +1,7 @@
 #pragma once
 
 #include <imgui.h>
-#include <gou.hpp>
+#include <gou/gou.hpp>
 
 namespace detail {
     HAS_MEMBER_FUNCTION(preRender,   ())

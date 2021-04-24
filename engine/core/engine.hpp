@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gou_engine.hpp"
-#include <gou_api.hpp>
+#include <gou/api.hpp>
 #include "world/scenes.hpp"
 
 #include <SDL.h>
@@ -91,6 +91,10 @@ namespace core {
                 for (auto& mod : m_hooks_unloadScene) {
                     mod->on_unload_scene(args...);
                 }
+            } else if constexpr (Hook == CM::PREPARE_RENDER) {
+                for (auto& mod : m_hooks_prepareRender) {
+                    mod->on_prepare_render(args...);
+                }
             } else if constexpr (Hook == CM::BEFORE_RENDER) {
                 for (auto& mod : m_hooks_beforeRender) {
                     mod->on_before_render(args...);
@@ -142,6 +146,7 @@ namespace core {
         std::vector<gou::api::Module*> m_hooks_beforeUpdate;
         std::vector<gou::api::Module*> m_hooks_loadScene;
         std::vector<gou::api::Module*> m_hooks_unloadScene;
+        std::vector<gou::api::Module*> m_hooks_prepareRender;
         std::vector<gou::api::Module*> m_hooks_beforeRender;
         std::vector<gou::api::Module*> m_hooks_afterRender;
 

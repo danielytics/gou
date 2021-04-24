@@ -27,17 +27,17 @@ using namespace entt::literals;
 
 
 // From SDK
-#include <types.hpp>
+#include <gou/types.hpp>
 #include <components/core.hpp>
 //#include <events.hpp>
 namespace helpers {
-    #include <utilities.hpp>
+    #include <gou/helpers.hpp>
     using namespace utilities;
 }
 
 
 namespace gou::api::detail {
-    #include <type_info.hpp>
+    #include <gou/type_info.hpp>
 }
 
 // From engine internal

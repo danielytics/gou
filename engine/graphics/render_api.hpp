@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gou_api.hpp>
+#include <gou/api.hpp>
 
 #include <SDL.h>
 #include <glad/glad.h>
@@ -49,6 +49,10 @@ namespace graphics {
         const glm::mat4& projectionMatrix () const { return m_projection_matrix; }
 
         void windowChanged ();
+
+        /**********************************************************************
+         * Below functions should only be used in render thread context
+         */
 
     private:
         glm::vec4 m_viewport;

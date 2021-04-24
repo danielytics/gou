@@ -1,7 +1,7 @@
 
 #include "scene.hpp"
 
-#include <gou.hpp>
+#include <gou/gou.hpp>
 #include <components/core.hpp>
 
 void ScenePanel::beforeRender (gou::Engine& engine)

@@ -38,7 +38,7 @@ MODULE_INCLUDES += -I$(VENDOR)/imgui
 !link-engine = |> clang++ $(LINKER) $(LTO) %f -o %o |>
 
 # Modules
-!compile-module = | <module-pch> |> clang++ -fPIC  $(CFLAGS) $(CPPFLAGS) $(MODULE_INCLUDES) $(INCLUDES) $(LTO) -include $(ROOT_LOCATION)/sdk/gou.hpp -c %f -o %o |> %d__%B.o
+!compile-module = | <module-pch> |> clang++ -fPIC  $(CFLAGS) $(CPPFLAGS) $(MODULE_INCLUDES) $(INCLUDES) $(LTO) -include $(ROOT_LOCATION)/sdk/gou/gou.hpp -c %f -o %o |> %d__%B.o
 # -Wl,-z,origin -Wl, -rpath './libs'
 !link-module =  | $(ROOT_LOCATION)/sdk/module/entry.o $(ROOT_LOCATION)/vendor/libdearimgui.a |> clang++ $(LTO) $(MODULE_LINKER) -shared $(ROOT_LOCATION)/sdk/module/entry.o $(ROOT_LOCATION)/vendor/libdearimgui.a %f -o %o |> ../%d.module
 

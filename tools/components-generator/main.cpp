@@ -247,7 +247,7 @@ public:
 
     HeaderGenerator (std::ofstream& file) : out(file) {
         out(false) << "#pragma once";
-        out() << "#include <types.hpp>";
+        out() << "#include <gou/types.hpp>";
         out();
     }
     ~HeaderGenerator () {
@@ -417,7 +417,7 @@ private:
 void generate_components (const TomlValue& in, const std::string& module_name, std::ofstream& header_file, std::ofstream& source_file) {
     OutWrapper source(source_file);
     source(false) << "#include <components/" << module_name << ".hpp>";
-    source() << "#include <gou_api.hpp>";
+    source() << "#include <gou/api.hpp>";
     source() << "#include <toml.hpp>";
     source();
     source() << "using namespace entt::literals;";

@@ -5,16 +5,17 @@
 
 #include <SDL.h>
 
+#include <entt/core/type_info.hpp>
+namespace gou::api::detail {
+    #include <gou/type_info.hpp>
+}
+
 namespace gou {
     void register_components (gou::api::Engine*);
 }
 
 using CM = gou::api::Module::CallbackMasks;
 
-#include <entt/core/type_info.hpp>
-namespace gou::api::detail {
-    #include <type_info.hpp>
-}
 
 // Taskflow workers = number of hardware threads - 1, unless there is only one hardware thread
 int get_num_workers () {
@@ -52,7 +53,7 @@ void core::Engine::registerModule (std::uint32_t flags, gou::api::Module* mod)
     addModuleHook(CM::BEFORE_FRAME, mod);
 
     // Register optional hooks
-    for (auto hook : {CM::AFTER_FRAME, CM::LOAD_SCENE, CM::UNLOAD_SCENE, CM::BEFORE_UPDATE, CM::BEFORE_RENDER, CM::AFTER_RENDER}) {
+    for (auto hook : {CM::AFTER_FRAME, CM::LOAD_SCENE, CM::UNLOAD_SCENE, CM::BEFORE_UPDATE, CM::PREPARE_RENDER, CM::BEFORE_RENDER, CM::AFTER_RENDER}) {
         if (flags & helpers::enum_value(hook)) {
             addModuleHook(hook, mod);
         }
@@ -125,6 +126,9 @@ void core::Engine::addModuleHook (gou::api::Module::CallbackMasks hook, gou::api
             break;
         case CM::BEFORE_UPDATE:
             m_hooks_beforeUpdate.push_back(mod);
+            break;
+        case CM::PREPARE_RENDER:
+            m_hooks_prepareRender.push_back(mod);
             break;
         case CM::BEFORE_RENDER:
             m_hooks_beforeRender.push_back(mod);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include <gou/types.hpp>
 
 #include <chrono>
 using Clock = std::chrono::high_resolution_clock;

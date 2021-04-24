@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gou.hpp>
+#include <gou/gou.hpp>
 #include <imgui.h>
 
 namespace editors {

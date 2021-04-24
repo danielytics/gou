@@ -1,5 +1,5 @@
 
-#include <gou.hpp>
+#include <gou/gou.hpp>
 #include <imgui.h>
 
 class TestModule : public gou::Module<TestModule> {

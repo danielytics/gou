@@ -187,7 +187,6 @@ int render (void* data) {
         // Setup Platform/Renderer backends
         ImGui_ImplSDL2_InitForOpenGL(render_api->window, render_api->gl_render_context);
         ImGui_ImplOpenGL3_Init("#version 150");
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         // Get context data
         auto& running = render_api->running;
@@ -217,16 +216,15 @@ int render (void* data) {
                     ImGui_ImplSDL2_ProcessEvent(&event);
                 }
 
-                // Call module hook onBeforeRender before performing any rendering
-                engine.callModuleHook<CM::BEFORE_RENDER>();
+                // Call onPrepareRender during the critical section, before performing any rendering
+                engine.callModuleHook<CM::PREPARE_RENDER>();
 
                 // Gather render data into render list
                 // entt::registry& registry = context->engine.registry();
 
                 // Gather render data, if there is any
-                if (render_api->dirty) {
+                if (render_api->dirty) { // Only data set from engine thread context needs to set dirty and be gathered here
                     viewport = render_api->viewport();
-
                     if (render_api->resolution_changed) {
                         projection_matrix = render_api->projectionMatrix();
                         ImGui::GetIO().DisplaySize = ImVec2(viewport.z, viewport.w);
@@ -254,19 +252,22 @@ int render (void* data) {
             // auto frustum = math::frustum(projection_view_matrix);
 
             glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
-            glClearColor(147.f/255.f, 237.f/255.f, 1.0f, 1.0f);
+            glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            // Call module hook onBeforeRender before rendering the frame
+            engine.callModuleHook<CM::BEFORE_RENDER>();
 
             // Game Rendering here
 
-            // Call module hook onAfterRender before ending the frame
+            // Call module hook onAfterRender after rendering the frame
             engine.callModuleHook<CM::AFTER_RENDER>();
 
             // Render Dear ImGUI interface
             ImGui::Render();
-            glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-            glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-            glClear(GL_COLOR_BUFFER_BIT);
+            // glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+            // glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+            // glClear(GL_COLOR_BUFFER_BIT);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             // End Frame

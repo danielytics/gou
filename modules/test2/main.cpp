@@ -1,5 +1,5 @@
 
-#include <gou.hpp>
+#include <gou/gou.hpp>
 
 class TestModule2 : public gou::Module<TestModule2> {
     GOU_MODULE_CLASS(TestModule2)

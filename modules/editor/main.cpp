@@ -1,5 +1,5 @@
 
-#include <gou.hpp>
+#include <gou/gou.hpp>
 
 #include "panels/scene.hpp"
 #include "panels/entity_properties.hpp"
@@ -42,7 +42,7 @@ public:
         m_stats_panel.current_time = scene.currentTime();
     }
 
-    void onBeforeRender (gou::Engine engine)
+    void onPrepareRender (gou::Engine engine)
     {
         m_scene_panel.beforeRender(engine);
         m_properties_panel.beforeRender(engine);
