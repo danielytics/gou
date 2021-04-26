@@ -17,6 +17,7 @@ gou::events::Event* core::Engine::emit ()
     return g_event_pool->allocate();
 }
 
+// Move events from the thread local pools into the global event pool
 void core::Engine::pumpEvents ()
 {
     m_event_pool.reset();
@@ -25,6 +26,12 @@ void core::Engine::pumpEvents ()
         m_event_pool.copy<EventPool>(*pool);
         pool->reset();
     }
+    refreshEventsIterator();
+}
+
+// Make the global event pool visible to consumers
+void core::Engine::refreshEventsIterator ()
+{
     // Create iterator for consumers
     m_events_iterator = {
         const_cast<gou::api::detail::EventsIterator::Type*>(m_event_pool.begin()),

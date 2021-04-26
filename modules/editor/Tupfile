@@ -3,7 +3,11 @@ include_rules
 # Uncomment if this module doesn't include a components.toml
 CPPFLAGS += -DNO_COMPONENTS
 
+MODULE_INCLUDES += -I$(VENDOR)/imgui-node-editor/
+
 : foreach *.cpp |> !compile-module |>
 : foreach panels/*.cpp |> !compile-module |>
-: ../../vendor/imgui/imgui_demo.cpp |> !compile-module |>
+: foreach widgets/*.cpp |> !compile-module |>
+: foreach $(VENDOR)/imgui-node-editor/*.cpp |> !compile-module |>
+: $(VENDOR)/imgui/imgui_demo.cpp |> !compile-module |>
 : *.o |> !link-module |>

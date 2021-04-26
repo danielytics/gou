@@ -7,12 +7,14 @@
 #include "panels/assets.hpp"
 #include "panels/stats.hpp"
 
-#include <imgui_internal.h>
+#include "widgets/curve_editor.hpp"
+#include <imgui_node_editor.h>
+
+namespace ed = ax::NodeEditor;
 
 glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
 {
     auto centeralNode = ImGui::DockBuilderGetCentralNode(dockspaceId);
-
     return {
         centeralNode->Pos.x,
         centeralNode->Pos.y,
@@ -21,6 +23,7 @@ glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
     };
 }
 
+static ed::EditorContext* g_Context = nullptr;
 
 class EditorModule : public gou::Module<EditorModule> {
     GOU_MODULE_CLASS(EditorModule)
@@ -35,6 +38,13 @@ public:
                        | ImGuiWindowFlags_NoBringToFrontOnFocus
                        | ImGuiWindowFlags_NoBackground
                        | ImGuiWindowFlags_NoNavFocus;
+
+        g_Context = ed::CreateEditor();
+    }
+
+    void onUnload (gou::Engine)
+    {
+        ed::DestroyEditor(g_Context);
     }
 
     void onBeforeFrame (gou::Scene& scene) {
@@ -89,6 +99,9 @@ public:
                     saveSceneAs();
                 }
 #ifdef DEBUG_BUILD
+				if (ImGui::MenuItem(m_show_curve_editor ? "Hide Curve Editor" : "Show Curve Editor")) {
+                    m_show_curve_editor = !m_show_curve_editor;
+                }
 				if (ImGui::MenuItem(m_show_demo ? "Hide ImGUI Demo" : "Show ImGUI Demo")) {
                     m_show_demo = !m_show_demo;
                 }
@@ -108,8 +121,33 @@ public:
         m_properties_panel.renderPanel();
         m_scene_panel.renderPanel(renderer);
 
+        ImGui::Begin("Editor Test");
+        ed::SetCurrentEditor(g_Context);
+        ed::Begin("My Editor");
+        int uniqueId = 1;
+        for (auto c : {'A', 'B'}) {
+            ed::BeginNode(uniqueId++);
+                ImGui::Text("Node %c", c);
+                ed::BeginPin(uniqueId++, ed::PinKind::Input);
+                    ImGui::Text("-> In");
+                ed::EndPin();
+                ImGui::SameLine();
+                ed::BeginPin(uniqueId++, ed::PinKind::Output);
+                    ImGui::Text("Out ->");
+                ed::EndPin();
+            ed::EndNode();
+        }
+        ed::Link(ed::LinkId(1), 3, 5);
+        ed::End();
+        ImGui::End();
+
 
 #ifdef DEBUG_BUILD
+        if (m_show_curve_editor) {
+            ImGui::Begin("Bezier Curve Editor");
+            ImGui::ShowBezierDemo();
+            ImGui::End();
+        }
         if (m_show_demo) {
             ImGui::ShowDemoWindow();
         }
@@ -127,6 +165,7 @@ private:
     ImGuiWindowFlags m_window_flags;
 #ifdef DEBUG_BUILD
     bool m_show_demo = false;
+    bool m_show_curve_editor = false;
 #endif
 #ifndef DEV_TOOLS
     bool m_dev_mode_warning_open = true;
@@ -148,6 +187,7 @@ private:
     AssetsPanel m_assets_panel;
     StatsPanel m_stats_panel;
     GlobalSettingsPanel m_global_settings_panel;
+
     bool m_exit = false;
 
     void newScene ()

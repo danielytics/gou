@@ -274,6 +274,16 @@ void core::Engine::setupGame ()
 
 void core::Engine::handleInput ()
 {
+    /**
+     * Gather input from input devices: keyboard, mouse, gamepad, joystick
+     * Input is mapped to events and those events are emitted for systems to process.
+     * handleInput doesn't use the engines normal emit() API, instead it adds the events
+     * directly to the m_event_pool global event pool. This way, input-generated events
+     * are immediately available, without a frame-delay. We can do this, because handleInput
+     * is guaranteed to be called serially, before the taskflow graph is executed, so we can
+     * guarantee 
+     */
+
     SDL_Event event;
     m_input_events.clear();
     // Gather and dispatch input
@@ -281,7 +291,7 @@ void core::Engine::handleInput ()
     {
         switch (event.type) {
             case SDL_QUIT:
-                emit("engine/exit"_event);
+                internalEmplaceEvent("engine/exit"_event);
                 break;
             case SDL_WINDOWEVENT:
             {
@@ -301,7 +311,7 @@ void core::Engine::handleInput ()
             case SDL_KEYUP:
             {
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    emit("engine/exit"_event);
+                    internalEmplaceEvent("engine/exit"_event);
                 } else {
                     // handleInput(engine, input_mapping, InputKeys::KeyType::KeyboardButton, event.key.keysym.scancode, [&event]() -> float {
                     //     return event.key.state == SDL_PRESSED ? 1.0f : 0.0f;
@@ -346,11 +356,17 @@ void core::Engine::handleInput ()
         // Store events for render thread to access (used by Dear ImGui)
         m_input_events.push_back(event);
     }
+
+    // Make sure that any events that were dispatched are visible to the engine
+    refreshEventsIterator();
 }
 
 bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count)
 {
     m_current_time_delta = delta;
+
+    // Read input device states and dispatch events. Input events are emitted directly into the global pool, immediately readable "this frame" (no frame delay!)
+    handleInput();
 
     // // Process previous frames events, looking for ones the core engine cares about
     // Yes, its a bit wasteful to loop them all like this, but they should be hot in cache so ¯\_(ツ)_/¯
@@ -359,9 +375,6 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
             return false;
         }
     }
-
-    // Read input device states and dispatch events
-    handleInput();
 
     // Run the before-frame hook for each module, updating the current time
     callModuleHook<CM::BEFORE_FRAME>(current_time, delta, frame_count);

@@ -177,20 +177,34 @@ namespace core {
 
         // Add a module to be called by a specific engine hook
         void addModuleHook (gou::api::Module::CallbackMasks hook, gou::api::Module* module);
+
         // Create task execution graph
         void createTaskGraph ();
+
         // Load game data and initialise games first scene
         void setupInitialScene();
+
         // Process input events
         void handleInput ();
+
         // Make emitted events available to read and make a fresh event queue available to emit to
         void pumpEvents ();
+
+        // Emit an event directly to the global pool (warning: unsynchronised)
+        template <typename... Args> void internalEmplaceEvent (Args&&... args) {
+            m_event_pool.emplace(std::forward<Args>(args)...);
+        }
+
+        // Update the global event pool iterator to see all events in the global pool
+        void refreshEventsIterator ();
+
         // Merge a prototype entity into an entity
         void mergeEntityInternal (entt::entity, entt::entity, bool);
 
         // Callbacks to manage Named entities
         void onAddNamedEntity (entt::registry&, entt::entity);
         void onRemoveNamedEntity (entt::registry&, entt::entity);
+
         // Callbacks to manage prototype entities
         void onAddPrototypeEntity (entt::registry&, entt::entity);
         void onRemovePrototypeEntity (entt::registry&, entt::entity);
