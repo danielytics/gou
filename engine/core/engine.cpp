@@ -372,6 +372,7 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
     // Yes, its a bit wasteful to loop them all like this, but they should be hot in cache so ¯\_(ツ)_/¯
     for (auto& event : helpers::const_iterate(events())) {
         if (event.type == "engine/exit"_event) {
+            // No longer running, return false
             return false;
         }
     }
@@ -403,6 +404,11 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
     std::unique_lock<std::mutex> lock(m_graphics_sync->state_mutex);
     m_graphics_sync->sync_cv.wait(lock, [this]{ return m_graphics_sync->owner == graphics::Sync::Owner::Engine; });
 
+    /*
+     * Engine has exclusive access again.
+     */
+
+    // Still running, return true.
     return true;
 }
 
