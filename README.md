@@ -6,13 +6,13 @@ The name **GOU** is in honour of the [Game of Ur](https://en.wikipedia.org/wiki/
 
 **This is an early work-in-progress, most of the below features do not yet exist!**
 
-1. Component Entity System based game entities
+1. Component Entity System based game entities with scene-tree based game logic that uses signal-slots based entity communication
 2. Multi-threaded systems
-3. Scene-tree based game logic
-4. Lua scripts can be attached to the scene-tree
-5. Modular engine, all game-specific logic is in modules, scripts or configuration
-6. Modules are hot-code reloadable
-7. Configuration, scenes and game data described in human-readable TOML files
+3. Visual scripting for creating gameplay interactions by connecting signals to slots
+4. Modular engine, all game-specific logic is in modules, scripts or configuration
+5. Modules are hot-code reloadable (TODO: figure out how to reload systems)
+6. Configuration, scenes and game data described in human-readable TOML files
+7. Built-in support for intelligent AI agents and procedural content generation
 8. Focused on 2.5D or 3D Action RPG games
 9. Deferred-texturing based renderer
     * https://mynameismjp.wordpress.com/2016/03/25/bindless-texturing-for-deferred-rendering-and-decals/
@@ -22,13 +22,12 @@ The name **GOU** is in honour of the [Game of Ur](https://en.wikipedia.org/wiki/
 
 Engine dependencies:
 
-* C++17 and OpenGL 4.1
+* C++17 and OpenGL 4.6 (4.1 on OSX)
 * [SDL2](http://libsdl.org/) - Windowing & Input (ZLIB License)
 * [EnTT](https://github.com/skypjack/entt) - Entity Component System (MIT License)
 * [GLAD](https://github.com/Dav1dde/glad) - OpenGL extension generator (MIT License)
 * [GLM](https://glm.g-truc.net/0.9.8/index.html) - OpenGL Mathematics library (The Happy Bunny/Modified MIT License)
 * [spdlog](https://github.com/gabime/spdlog) - Fast logging library (MIT License)
-* [LuaJIT](http://luajit.org/luajit.html) - Lua bindings and JIT runtime (MIT License)
 * [FastNoiseSIMD](https://github.com/Auburns/FastNoiseSIMD) - Library of various SIMD-optimised noise functions (MIT License, note: Simplex noise is patent-encumbered when used for texture generation)
 * [PhysicsFS](http://icculus.org/physfs/) - Library for filesystem abstraction (zlib License)
 * [PhysFS++](https://github.com/danielytics/physfs-hpp) - C++ wrapper for PhysicsFS (zlib License + [notes](https://github.com/Ybalrid/physfs-hpp/blob/master/LICENSE.txt))
