@@ -9,5 +9,9 @@ MODULE_INCLUDES += -I$(VENDOR)/imgui-node-editor/
 : foreach panels/*.cpp |> !compile-module |>
 : foreach widgets/*.cpp |> !compile-module |>
 : foreach $(VENDOR)/imgui-node-editor/*.cpp |> !compile-module |>
+
+ifdef CONFIG_DEBUG_BUILD
 : $(VENDOR)/imgui/imgui_demo.cpp |> !compile-module |>
+endif
+
 : *.o |> !link-module |>

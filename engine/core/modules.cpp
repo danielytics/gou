@@ -48,7 +48,7 @@ bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger, ImGuiCon
         path += gou::constants::PathSeparator;
     }
     const std::string& modules = entt::monostate<"game/modules-file"_hs>();
-    spdlog::info("Reading modules from: {}", modules);
+    spdlog::debug("Reading modules from: {}", modules);
     const auto config = parser::parse_toml(modules);
     if (config.contains("module")) {
         const auto& module_list = toml::find<TomlArray>(config, "module");
@@ -71,7 +71,7 @@ bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger, ImGuiCon
                 filename += info->name + ".module";
 
                 // Load module
-                spdlog::info("Loading module \"{}\" from: {}", info->name, filename);
+                spdlog::debug("Loading module \"{}\" from: {}", info->name, filename);
                 cr_plugin ctx;
                 ctx.userdata = info;
                 if (cr_plugin_open(ctx, filename.c_str())) {

@@ -17,6 +17,7 @@ INCLUDES += -I$(VENDOR)/spdlog/include
 INCLUDES += -I$(VENDOR)/cxxopts/include
 INCLUDES += -I$(VENDOR)/physfs/src
 INCLUDES += -I$(VENDOR)/physfs-hpp/include
+INCLUDES += -I$(VENDOR)/imgui/
 INCLUDES += -I$(VENDOR)/imgui
 INCLUDES += -I$(VENDOR)/bullet3/src
 INCLUDES += -I$(VENDOR)/orderedmap/include

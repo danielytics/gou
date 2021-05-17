@@ -4,7 +4,7 @@
 
 class StatsPanel : public Panel<StatsPanel> {
 public:
-    StatsPanel () : Panel<StatsPanel>("Stats") {}
+    StatsPanel () : Panel<StatsPanel>("Stats", ImGuiWindowFlags_None, false) {}
     ~StatsPanel() {}
 
     void render ();

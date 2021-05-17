@@ -25,13 +25,7 @@ void core::Engine::mergeEntityInternal (entt::entity entity, entt::entity protot
     m_prototype_registry.visit(prototype_entity, [this,entity,prototype_entity,overwrite_components](const auto info) {
         auto&& prototype_storage = m_prototype_registry.storage(info);
         auto&& scene_storage = m_registry.storage(info);
-        if (scene_storage->contains(entity)) {
-            if (overwrite_components) {
-                scene_storage->replace(m_registry, entity, prototype_storage->get(prototype_entity));
-            }
-        } else {
-            scene_storage->emplace(m_registry, entity, prototype_storage->get(prototype_entity));
-        }
+        scene_storage->copy(m_registry, entity, prototype_storage->get(prototype_entity), overwrite_components);
     });
 }
 

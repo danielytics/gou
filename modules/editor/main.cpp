@@ -6,11 +6,9 @@
 #include "panels/global_settings.hpp"
 #include "panels/assets.hpp"
 #include "panels/stats.hpp"
+#include "panels/gameplan.hpp"
 
 #include "widgets/curve_editor.hpp"
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
 
 glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
 {
@@ -23,7 +21,6 @@ glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
     };
 }
 
-static ed::EditorContext* g_Context = nullptr;
 
 class EditorModule : public gou::Module<EditorModule> {
     GOU_MODULE_CLASS(EditorModule)
@@ -38,13 +35,12 @@ public:
                        | ImGuiWindowFlags_NoBringToFrontOnFocus
                        | ImGuiWindowFlags_NoBackground
                        | ImGuiWindowFlags_NoNavFocus;
-
-        g_Context = ed::CreateEditor();
+        m_gameplan_panel.load();
     }
 
     void onUnload (gou::Engine)
     {
-        ed::DestroyEditor(g_Context);
+        m_gameplan_panel.unload();
     }
 
     void onBeforeFrame (gou::Scene& scene) {
@@ -85,10 +81,8 @@ public:
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoDockingInCentralNode);
 		style.WindowMinSize.x = min_win_size_x;
 
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
-			{
+		if (ImGui::BeginMenuBar()) {
+			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New", "Ctrl+N")) {
                     newScene();
                 }
@@ -112,35 +106,37 @@ public:
 				ImGui::EndMenu();
 			}
 
+            if (ImGui::BeginMenu("View")) {
+                if (ImGui::MenuItem(m_scene_panel.visible() ? "Hide Scene" : "Show Scene", "Ctrl+1")) {
+                    m_scene_panel.toggleVisible();
+                }
+                if (ImGui::MenuItem(m_properties_panel.visible() ? "Hide Entity Properties" : "Show Entity Properties", "Ctrl+2")) {
+                    m_properties_panel.toggleVisible();
+                }
+                if (ImGui::MenuItem(m_gameplan_panel.visible() ? "Hide Gameplan" : "Show Gameplan", "Ctrl+3")) {
+                    m_gameplan_panel.toggleVisible();
+                }
+                if (ImGui::MenuItem(m_assets_panel.visible() ? "Hide Assets" : "Show Assets", "Ctrl+4")) {
+                    m_assets_panel.toggleVisible();
+                }
+                if (ImGui::MenuItem(m_global_settings_panel.visible() ? "Hide Global Settings" : "Show Global Settings", "Ctrl+5")) {
+                    m_global_settings_panel.toggleVisible();
+                }
+                if (ImGui::MenuItem(m_stats_panel.visible() ? "Hide Stats" : "Show Stats", "Ctrl+6")) {
+                    m_stats_panel.toggleVisible();
+                }
+                ImGui::EndMenu();
+            }
+
 			ImGui::EndMenuBar();
 		}
 
-        m_stats_panel.renderPanel();
-        m_global_settings_panel.renderPanel();
-        m_assets_panel.renderPanel();
-        m_properties_panel.renderPanel();
         m_scene_panel.renderPanel(renderer);
-
-        ImGui::Begin("Editor Test");
-        ed::SetCurrentEditor(g_Context);
-        ed::Begin("My Editor");
-        int uniqueId = 1;
-        for (auto c : {'A', 'B'}) {
-            ed::BeginNode(uniqueId++);
-                ImGui::Text("Node %c", c);
-                ed::BeginPin(uniqueId++, ed::PinKind::Input);
-                    ImGui::Text("-> In");
-                ed::EndPin();
-                ImGui::SameLine();
-                ed::BeginPin(uniqueId++, ed::PinKind::Output);
-                    ImGui::Text("Out ->");
-                ed::EndPin();
-            ed::EndNode();
-        }
-        ed::Link(ed::LinkId(1), 3, 5);
-        ed::End();
-        ImGui::End();
-
+        m_properties_panel.renderPanel();
+        m_gameplan_panel.renderPanel();
+        m_assets_panel.renderPanel();
+        m_global_settings_panel.renderPanel();
+        m_stats_panel.renderPanel();
 
 #ifdef DEBUG_BUILD
         if (m_show_curve_editor) {
@@ -187,6 +183,7 @@ private:
     AssetsPanel m_assets_panel;
     StatsPanel m_stats_panel;
     GlobalSettingsPanel m_global_settings_panel;
+    GameplanPanel m_gameplan_panel;
 
     bool m_exit = false;
 

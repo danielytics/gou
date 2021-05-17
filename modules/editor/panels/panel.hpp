@@ -11,23 +11,29 @@ namespace detail {
 template <typename Derived>
 class Panel {
 public:
-    Panel (const char* title, ImGuiWindowFlags window_flags=ImGuiWindowFlags_None) :
+    Panel (const char* title, ImGuiWindowFlags window_flags=ImGuiWindowFlags_None, bool visible=true) :
         m_title(title),
-        m_window_flags(window_flags)
+        m_window_flags(window_flags),
+        m_visible(visible)
     {}
     ~Panel () {}
+
+    bool visible () { return m_visible; }
+    void toggleVisible () { m_visible = !m_visible; }
 
     template <typename... Args>
     void renderPanel (Args&&... args)
     {
-        if constexpr (detail::hasMember_preRender<Derived>()) {
-            static_cast<Derived*>(this)->preRender();
-        }
-        ImGui::Begin(m_title, nullptr, m_window_flags);
-        static_cast<Derived*>(this)->render(std::forward<Args>(args)...);
-        ImGui::End();
-        if constexpr (detail::hasMember_afterRender<Derived>()) {
-            static_cast<Derived*>(this)->afterRender();    
+        if (m_visible) {
+            if constexpr (detail::hasMember_preRender<Derived>()) {
+                static_cast<Derived*>(this)->preRender();
+            }
+            ImGui::Begin(m_title, nullptr, m_window_flags);
+            static_cast<Derived*>(this)->render(std::forward<Args>(args)...);
+            ImGui::End();
+            if constexpr (detail::hasMember_afterRender<Derived>()) {
+                static_cast<Derived*>(this)->afterRender();    
+            }
         }
     }
 
@@ -50,4 +56,5 @@ public:
 private:
     const char* m_title;
     ImGuiWindowFlags m_window_flags;
+    bool m_visible;
 };

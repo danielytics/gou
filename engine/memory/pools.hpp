@@ -106,7 +106,9 @@ namespace memory {
             if (remaining() < count) {
                 throw std::runtime_error("StackPool attempted to copy more elements than remaining space allows");
             }
-            std::memcpy(reinterpret_cast<void*>(pool + next), reinterpret_cast<const void*>(buffer), sizeof(T) * count);
+            // TODO: benchmark copy_n, copy, memmove and memcpy
+            std::copy_n(buffer, count, end());
+            // std::memcpy(reinterpret_cast<void*>(pool + next), reinterpret_cast<const void*>(buffer), sizeof(T) * count);
             next += count;
         }
 

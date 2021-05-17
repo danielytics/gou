@@ -19,8 +19,10 @@ graphics::RenderAPI::~RenderAPI()
 
 void graphics::RenderAPI::setViewport (const glm::vec4& viewport)
 {
-    m_viewport = viewport;
-    dirty = true;
+    if (m_viewport != viewport) {
+        m_viewport = viewport;
+        dirty = true;
+    }
 }
 
 // This method can be called form the engine threads
