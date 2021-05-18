@@ -20,6 +20,7 @@ namespace gou {
 				registry.emplace_or_replace<components::Named>(entity, entt::hashed_string{toml::find<std::string>(table, "name").c_str()});
 			};
 			component.attributes.push_back({"name", gou::types::Type::HashedString, offsetof(components::Named, name)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Named>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -30,6 +31,7 @@ namespace gou {
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				registry.emplace_or_replace<components::Global>(entity);
 			};
+			component.getter = nullptr;
 			engine->registerComponent(component);
 		}
 		
@@ -45,6 +47,7 @@ namespace gou {
 			};
 			component.attributes.push_back({"rotation", gou::types::Type::Vec3, offsetof(components::Transform, rotation)});
 			component.attributes.push_back({"scale", gou::types::Type::Vec3, offsetof(components::Transform, scale)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Transform>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -59,6 +62,7 @@ namespace gou {
 			component.attributes.push_back({"x", gou::types::Type::Float, offsetof(components::Position, x)});
 			component.attributes.push_back({"y", gou::types::Type::Float, offsetof(components::Position, y)});
 			component.attributes.push_back({"z", gou::types::Type::Float, offsetof(components::Position, z)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Position>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -78,6 +82,7 @@ namespace gou {
 			component.attributes.push_back({"on-enter", gou::types::Type::Signal, offsetof(components::TriggerRegion, on_enter)});
 			component.attributes.push_back({"on-exit", gou::types::Type::Signal, offsetof(components::TriggerRegion, on_exit)});
 			component.attributes.push_back({"trigger-mask", gou::types::Type::UInt32, offsetof(components::TriggerRegion, trigger_mask)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::TriggerRegion>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -90,6 +95,7 @@ namespace gou {
 				registry.emplace_or_replace<components::TimeAware>(entity, float(toml::find<toml::floating>(table, "scale-factor")));
 			};
 			component.attributes.push_back({"scale-factor", gou::types::Type::Float, offsetof(components::TimeAware, scale_factor)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::TimeAware>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -102,6 +108,7 @@ namespace gou {
 				registry.emplace_or_replace<components::ScriptedBehavior>(entity, entt::hashed_string::value(toml::find<std::string>(table, "script").c_str()));
 			};
 			component.attributes.push_back({"script", gou::types::Type::Ref, offsetof(components::ScriptedBehavior, script)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::ScriptedBehavior>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -114,6 +121,7 @@ namespace gou {
 				registry.emplace_or_replace<components::graphics::Layer>(entity, std::uint8_t(toml::find<toml::integer>(table, "layer")));
 			};
 			component.attributes.push_back({"layer", gou::types::Type::UInt8, offsetof(components::graphics::Layer, layer)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Layer>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -124,6 +132,7 @@ namespace gou {
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				registry.emplace_or_replace<components::graphics::Sprite>(entity);
 			};
+			component.getter = nullptr;
 			engine->registerComponent(component);
 		}
 		
@@ -136,6 +145,7 @@ namespace gou {
 				registry.emplace_or_replace<components::graphics::Billboard>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "image").c_str())));
 			};
 			component.attributes.push_back({"image", gou::types::Type::Resource, offsetof(components::graphics::Billboard, image)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Billboard>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -149,6 +159,7 @@ namespace gou {
 			};
 			component.attributes.push_back({"mesh", gou::types::Type::Resource, offsetof(components::graphics::Model, mesh)});
 			component.attributes.push_back({"material", gou::types::Type::Resource, offsetof(components::graphics::Model, material)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Model>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -164,6 +175,7 @@ namespace gou {
 			component.attributes.push_back({"radius", gou::types::Type::Float, offsetof(components::graphics::PointLight, radius)});
 			component.attributes.push_back({"color", gou::types::Type::Vec3, offsetof(components::graphics::PointLight, color)});
 			component.attributes.push_back({"intensity", gou::types::Type::Float, offsetof(components::graphics::PointLight, intensity)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::PointLight>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -181,6 +193,7 @@ namespace gou {
 			component.attributes.push_back({"color", gou::types::Type::Vec3, offsetof(components::graphics::SpotLight, color)});
 			component.attributes.push_back({"direction", gou::types::Type::Vec3, offsetof(components::graphics::SpotLight, direction)});
 			component.attributes.push_back({"intensity", gou::types::Type::Float, offsetof(components::graphics::SpotLight, intensity)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::SpotLight>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -193,6 +206,7 @@ namespace gou {
 				registry.emplace_or_replace<components::physics::StaticBody>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), nullptr);
 			};
 			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::StaticBody, shape)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::StaticBody>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -206,6 +220,7 @@ namespace gou {
 			};
 			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::DynamicBody, shape)});
 			component.attributes.push_back({"mass", gou::types::Type::Float, offsetof(components::physics::DynamicBody, mass)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::DynamicBody>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -219,6 +234,7 @@ namespace gou {
 			};
 			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::KinematicBody, shape)});
 			component.attributes.push_back({"mass", gou::types::Type::Float, offsetof(components::physics::KinematicBody, mass)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::KinematicBody>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -231,6 +247,7 @@ namespace gou {
 				registry.emplace_or_replace<components::physics::CollisionSensor>(entity, engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-collision").c_str())));
 			};
 			component.attributes.push_back({"on-collision", gou::types::Type::Signal, offsetof(components::physics::CollisionSensor, on_collision)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::CollisionSensor>(entity)); };
 			engine->registerComponent(component);
 		}
 	}

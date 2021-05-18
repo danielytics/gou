@@ -425,6 +425,15 @@ public:
                     loader.out(false) << ")});";
                 }
             }
+            if (attributes.empty()) {
+                loader.out() << "component.getter = nullptr;";
+            } else {
+                loader.out() << "component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::";
+                if (! ns.empty()) {
+                    loader.out(false) << ns << "::";
+                }
+                loader.out(false) << struct_name << ">(entity)); };";
+            }
             loader.out() << "engine->registerComponent(component);";
             loader.out.dedent();
             loader.out() << "}";

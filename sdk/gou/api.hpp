@@ -113,10 +113,12 @@ namespace gou::api {
             std::size_t offset;
         };
         using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
+        using GetterFn = char*(*)(entt::registry& registry, entt::entity entity);
         struct Component {
             entt::hashed_string id;
             std::string name;
             LoaderFn loader;
+            GetterFn getter;
             std::vector<Attribute> attributes;
         };
     }
