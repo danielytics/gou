@@ -4,13 +4,14 @@
 #include <functional>
 #include <entt/core/type_info.hpp>
 #include <unordered_map>
-#include "component_editors.hpp"
 
 enum class EntityAction {
     None,
     Rename,
     Delete,
+    RemoveComponent,
 };
+#include "component_editors.hpp"
 
 class EntityPropertiesPanel : public Panel<EntityPropertiesPanel> {
 public:
@@ -33,6 +34,7 @@ private:
     std::unordered_map<entt::id_type, DataEditor*> m_data_editors;
 
     EntityAction m_entity_action = EntityAction::None;
+    DataEditor* m_action_component = nullptr;
     std::string m_entity_name;
     char m_name_buffer[32] = "\0";
 

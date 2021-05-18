@@ -6,6 +6,21 @@
 
 void ScenePanel::beforeRender (gou::Engine& engine)
 {
+	if (m_scene_action != SceneAction::None) {
+		switch (m_scene_action) {
+		case SceneAction::NewEntity:
+		{
+			auto entity = engine.scene.create();
+			auto name = std::string{"Entity "} + std::to_string(entt::to_integral(entity)+1);
+			engine.scene.add<components::Named>(entity, entt::hashed_string{name.c_str()});
+			break;
+		}
+		default:
+			break;
+		};
+		m_scene_action = SceneAction::None;
+	}
+
 	m_entities.clear();
 	const auto& view = engine.engine.registry().view<const components::Named>();
 	for (auto&& [entity, named] : view.each()) {
@@ -45,10 +60,9 @@ void ScenePanel::render (gou::Renderer& renderer)
 	if (ImGui::TreeNode("Prototypes")) {
 		ImGui::TreePop();
 	}
-	if (ImGui::BeginPopupContextWindow("Scene Menu", ImGuiMouseButton_Right, false))
-	{
+	if (ImGui::BeginPopupContextWindow("Scene Menu", ImGuiMouseButton_Right, false)) {
 		if (ImGui::MenuItem("Add Entity")) {
-
+			m_scene_action = SceneAction::NewEntity;
 		}
 		ImGui::EndPopup();
 	}

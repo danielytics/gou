@@ -29,6 +29,9 @@ void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene
                 scene.destroy(m_selected_entity);
                 m_selected_entity = entt::null;
                 break;
+            case EntityAction::RemoveComponent:
+                m_action_component->remove(scene, m_selected_entity);
+                break;
             default:
                 break;
             };
@@ -104,6 +107,10 @@ void EntityPropertiesPanel::render ()
         }
         for (auto& [_, editor] : m_data_editors) {
             editor->doRender();
+            if (editor->action() != EntityAction::None) {
+                m_entity_action = editor->action();
+                m_action_component = editor;
+            }
         }
     }
 }

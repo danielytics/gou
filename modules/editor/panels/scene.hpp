@@ -2,6 +2,11 @@
 
 #include "panel.hpp"
 
+enum class SceneAction {
+    None,
+    NewEntity,
+};
+
 struct EntityInfo {
     std::string name;
     entt::entity entity;
@@ -23,4 +28,6 @@ private:
     std::vector<EntityInfo> m_entities;
     entt::entity m_selected_entity = entt::null;
     std::string m_selected_name;
+
+    SceneAction m_scene_action = SceneAction::None;
 };

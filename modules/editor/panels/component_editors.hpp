@@ -1,6 +1,5 @@
 #pragma once
 
-#include "entity_properties.hpp"
 #include "value_editors.hpp"
 #include <typeinfo>
 
@@ -9,8 +8,16 @@ public:
     virtual ~DataEditor() {}
     virtual const char* name() = 0;
     inline void doRender () {
+        m_action = EntityAction::None;
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::CollapsingHeader(name(), ImGuiTreeNodeFlags_None)) {
+            if (ImGui::BeginPopupContextWindow(name(), ImGuiMouseButton_Right, false)) {
+                if (ImGui::MenuItem("Remove Component")) {
+                    m_action = EntityAction::RemoveComponent;
+                }
+                ImGui::EndPopup();
+            }
+			
             if (ImGui::BeginTable(name(), 2, ImGuiTableFlags_None)) {
                 ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 100.0f);
                 ImGui::TableNextRow();
@@ -21,9 +28,14 @@ public:
             }
         }
     }
+    virtual void remove (gou::Scene&, entt::entity) = 0;
+
+    EntityAction action () const { return m_action; }
 protected:
     virtual int numInputs () = 0;
     virtual void render () = 0;
+
+    EntityAction m_action;
 };
 
 template <typename T, int NumInputs> class TemlpatedDataEditorBase : public DataEditor {
@@ -42,11 +54,15 @@ public:
     }
     virtual void beforeUpdate (gou::Engine&) {}
     virtual void afterUpdate (gou::Engine&) {}
+
 protected:
     T copy;
     bool dirty = false;
 
 private:
+    void remove (gou::Scene& scene, entt::entity entity) final {
+        scene.remove<T>(entity);
+    }
     int numInputs () final {
         return NumInputs;
     }
@@ -61,9 +77,7 @@ public:
     virtual ~TemlpatedDataEditor() {}
     const char* name () final { return "Position"; }
     void render () final {
-        ImGui::PushID(0);
         dirty |= editors::vec3("Position", (float*)(&copy));
-        ImGui::PopID();
     }
 };
 template <> class TemlpatedDataEditor<components::Transform>  : public TemlpatedDataEditorBase<components::Transform, 2> {
@@ -71,13 +85,9 @@ public:
     virtual ~TemlpatedDataEditor() {}
     const char* name () final { return "Transform"; }
     void render () final {
-        ImGui::PushID(0);
         dirty |= editors::vec3("Rotation", copy.rotation);
-        ImGui::PopID();
         ImGui::TableNextRow();
-        ImGui::PushID(1);
         dirty |= editors::vec3("Scale", copy.scale);
-        ImGui::PopID();
     }    
 };
 template <> class TemlpatedDataEditor<components::TimeAware>  : public TemlpatedDataEditorBase<components::TimeAware, 1> {
@@ -85,8 +95,6 @@ public:
     virtual ~TemlpatedDataEditor() {}
     const char* name () final { return "TimeAware"; }
     void render () final {
-        ImGui::PushID(0);
         dirty |= editors::f("Scale Factor", copy.scale_factor);
-        ImGui::PopID();
     }    
 };
