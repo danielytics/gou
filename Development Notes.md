@@ -30,3 +30,13 @@ Perhaps add a "Choreographer" script: a textual scripting language to choreograp
     Not sure if its needed yet. Might also be better as a visual timeline.
     It would have timing of events and actions to trigger and used to script interactions between characters (dialogue etc)
     Could this also be used to manage animation? Audio? Special effects? Bullet hell barrages?
+
+## Task List
+
+1. finish making editor widgets for all the different component data types (vectors, matrices, colors etc)
+1. write code generator to automatically make editors for every component
+1. implement a signal-slots system, add signals as a data type to components
+1. expose slots as nodes in the visual scripting
+1. make the "gameplan" node graphs be attached to component signals
+1. implement nodes for adapters, filters and transformation of signals before passing them to slots
+1. a runtime system for that which plays well with my task system

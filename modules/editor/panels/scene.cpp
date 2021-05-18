@@ -23,25 +23,20 @@ void ScenePanel::render (gou::Renderer& renderer)
 		m_selected_entity = entt::null;
 	}
 
+	bool context_menu = false;
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	if (ImGui::TreeNode("Entities")) {
 		for (const auto& info : m_entities) {
 			ImGuiTreeNodeFlags flags =  ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf;
 			flags |= (m_selected_entity == info.entity) ? ImGuiTreeNodeFlags_Selected : 0;
 			if (ImGui::TreeNodeEx((void*)(std::uint64_t)entt::to_integral(info.entity), flags, "%s", info.name.c_str())) {
-				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+				ImGui::TreePop();
+			}
+			if (ImGui::IsItemHovered()) {
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
 					m_selected_entity = info.entity;
-				} else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-					m_selected_entity = info.entity;
-					if (ImGui::BeginPopup("Entity Menu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings)) {
-						if (ImGui::MenuItem("Remove Entity")) {
-
-						}
-						ImGui::EndPopup();
-					}
 				}
-				ImGui::TreePop();
 			}
 		}
 		ImGui::TreePop();
@@ -55,13 +50,5 @@ void ScenePanel::render (gou::Renderer& renderer)
 
 		}
 		ImGui::EndPopup();
-	}
-	if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
-		if (ImGui::BeginPopup("Entity Menu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings)) {
-			if (ImGui::MenuItem("Remove Entity")) {
-
-			}
-			ImGui::EndPopup();
-		}
 	}
 }

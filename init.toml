@@ -5,7 +5,7 @@ resolution = "720p"
 fullscreen = false
 vsync = false
 fov = 60
-resizable = true
+resizable = false
 debug = false # Only in debug builds
 
 # Metrics, profiling and logging

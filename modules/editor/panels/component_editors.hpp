@@ -10,9 +10,15 @@ public:
     virtual const char* name() = 0;
     inline void doRender () {
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::TreeNodeEx(name(), ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Selected)) {
-            render();
-            ImGui::TreePop();
+        if (ImGui::CollapsingHeader(name(), ImGuiTreeNodeFlags_None)) {
+            if (ImGui::BeginTable(name(), 2, ImGuiTableFlags_None)) {
+                ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(1);
+                ImGui::PushItemWidth(-FLT_MIN); 
+                render();
+                ImGui::EndTable();
+            }
         }
     }
 protected:
@@ -55,7 +61,9 @@ public:
     virtual ~TemlpatedDataEditor() {}
     const char* name () final { return "Position"; }
     void render () final {
+        ImGui::PushID(0);
         dirty |= editors::vec3("Position", (float*)(&copy));
+        ImGui::PopID();
     }
 };
 template <> class TemlpatedDataEditor<components::Transform>  : public TemlpatedDataEditorBase<components::Transform, 2> {
@@ -63,8 +71,13 @@ public:
     virtual ~TemlpatedDataEditor() {}
     const char* name () final { return "Transform"; }
     void render () final {
+        ImGui::PushID(0);
         dirty |= editors::vec3("Rotation", copy.rotation);
+        ImGui::PopID();
+        ImGui::TableNextRow();
+        ImGui::PushID(1);
         dirty |= editors::vec3("Scale", copy.scale);
+        ImGui::PopID();
     }    
 };
 template <> class TemlpatedDataEditor<components::TimeAware>  : public TemlpatedDataEditorBase<components::TimeAware, 1> {
@@ -72,6 +85,8 @@ public:
     virtual ~TemlpatedDataEditor() {}
     const char* name () final { return "TimeAware"; }
     void render () final {
+        ImGui::PushID(0);
         dirty |= editors::f("Scale Factor", copy.scale_factor);
+        ImGui::PopID();
     }    
 };
