@@ -37,20 +37,6 @@ namespace gou {
 
     using Renderer = api::Renderer;
 
-    // API for managing engine setup
-    class Engine {
-    public:
-        gou::api::Engine& engine;
-
-        /*
-         * Emit an event
-         */
-        template <typename... Args>
-        events::Event& emit (Args&&... args) {
-            return api::helpers::emitEvent(engine, std::forward<Args>(args)...);
-        }
-    };
-
     // API for manipulating scenes
     class Scene {
     public:        
@@ -227,6 +213,22 @@ namespace gou {
         entt::registry& m_registry;
         gou::api::Engine& m_engine;
     };
+
+    // API for managing engine setup
+    class Engine {
+    public:
+        gou::api::Engine& engine;
+        Scene& scene;
+
+        /*
+         * Emit an event
+         */
+        template <typename... Args>
+        events::Event& emit (Args&&... args) {
+            return api::helpers::emitEvent(engine, std::forward<Args>(args)...);
+        }
+    };
+
 ///////////////////////////////////////////////////////////////////////////////
 // Public Module API
 ///////////////////////////////////////////////////////////////////////////////
@@ -238,18 +240,18 @@ namespace gou {
 ///////////////////////////////////////////////////////////////////////////////
 
     namespace detail {
-        HAS_MEMBER_FUNCTION(onLoad,         (std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onUnload,       (std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onBeforeReload, (std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onAfterReload,  (std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onBeforeFrame,  (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onBeforeUpdate, (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onAfterFrame,   (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onPrepareRender,(std::declval<Engine>()))
-        HAS_MEMBER_FUNCTION(onBeforeRender, (std::declval<Renderer&>()))
-        HAS_MEMBER_FUNCTION(onAfterRender,  (std::declval<Renderer&>()))
-        HAS_MEMBER_FUNCTION(onLoadScene,    (std::declval<Scene&>()))
-        HAS_MEMBER_FUNCTION(onUnloadScene,  (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onLoad,          (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onUnload,        (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onBeforeReload,  (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onAfterReload,   (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onBeforeFrame,   (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onBeforeUpdate,  (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onAfterFrame,    (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onPrepareRender, (std::declval<Engine>()))
+        HAS_MEMBER_FUNCTION(onBeforeRender,  (std::declval<Renderer&>()))
+        HAS_MEMBER_FUNCTION(onAfterRender,   (std::declval<Renderer&>()))
+        HAS_MEMBER_FUNCTION(onLoadScene,     (std::declval<Scene&>()))
+        HAS_MEMBER_FUNCTION(onUnloadScene,   (std::declval<Scene&>()))
     }
 
     template <typename Derived>
@@ -280,8 +282,9 @@ namespace gou {
 
     private:
         std::uint32_t on_load () final {
+            m_scene.set(0, 0, 0);
             if constexpr (detail::hasMember_onLoad<Derived>()) {
-                static_cast<Derived*>(this)->onLoad(Engine{m_engine});
+                static_cast<Derived*>(this)->onLoad(Engine{m_engine, m_scene});
             }
 
             uint32_t flags = 0;
@@ -312,19 +315,19 @@ namespace gou {
 
         void on_unload () final {
             if constexpr (detail::hasMember_onUnload<Derived>()) {
-                static_cast<Derived*>(this)->onUnload(Engine{m_engine});
+                static_cast<Derived*>(this)->onUnload(Engine{m_engine, m_scene});
             }
         }
 
         void on_before_reload () final {
             if constexpr (detail::hasMember_onBeforeReload<Derived>()) {
-                static_cast<Derived*>(this)->onBeforeReload(Engine{m_engine});
+                static_cast<Derived*>(this)->onBeforeReload(Engine{m_engine, m_scene});
             }
         }
 
         void on_after_reload () final {
             if constexpr (detail::hasMember_onAfterReload<Derived>()) {
-                static_cast<Derived*>(this)->onAfterReload(Engine{m_engine});
+                static_cast<Derived*>(this)->onAfterReload(Engine{m_engine, m_scene});
             }
         }
 
@@ -349,8 +352,8 @@ namespace gou {
 
         void on_prepare_render () final {
             if constexpr (detail::hasMember_onPrepareRender<Derived>()) {
-                static_cast<Derived*>(this)->onPrepareRender(Engine{m_engine});
-            }            
+                static_cast<Derived*>(this)->onPrepareRender(Engine{m_engine, m_scene});
+            }
         }
 
         void on_before_render () final {

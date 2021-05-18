@@ -6,20 +6,35 @@
 #include <unordered_map>
 #include "component_editors.hpp"
 
+enum class EntityAction {
+    None,
+    Rename,
+    Delete,
+};
+
 class EntityPropertiesPanel : public Panel<EntityPropertiesPanel> {
 public:
     EntityPropertiesPanel () : Panel<EntityPropertiesPanel>("Entity Properties") {}
     virtual ~EntityPropertiesPanel() {}
 
-    void beforeRender (gou::Engine& engine);
+    void beforeRender (gou::Engine& engine, gou::Scene& scene);
     void render ();
 
-    void select (entt::entity entity) { m_selected_entity = entity; }
+    void select (entt::entity entity, const std::string& name) {
+        m_selected_entity = entity;
+        m_entity_name = name;
+    }
+
+    entt::entity selected () const { return m_selected_entity; }
 
 private:
     entt::entity m_selected_entity = entt::null;
     entt::entity m_prev_selected_entity = entt::null;
     std::unordered_map<entt::id_type, DataEditor*> m_data_editors;
+
+    EntityAction m_entity_action = EntityAction::None;
+    std::string m_entity_name;
+    char m_name_buffer[32] = "\0";
 
     template <typename Component>
     void make_editor (gou::Engine& engine) {

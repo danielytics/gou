@@ -54,13 +54,17 @@ public:
             engine.emit("engine/exit"_hs);
         }
         m_scene_panel.beforeRender(engine);
-        m_properties_panel.beforeRender(engine);
+        if (m_scene_panel.selected() != m_properties_panel.selected()) {
+            m_properties_panel.select(m_scene_panel.selected(), m_scene_panel.selected_name());
+        }
+        m_properties_panel.beforeRender(engine, engine.scene);
+        if (m_scene_panel.selected() != entt::null && m_properties_panel.selected() == entt::null) {
+            m_scene_panel.deselect();
+        }
     }
 
     void onAfterRender (gou::Renderer& renderer)
-    {
-        m_properties_panel.select(m_scene_panel.selected());
-
+    { 
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);

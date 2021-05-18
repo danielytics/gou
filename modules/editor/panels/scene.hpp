@@ -15,9 +15,12 @@ public:
     void beforeRender (gou::Engine& engine);
     void render (gou::Renderer& renderer);
 
+    void deselect () { m_selected_entity = entt::null; }
     entt::entity selected () const { return m_selected_entity; }
+    std::string selected_name () const { return m_selected_name; }
 
 private:
     std::vector<EntityInfo> m_entities;
     entt::entity m_selected_entity = entt::null;
+    std::string m_selected_name;
 };

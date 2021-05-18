@@ -19,7 +19,7 @@ void ScenePanel::beforeRender (gou::Engine& engine)
 void ScenePanel::render (gou::Renderer& renderer)
 {
 	// Deselect entity if clicking in the window, but not on an entity
-	if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) {
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered()) {
 		m_selected_entity = entt::null;
 	}
 
@@ -36,6 +36,7 @@ void ScenePanel::render (gou::Renderer& renderer)
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
 					m_selected_entity = info.entity;
+					m_selected_name = info.name;
 				}
 			}
 		}
