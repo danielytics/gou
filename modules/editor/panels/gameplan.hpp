@@ -20,6 +20,7 @@ enum class PinType
     Vec4,
     Entity,
     Event,
+    Any,
 };
 
 enum class PinKind {

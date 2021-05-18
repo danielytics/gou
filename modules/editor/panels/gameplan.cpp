@@ -17,6 +17,7 @@ const std::map<std::string, PinType> g_pin_types = {
     {"vec4",   PinType::Vec4},
     {"entity", PinType::Entity},
     {"event",  PinType::Event},
+    {"any",    PinType::Any},
 };
 const std::map<PinType, ImColor> g_pin_type_colors = {
     {PinType::Flow,   ImColor(255, 255, 255)},
@@ -29,6 +30,7 @@ const std::map<PinType, ImColor> g_pin_type_colors = {
     {PinType::Vec4,   ImColor(255,  48,  48)},
     {PinType::Entity, ImColor( 48,  48, 255)},
     {PinType::Event,  ImColor( 48, 255, 255)},
+    {PinType::Any,    ImColor(255, 255, 255)},
 };
 const std::map<PinType, ax::Widgets::IconType> g_pin_type_icons = {
     {PinType::Flow,   ax::Widgets::IconType::Flow},
@@ -41,6 +43,7 @@ const std::map<PinType, ax::Widgets::IconType> g_pin_type_icons = {
     {PinType::Vec4,   ax::Widgets::IconType::Circle},
     {PinType::Entity, ax::Widgets::IconType::Circle},
     {PinType::Event,  ax::Widgets::IconType::Circle},
+    {PinType::Any,    ax::Widgets::IconType::Grid},
 };
 
 void DrawPinIcon(const Pin& pin, bool connected, int alpha)
@@ -57,7 +60,7 @@ static bool canCreateLink(Pin* a, Pin* b)
     return a && b // a and b exist
         && a != b // a and b are not the same pin
         && a->kind != b->kind // one is input, the other is output
-        && a->type == b->type // types match
+        && (a->type == b->type || a->type == PinType::Any || b->type == PinType::Any) // types match
         && a->node != b->node; // nodes can't connect to themselves
 }
 
@@ -94,6 +97,11 @@ void GameplanPanel::load ()
         m_node_templates.back().inputs.emplace_back("B", PinType::Entity);
         m_node_templates.back().outputs.emplace_back("True", PinType::Bool);
         m_node_templates.back().outputs.emplace_back("False", PinType::Bool);
+    }
+    {
+        m_node_templates.emplace_back("Send Value", ImColor(255, 0, 0));
+        m_node_templates.back().inputs.emplace_back("Trigger", PinType::Bool);
+        m_node_templates.back().outputs.emplace_back("Value", PinType::Any);
     }
 
     for (auto& node : m_node_templates) {
@@ -253,7 +261,7 @@ void GameplanPanel::render ()
                 //    showLabel("x Cannot connect to self", ImColor(45, 32, 32, 180));
                 //    ed::RejectNewItem(ImColor(255, 0, 0), 1.0f);
                 //}
-                else if (start_pin->type != end_pin->type)
+                else if (start_pin->type != end_pin->type && start_pin->type != PinType::Any && end_pin->type != PinType::Any)
                 {
                     showLabel("x Incompatible Pin Type", ImColor(45, 32, 32, 180));
                     ed::RejectNewItem(ImColor(255, 128, 128), 1.0f);
