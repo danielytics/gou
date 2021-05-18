@@ -29,6 +29,8 @@ namespace = ""
     shape = "resource"
     enter-event = "event"
     exit-event = "event"
+    on-enter = "signal"
+    on-exit = "signal"
     trigger-mask = "uint32"
 
 [[component]]
@@ -109,3 +111,9 @@ namespace = ""
     shape = "resource"
     mass = "float"
     physics-body = "ptr:btRigidBody"
+
+[[component]]
+    _name_ = "collision-sensor"
+    _namespace_ = "physics"
+    _description_ = "Entity sends signal when a physics body collides with it"
+    on-collision = "signal"

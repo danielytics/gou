@@ -86,63 +86,91 @@ std::map<std::string, std::string> data_types{
     {"hashed-string", "entt::hashed_string"},
     {"rgb", "glm::vec3"},
     {"rgba", "glm::vec4"},
+    {"signal", "gou::resources::Signal"}
 };
 
-std::string load_vec2 (const std::string& attribute) {
+std::map<std::string, std::string> data_type_enums{
+    {"vec2",    "Vec2"},
+    {"vec3",    "Vec3"},
+    {"vec4",    "Vec4"},
+    {"uint64",  "UInt64"},
+    {"uint32",  "UInt32"},
+    {"uint16",  "UInt16"},
+    {"uint8",   "UInt8"},
+    {"int64",   "Int64"},
+    {"int32",   "Int32"},
+    {"int16",   "Int16"},
+    {"int8",    "Int8"},
+    {"byte",    "Byte"},
+    {"resource","Resource"},
+    {"entity",  "Entity"},
+    // {"entity-set", "gou::resources::EntitySetHandle"},
+    {"float",   "Float"},
+    {"double",  "Double"},
+    {"bool",    "Bool"},
+    {"event",   "Event"},
+    {"ref",     "Ref"},
+    {"hashed-string", "HashedString"},
+    {"rgb",     "RGB"},
+    {"rgba",    "RGBA"},
+    {"signal",  "Signal"}
+};
+
+std::string load_vec2 (const std::string& attribute, const std::string& identifier) {
     std::ostringstream sstr;
     sstr << "glm::vec2{";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"x\")), ";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"y\"))";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"x\")), ";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"y\"))";
     sstr << "}";
     return sstr.str();
 }
-std::string load_vec3 (const std::string& attribute) {
+std::string load_vec3 (const std::string& attribute, const std::string& identifier) {
     std::ostringstream sstr;
     sstr << "glm::vec3{";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"x\")), ";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"y\")), ";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"z\"))";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"x\")), ";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"y\")), ";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"z\"))";
     sstr << "}";
     return sstr.str();
 }
-std::string load_vec4 (const std::string& attribute) {
+std::string load_vec4 (const std::string& attribute, const std::string& identifier) {
     std::ostringstream sstr;
     sstr << "glm::vec4{";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"x\")), ";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"y\")), ";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"z\")), ";
-    sstr <<   "float(toml::find<toml::floating>(" << attribute << ", \"w\"))";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"x\")), ";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"y\")), ";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"z\")), ";
+    sstr <<   "float(toml::find<toml::floating>(" << identifier << ", \"w\"))";
     sstr << "}";
     return sstr.str();
 }
-std::string load_event (const std::string& attribute) {
+std::string load_event (const std::string& attribute, const std::string& identifier) {
     std::ostringstream sstr;
     sstr << "gou::events::Event{";
-    sstr <<   "entt::hashed_string::value(toml::find<std::string>(" << attribute << ", \"type\").c_str()), ";
+    sstr <<   "entt::hashed_string::value(toml::find<std::string>(" << identifier << ", \"type\").c_str()), ";
     sstr <<   "entity, ";
     sstr <<   "glm::vec3{";
-    sstr <<     "float(toml::find<toml::floating>(" << attribute << ", \"x\")), ";
-    sstr <<     "float(toml::find<toml::floating>(" << attribute << ", \"y\")), ";
-    sstr <<     "float(toml::find<toml::floating>(" << attribute << ", \"z\"))";
+    sstr <<     "float(toml::find<toml::floating>(" << identifier << ", \"x\")), ";
+    sstr <<     "float(toml::find<toml::floating>(" << identifier << ", \"y\")), ";
+    sstr <<     "float(toml::find<toml::floating>(" << identifier << ", \"z\"))";
     sstr <<    "}";
     sstr << "}";
     return sstr.str();
 }
-std::string load_hash_value (const std::string& attribute) {
+std::string load_hash_value (const std::string& attribute, const std::string& identifier) {
     std::ostringstream sstr;
     sstr << "entt::hashed_string::value(";
     sstr <<   "toml::find<std::string>(table, \"" << attribute << "\").c_str()";
     sstr << ")";
     return sstr.str();
 }
-std::string load_hashed_string (const std::string& attribute) {
+std::string load_hashed_string (const std::string& attribute, const std::string& identifier) {
     std::ostringstream sstr;
     sstr << "entt::hashed_string{";
     sstr <<   "toml::find<std::string>(table, \"" << attribute << "\").c_str()";
     sstr << "}";
     return sstr.str();
 }
-std::string load_resource_handle (const std::string& attribute) {
+std::string load_resource_handle (const std::string& attribute, const std::string& identifier) {
     std::ostringstream sstr;
     sstr << "engine->findResource(";
     sstr <<   "entt::hashed_string::value(";
@@ -151,8 +179,17 @@ std::string load_resource_handle (const std::string& attribute) {
     sstr << ")";
     return sstr.str();
 }
+std::string load_signal (const std::string& attribute, const std::string& identifier) {
+    std::ostringstream sstr;
+    sstr << "engine->findSignal(";
+    sstr <<   "entt::hashed_string::value(";
+    sstr <<     "toml::find<std::string>(table, \"" << attribute << "\").c_str()";
+    sstr <<   ")";
+    sstr << ")";
+    return sstr.str();
+}
 
-std::map<std::string, std::pair<bool, std::function<std::string(const std::string&)>>> data_type_loaders{
+std::map<std::string, std::pair<bool, std::function<std::string(const std::string&, const std::string&)>>> data_type_loaders{
     // type             sub-table   loader-function
     {"vec2",            {true,      load_vec2}},
     {"vec3",            {true,      load_vec3}},
@@ -161,6 +198,7 @@ std::map<std::string, std::pair<bool, std::function<std::string(const std::strin
     {"ref",             {false,     load_hash_value}},
     {"hashed-string",   {false,     load_hashed_string}},
     {"resource",        {false,     load_resource_handle}},
+    {"signal",          {false,     load_signal}},
     //{"entity", "entt::entity"},
     //{"entity-set", "frenzy::resources::EntitySetHandle"},
 };
@@ -246,7 +284,8 @@ public:
     };
 
     HeaderGenerator (std::ofstream& file) : out(file) {
-        out(false) << "#pragma once";
+        out(false) << "// Autogenerated, do not edit!";
+        out() << "#pragma once";
         out() << "#include <gou/types.hpp>";
         out();
     }
@@ -308,10 +347,17 @@ public:
     }
 
     class Component {
+        struct Attr {
+            std::string type;
+            std::string identifier;
+        };
     public:
         Component(LoaderGenerator& loader, const std::string& ns, const std::string& name, const std::string& struct_name) : loader(loader), ns(ns), name(name), struct_name(struct_name) {}
         ~Component() {
-            loader.out() << "engine->registerLoader(\"" << name << "\"_hs, [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {";
+            loader.out() << "{";
+            loader.out.indent();
+            loader.out() << "gou::api::definitions::Component component {\"" << name << "\"_hs, \"" << struct_name << "\"};";
+            loader.out() << "component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {";
             loader.out.indent();
             bool empty = true;
             for (auto attribute : attributes) {
@@ -325,11 +371,13 @@ public:
             }
             
             for (auto attribute : attributes) {
-                auto it = data_type_loaders.find(attribute.second);
+                auto& data_type = attribute.second.type;
+                auto& identifier = attribute.second.identifier;
+                auto it = data_type_loaders.find(data_type);
                 if (it != data_type_loaders.end()) {
                     const auto& [table, _] = it->second;
                     if (table) {
-                        loader.out() << "auto " << attribute.first << " = table.at(\"" << attribute.first << "\");";
+                        loader.out() << "auto " << identifier << " = table.at(\"" << attribute.first << "\");";
                     }
                 }
             }
@@ -339,37 +387,54 @@ public:
             }
             loader.out(false) << struct_name << ">(entity";
             for (auto attribute : attributes) {
-                auto it = data_type_loaders.find(attribute.second);
+                auto& data_type = attribute.second.type;
+                auto& identifier = attribute.second.identifier;
+                auto it = data_type_loaders.find(data_type);
                 if (it != data_type_loaders.end()) {
                     const auto& [_, generator_function] = it->second;
-                    loader.out(false) << ", " << generator_function(attribute.first);
+                    loader.out(false) << ", " << generator_function(attribute.first, identifier);
                 } else {
-                    auto it = data_types.find(attribute.second);
+                    auto it = data_types.find(attribute.second.type);
                     if (it != data_types.end()) {
-                        auto tdt = toml_data_types.find(attribute.second);
+                        auto tdt = toml_data_types.find(data_type);
                         if (tdt != toml_data_types.end()) {
                             loader.out(false) << ", " << it->second << "(";
                             loader.out(false) << "toml::find<" << tdt->second << ">(table, \"" << attribute.first << "\"))";
                         }
                     } else {
                         // Unknown type, pass through
-                        loader.out(false) << ", " << attribute.second;
-                        if (attribute.second != "nullptr") {
-                            std::cerr << "Unknown data type: " << attribute.second << "\n";
+                        loader.out(false) << ", " << data_type;
+                        if (data_type != "nullptr") {
+                            std::cerr << "Unknown data type: " << data_type << "\n";
                         }
                     }
                 }
             }
             loader.out(false) << ");";
             loader.out.dedent();
-            loader.out() << "});";
+            loader.out() << "};";
+            for (auto attribute : attributes) {
+                auto it = data_type_enums.find(attribute.second.type);
+                if (it != data_type_enums.end()) {
+                    loader.out() << "component.attributes.push_back({\"" << attribute.first << "\", ";
+                    loader.out(false) << "gou::types::Type::" << it->second << ", offsetof(components::";
+                    if (! ns.empty()) {
+                        loader.out(false) << ns << "::";
+                    }
+                    loader.out(false) << struct_name << ", " << attribute.second.identifier;
+                    loader.out(false) << ")});";
+                }
+            }
+            loader.out() << "engine->registerComponent(component);";
+            loader.out.dedent();
+            loader.out() << "}";
         }
 
-        void addAttribute (const std::string& attribute, const std::string& data_type) {
+        void addAttribute (const std::string& attribute, const std::string& data_type, const std::string& identifier) {
             if (data_type.substr(0, 4) == "ptr:") {
-                attributes.push_back({attribute, "nullptr"});
+                attributes.push_back({attribute, {"nullptr", identifier}});
             } else {
-                attributes.push_back({attribute, data_type});
+                attributes.push_back({attribute, {data_type, identifier}});
             }
         }
     private:
@@ -377,7 +442,7 @@ public:
         const std::string& ns;
         const std::string& name;
         const std::string& struct_name;
-        std::vector<std::pair<std::string, std::string>> attributes;
+        std::vector<std::pair<std::string, Attr>> attributes;
     };
 
     Component add (const std::string& ns, const std::string& name, const std::string& struct_name) {
@@ -416,7 +481,8 @@ private:
 
 void generate_components (const TomlValue& in, const std::string& module_name, std::ofstream& header_file, std::ofstream& source_file) {
     OutWrapper source(source_file);
-    source(false) << "#include <components/" << module_name << ".hpp>";
+    source(false) << "// Autogenerated, do not edit!";
+    source() << "#include <components/" << module_name << ".hpp>";
     source() << "#include <gou/api.hpp>";
     source() << "#include <toml.hpp>";
     source();
@@ -437,7 +503,7 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
     auto default_namespace = toml::find<std::string>(in, "namespace");
     auto components = toml::find<TomlArray>(in, "component");
 
-    // Find any custom types and forward declare them
+    // Find any custom types and forward declare themidentifier
     for (const auto& component_def : components) {
         for (const auto& [key, value] : component_def.as_table()) {
             std::string datatype = value.as_string();
@@ -464,10 +530,10 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
         // Add fields to component
         for (const auto& [key, value] : component_def.as_table()) {
             if (key.size() > 0 && key[0] != '_') {
-                auto attribute = fromKebabCase(key, CaseStyle::Snake);
+                std::string identifier = fromKebabCase(key, CaseStyle::Snake);
                 std::string data_type = value.as_string();
-                component.addAttribute(attribute, data_type);
-                loader_component.addAttribute(attribute, data_type);
+                component.addAttribute(identifier, data_type);
+                loader_component.addAttribute(key, data_type, identifier);
             }
         }
     }

@@ -15,6 +15,34 @@ using DeltaTime = Time;
 
 namespace gou {
 
+    namespace types {
+        enum class Type {
+            Vec2,
+            Vec3,
+            Vec4,
+            UInt8,
+            UInt16,
+            UInt32,
+            UInt64,
+            Int8,
+            Int16,
+            Int32,
+            Int64,
+            Byte,
+            Resource,
+            Entity,
+            Float,
+            Double,
+            Bool,
+            Event,
+            Ref,
+            HashedString,
+            RGB,
+            RGBA,
+            Signal,
+        };
+    }
+
     namespace resources {
 
         struct Handle {
@@ -23,6 +51,10 @@ namespace gou {
 
         struct EntitySetHandle {
 
+        };
+
+        struct Signal {
+            std::uint32_t index;
         };
 
     }

@@ -106,6 +106,21 @@ namespace gou::api {
         virtual void on_unload_scene () = 0;
     };
 
+    namespace definitions {
+        struct Attribute {
+            std::string name;
+            gou::types::Type type;
+            std::size_t offset;
+        };
+        using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
+        struct Component {
+            entt::hashed_string id;
+            std::string name;
+            LoaderFn loader;
+            std::vector<Attribute> attributes;
+        };
+    }
+
     // The engine-provided API to modules
     class Engine {
     public:
@@ -143,15 +158,17 @@ namespace gou::api {
         // Merge a template into an entity
         virtual void mergeEntity (entt::entity, entt::hashed_string, bool) = 0;
 
-        // Register a component loader
-        using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
-        virtual void registerLoader(entt::hashed_string, LoaderFn) = 0;
+        // Register a component
+        virtual void registerComponent (definitions::Component&) = 0;
 
         // Get the prototype registry, used by the component loader setup code, not meant for module users
         virtual entt::registry& prototypeRegistry () = 0;
 
         // Retrieve a resource handle by name
         virtual gou::resources::Handle findResource (entt::hashed_string::hash_type) = 0;
+
+        // Retrieve a signal by name
+        virtual gou::resources::Signal findSignal (entt::hashed_string::hash_type) = 0;
 
         // Internal module creation and destruction API
         template <class Module> Module* createModule (const std::string& name) {

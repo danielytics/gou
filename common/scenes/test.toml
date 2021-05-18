@@ -18,4 +18,4 @@
         rotation = {x = 1.0, y = 0.5, z = 1.2 }
         scale = {x = 1.0, y = 1.0, z = 1.0 }
     [entity.time-aware]
-        scale_factor = 1.5
+        scale-factor = 1.5

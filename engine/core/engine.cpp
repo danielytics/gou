@@ -99,12 +99,17 @@ const std::string& core::Engine::findEntityName (const components::Named& named)
     return m_empty_string;
 }
 
-void core::Engine::registerLoader(entt::hashed_string name, gou::api::Engine::LoaderFn loader_fn)
+void core::Engine::registerComponent (gou::api::definitions::Component& component_def)
 {
-    m_component_loaders[name] = loader_fn;
+    m_component_loaders[component_def.id] = component_def.loader;
 }
 
 gou::resources::Handle core::Engine::findResource (entt::hashed_string::hash_type name)
+{
+    return {};
+}
+
+gou::resources::Signal core::Engine::findSignal (entt::hashed_string::hash_type)
 {
     return {};
 }
