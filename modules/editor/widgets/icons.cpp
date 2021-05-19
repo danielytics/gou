@@ -9,7 +9,7 @@
 //   Originally written by Michal Cichon
 //------------------------------------------------------------------------------
 
-# include "icons.h"
+# include "icons.hpp"
 # define IMGUI_DEFINE_MATH_OPERATORS
 # include <imgui_internal.h>
 

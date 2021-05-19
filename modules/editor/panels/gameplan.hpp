@@ -12,8 +12,7 @@ enum class PinType
 {
     Flow,
     Bool,
-    Int,
-    Float,
+    Num,
     Text,
     Vec2,
     Vec3,
@@ -50,6 +49,8 @@ struct Node
     std::string name;
     std::vector<Pin> inputs;
     std::vector<Pin> outputs;
+    std::vector<std::string> operations;
+    int selected;
     ImColor color;
     ImVec2 size;
 
@@ -57,8 +58,16 @@ struct Node
     std::string savedState;
 
     Node(const char* name, ImColor color = ImColor(255, 255, 255)) :
-        id(0), name(name), color(color), size(0, 0)
+        id(0), name(name), color(color), size(0, 0), selected(0)
     {
+    }
+
+    std::string operation () const {
+        if (operations.empty()) {
+            return name;
+        } else {
+            return operations[selected];
+        }
     }
 };
 

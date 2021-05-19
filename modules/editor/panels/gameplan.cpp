@@ -1,5 +1,6 @@
 #include "gameplan.hpp"
-#include "../widgets/icons.h"
+#include "../widgets/icons.hpp"
+#include "../widgets/node_combobox.hpp"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
@@ -9,8 +10,7 @@ static ed::EditorContext* g_Context = nullptr;
 const std::map<std::string, PinType> g_pin_types = {
     {"flow",   PinType::Flow},
     {"bool",   PinType::Bool},
-    {"int",    PinType::Int},
-    {"float",  PinType::Float},
+    {"num",    PinType::Num},
     {"text",   PinType::Text},
     {"vec2",   PinType::Vec2},
     {"vec3",   PinType::Vec3},
@@ -20,10 +20,9 @@ const std::map<std::string, PinType> g_pin_types = {
     {"any",    PinType::Any},
 };
 const std::map<PinType, ImColor> g_pin_type_colors = {
-    {PinType::Flow,   ImColor(255, 255, 255)},
+    {PinType::Flow,   ImColor(147, 226,  74)},
     {PinType::Bool,   ImColor(220,  48,  48)},
-    {PinType::Int,    ImColor( 68, 201, 156)},
-    {PinType::Float,  ImColor(147, 226,  74)},
+    {PinType::Num,    ImColor( 68, 201, 156)},
     {PinType::Text,   ImColor(124,  21, 153)},
     {PinType::Vec2,   ImColor( 51, 150, 215)},
     {PinType::Vec3,   ImColor(218,   0, 183)},
@@ -35,8 +34,7 @@ const std::map<PinType, ImColor> g_pin_type_colors = {
 const std::map<PinType, ax::Widgets::IconType> g_pin_type_icons = {
     {PinType::Flow,   ax::Widgets::IconType::Flow},
     {PinType::Bool,   ax::Widgets::IconType::Diamond},
-    {PinType::Int,    ax::Widgets::IconType::Circle},
-    {PinType::Float,  ax::Widgets::IconType::Circle},
+    {PinType::Num,    ax::Widgets::IconType::Circle},
     {PinType::Text,   ax::Widgets::IconType::Circle},
     {PinType::Vec2,   ax::Widgets::IconType::Circle},
     {PinType::Vec3,   ax::Widgets::IconType::Circle},
@@ -92,11 +90,28 @@ void GameplanPanel::load ()
         m_node_templates.back().outputs.emplace_back("Entity", PinType::Entity);
     }
     {
-        m_node_templates.emplace_back("Same Entity", ImColor(255, 0, 0));
-        m_node_templates.back().inputs.emplace_back("A", PinType::Entity);
-        m_node_templates.back().inputs.emplace_back("B", PinType::Entity);
+        m_node_templates.emplace_back("=", ImColor(255, 0, 0));
+        m_node_templates.back().inputs.emplace_back("A", PinType::Any);
+        m_node_templates.back().inputs.emplace_back("B", PinType::Any);
         m_node_templates.back().outputs.emplace_back("True", PinType::Bool);
         m_node_templates.back().outputs.emplace_back("False", PinType::Bool);
+    }
+    {
+        m_node_templates.emplace_back("Compare", ImColor(255, 0, 0));
+        m_node_templates.back().inputs.emplace_back("A", PinType::Num);
+        m_node_templates.back().inputs.emplace_back("B", PinType::Num);
+        m_node_templates.back().outputs.emplace_back("True", PinType::Bool);
+        m_node_templates.back().outputs.emplace_back("False", PinType::Bool);
+        m_node_templates.back().operations.push_back(">");
+        m_node_templates.back().operations.push_back(">=");
+        m_node_templates.back().operations.push_back("<");
+        m_node_templates.back().operations.push_back("<=");
+    }
+    {
+        m_node_templates.emplace_back("Boolean", ImColor(255, 0, 0));
+        m_node_templates.back().operations.push_back("True");
+        m_node_templates.back().operations.push_back("False");
+        m_node_templates.back().outputs.emplace_back("Value", PinType::Bool);
     }
     {
         m_node_templates.emplace_back("Send Value", ImColor(255, 0, 0));
@@ -170,9 +185,27 @@ void GameplanPanel::render ()
                 // ed::PopStyleVar(1);
             }
         }
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-        ImGui::Text("%s", node.name.c_str());
-        ImGui::PopStyleColor();
+
+        if (node.operations.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+            ImGui::Text("%s", node.name.c_str());
+            ImGui::PopStyleColor();
+        } else {
+            ImGui::SetNextItemWidth(50.0f);
+            if (widgets::BeginNodeCombo((std::string{"##"} + node.name).c_str(), node.operations[node.selected].c_str(), ImGuiComboFlags_None))
+            {
+                for (int i = 0; i < node.operations.size(); ++i) {
+                    const bool is_selected = node.selected == i;
+                    if (ImGui::Selectable(node.operations[i].c_str(), is_selected)) {
+                        node.selected = i;
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                widgets::EndNodeCombo();
+            }
+        }
         
         if (! node.outputs.empty()) {
             int index = 0;
