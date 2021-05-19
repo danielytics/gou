@@ -163,6 +163,9 @@ namespace gou::api {
         // Register a component
         virtual void registerComponent (definitions::Component&) = 0;
 
+        // Get a list of components (note: only available during on_load!)
+        virtual const std::vector<definitions::Component>& getRegisteredComponents () = 0;
+
         // Get the prototype registry, used by the component loader setup code, not meant for module users
         virtual entt::registry& prototypeRegistry () = 0;
 

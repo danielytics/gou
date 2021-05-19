@@ -102,6 +102,12 @@ const std::string& core::Engine::findEntityName (const components::Named& named)
 void core::Engine::registerComponent (gou::api::definitions::Component& component_def)
 {
     m_component_loaders[component_def.id] = component_def.loader;
+    m_component_definitions.push_back(component_def);
+}
+
+const std::vector<gou::api::definitions::Component>& core::Engine::getRegisteredComponents ()
+{
+    return m_component_definitions;
 }
 
 gou::resources::Handle core::Engine::findResource (entt::hashed_string::hash_type name)
@@ -271,6 +277,8 @@ void core::Engine::setupGame ()
     m_physics_context = physics::init(*this);
     // Create task graph
     createTaskGraph();
+    // Clear component definition data, only available during module loading
+    m_component_definitions.clear();
     // Load game data
     setupInitialScene();
     // Make events generated during module loading available during first frame

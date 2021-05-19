@@ -53,6 +53,7 @@ namespace core {
         entt::entity loadEntity (entt::hashed_string) final;
         void mergeEntity (entt::entity, entt::hashed_string, bool) final;
         void registerComponent (gou::api::definitions::Component&) final;
+        const std::vector<gou::api::definitions::Component>& getRegisteredComponents () final;
         gou::resources::Handle findResource (entt::hashed_string::hash_type) final;
         gou::resources::Signal findSignal (entt::hashed_string::hash_type) final;
 
@@ -136,6 +137,7 @@ namespace core {
         entt::registry m_registry;
         entt::registry m_prototype_registry;
         spp::sparse_hash_map<entt::hashed_string::hash_type, gou::api::definitions::LoaderFn, helpers::Identity> m_component_loaders;
+        std::vector<gou::api::definitions::Component> m_component_definitions;
         spp::sparse_hash_map<entt::hashed_string::hash_type, NamedEntityInfo, helpers::Identity> m_named_entities;
         spp::sparse_hash_map<entt::hashed_string::hash_type, entt::entity, helpers::Identity> m_prototype_entities;
         world::SceneManager m_scene_manager;

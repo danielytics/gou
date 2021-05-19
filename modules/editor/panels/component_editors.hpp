@@ -98,3 +98,38 @@ public:
         dirty |= editors::f("Scale Factor", copy.scale_factor);
     }    
 };
+
+// class DataEditorWidgets {
+// public:
+//     virtual void begin (const std::string& name) = 0;
+//     virtual bool end () = 0;
+
+//     // Basic scalar values
+//     virtual void scalar_float (const std::string& label, float& value) = 0;
+//     virtual void scalar_int (const std::string& label, int& value) = 0;
+//     virtual void scalar_uint (const std::string& label, unsigned& value) = 0;
+//     virtual void scalar_byte (const std::string& label, std::byte& value) = 0;
+//     virtual void scalar_bool (const std::string& label, bool& value) = 0;
+
+//     // Vector values
+//     virtual void vec2 (const std::string& label, glm::vec2& value) = 0;
+//     virtual void vec3 (const std::string& label, glm::vec3& value) = 0;
+//     virtual void vec4 (const std::string& label, glm::vec4& value) = 0;
+
+//     // Colors
+//     virtual void rgb  (const std::string& label, glm::vec3& value) = 0;
+//     virtual void rgba (const std::string& label, glm::vec4& value) = 0;
+
+//     // Entities, signals and resources
+//     virtual void entity (const std::string& label, entt::entity& value, entt::entity self=entt::null) = 0;
+//     virtual void signal (const std::string& label, std::uint32_t& value) = 0;
+// };
+
+// void foo (gou::Engine& engine) {
+//     auto func = [](DataEditorWidgets* editors, entt::entity entity, components::TriggerRegion& component){
+//         editors->begin("TriggerRegion");
+//         editors->signal("On Enter", component.on_enter);
+//         editors->signal("On Exit", component.on_exit);
+//         return editors->end();
+//     };
+// }

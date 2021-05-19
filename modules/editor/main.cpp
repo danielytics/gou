@@ -25,7 +25,7 @@ glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
 class EditorModule : public gou::Module<EditorModule> {
     GOU_MODULE_CLASS(EditorModule)
 public:
-    void onLoad (gou::Engine)
+    void onLoad (gou::Engine engine)
     {
         m_window_flags = ImGuiWindowFlags_MenuBar
                        | ImGuiWindowFlags_NoTitleBar
@@ -36,6 +36,13 @@ public:
                        | ImGuiWindowFlags_NoBackground
                        | ImGuiWindowFlags_NoNavFocus;
         m_gameplan_panel.load();
+        // Load components
+        for (const auto& component : engine.engine.getRegisteredComponents()) {
+            debug("Component: {}", component.name);
+            for (const auto& attribute : component.attributes) {
+                debug("  - attribute: {} (offset: {})", attribute.name, attribute.offset);
+            }
+        }
     }
 
     void onUnload (gou::Engine)
