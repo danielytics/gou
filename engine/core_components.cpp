@@ -14,7 +14,7 @@ namespace gou {
 		registry.prepare<components::Named>();
 		prototype_registry.prepare<components::Named>();
 		{
-			gou::api::definitions::Component component {"named"_hs, "Named"};
+			gou::api::definitions::Component component {"named"_hs, "Named", entt::type_id<components::Named>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::Named>(entity, entt::hashed_string{toml::find<std::string>(table, "name").c_str()});
@@ -27,7 +27,7 @@ namespace gou {
 		registry.prepare<components::Global>();
 		prototype_registry.prepare<components::Global>();
 		{
-			gou::api::definitions::Component component {"global"_hs, "Global"};
+			gou::api::definitions::Component component {"global"_hs, "Global", entt::type_id<components::Global>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				registry.emplace_or_replace<components::Global>(entity);
 			};
@@ -38,7 +38,7 @@ namespace gou {
 		registry.prepare<components::Transform>();
 		prototype_registry.prepare<components::Transform>();
 		{
-			gou::api::definitions::Component component {"transform"_hs, "Transform"};
+			gou::api::definitions::Component component {"transform"_hs, "Transform", entt::type_id<components::Transform>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				auto rotation = table.at("rotation");
@@ -54,7 +54,7 @@ namespace gou {
 		registry.prepare<components::Position>();
 		prototype_registry.prepare<components::Position>();
 		{
-			gou::api::definitions::Component component {"position"_hs, "Position"};
+			gou::api::definitions::Component component {"position"_hs, "Position", entt::type_id<components::Position>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::Position>(entity, float(toml::find<toml::floating>(table, "x")), float(toml::find<toml::floating>(table, "y")), float(toml::find<toml::floating>(table, "z")));
@@ -69,7 +69,7 @@ namespace gou {
 		registry.prepare<components::TriggerRegion>();
 		prototype_registry.prepare<components::TriggerRegion>();
 		{
-			gou::api::definitions::Component component {"trigger-region"_hs, "TriggerRegion"};
+			gou::api::definitions::Component component {"trigger-region"_hs, "TriggerRegion", entt::type_id<components::TriggerRegion>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				auto enter_event = table.at("enter-event");
@@ -89,7 +89,7 @@ namespace gou {
 		registry.prepare<components::TimeAware>();
 		prototype_registry.prepare<components::TimeAware>();
 		{
-			gou::api::definitions::Component component {"time-aware"_hs, "TimeAware"};
+			gou::api::definitions::Component component {"time-aware"_hs, "TimeAware", entt::type_id<components::TimeAware>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::TimeAware>(entity, float(toml::find<toml::floating>(table, "scale-factor")));
@@ -102,7 +102,7 @@ namespace gou {
 		registry.prepare<components::ScriptedBehavior>();
 		prototype_registry.prepare<components::ScriptedBehavior>();
 		{
-			gou::api::definitions::Component component {"scripted-behavior"_hs, "ScriptedBehavior"};
+			gou::api::definitions::Component component {"scripted-behavior"_hs, "ScriptedBehavior", entt::type_id<components::ScriptedBehavior>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::ScriptedBehavior>(entity, entt::hashed_string::value(toml::find<std::string>(table, "script").c_str()));
@@ -115,7 +115,7 @@ namespace gou {
 		registry.prepare<components::graphics::Layer>();
 		prototype_registry.prepare<components::graphics::Layer>();
 		{
-			gou::api::definitions::Component component {"layer"_hs, "Layer"};
+			gou::api::definitions::Component component {"layer"_hs, "Layer", entt::type_id<components::graphics::Layer>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::graphics::Layer>(entity, std::uint8_t(toml::find<toml::integer>(table, "layer")));
@@ -128,7 +128,7 @@ namespace gou {
 		registry.prepare<components::graphics::Sprite>();
 		prototype_registry.prepare<components::graphics::Sprite>();
 		{
-			gou::api::definitions::Component component {"sprite"_hs, "Sprite"};
+			gou::api::definitions::Component component {"sprite"_hs, "Sprite", entt::type_id<components::graphics::Sprite>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				registry.emplace_or_replace<components::graphics::Sprite>(entity);
 			};
@@ -139,7 +139,7 @@ namespace gou {
 		registry.prepare<components::graphics::Billboard>();
 		prototype_registry.prepare<components::graphics::Billboard>();
 		{
-			gou::api::definitions::Component component {"billboard"_hs, "Billboard"};
+			gou::api::definitions::Component component {"billboard"_hs, "Billboard", entt::type_id<components::graphics::Billboard>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::graphics::Billboard>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "image").c_str())));
@@ -152,7 +152,7 @@ namespace gou {
 		registry.prepare<components::graphics::Model>();
 		prototype_registry.prepare<components::graphics::Model>();
 		{
-			gou::api::definitions::Component component {"model"_hs, "Model"};
+			gou::api::definitions::Component component {"model"_hs, "Model", entt::type_id<components::graphics::Model>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::graphics::Model>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "mesh").c_str())), engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "material").c_str())));
@@ -166,7 +166,7 @@ namespace gou {
 		registry.prepare<components::graphics::PointLight>();
 		prototype_registry.prepare<components::graphics::PointLight>();
 		{
-			gou::api::definitions::Component component {"point-light"_hs, "PointLight"};
+			gou::api::definitions::Component component {"point-light"_hs, "PointLight", entt::type_id<components::graphics::PointLight>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				auto color = table.at("color");
@@ -182,7 +182,7 @@ namespace gou {
 		registry.prepare<components::graphics::SpotLight>();
 		prototype_registry.prepare<components::graphics::SpotLight>();
 		{
-			gou::api::definitions::Component component {"spot-light"_hs, "SpotLight"};
+			gou::api::definitions::Component component {"spot-light"_hs, "SpotLight", entt::type_id<components::graphics::SpotLight>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				auto color = table.at("color");
@@ -200,7 +200,7 @@ namespace gou {
 		registry.prepare<components::physics::StaticBody>();
 		prototype_registry.prepare<components::physics::StaticBody>();
 		{
-			gou::api::definitions::Component component {"static-body"_hs, "StaticBody"};
+			gou::api::definitions::Component component {"static-body"_hs, "StaticBody", entt::type_id<components::physics::StaticBody>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::physics::StaticBody>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), nullptr);
@@ -213,7 +213,7 @@ namespace gou {
 		registry.prepare<components::physics::DynamicBody>();
 		prototype_registry.prepare<components::physics::DynamicBody>();
 		{
-			gou::api::definitions::Component component {"dynamic-body"_hs, "DynamicBody"};
+			gou::api::definitions::Component component {"dynamic-body"_hs, "DynamicBody", entt::type_id<components::physics::DynamicBody>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::physics::DynamicBody>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), float(toml::find<toml::floating>(table, "mass")), nullptr);
@@ -227,7 +227,7 @@ namespace gou {
 		registry.prepare<components::physics::KinematicBody>();
 		prototype_registry.prepare<components::physics::KinematicBody>();
 		{
-			gou::api::definitions::Component component {"kinematic-body"_hs, "KinematicBody"};
+			gou::api::definitions::Component component {"kinematic-body"_hs, "KinematicBody", entt::type_id<components::physics::KinematicBody>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::physics::KinematicBody>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), float(toml::find<toml::floating>(table, "mass")), nullptr);
@@ -241,7 +241,7 @@ namespace gou {
 		registry.prepare<components::physics::CollisionSensor>();
 		prototype_registry.prepare<components::physics::CollisionSensor>();
 		{
-			gou::api::definitions::Component component {"collision-sensor"_hs, "CollisionSensor"};
+			gou::api::definitions::Component component {"collision-sensor"_hs, "CollisionSensor", entt::type_id<components::physics::CollisionSensor>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				registry.emplace_or_replace<components::physics::CollisionSensor>(entity, engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-collision").c_str())));

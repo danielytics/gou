@@ -354,9 +354,20 @@ public:
     public:
         Component(LoaderGenerator& loader, const std::string& ns, const std::string& name, const std::string& struct_name) : loader(loader), ns(ns), name(name), struct_name(struct_name) {}
         ~Component() {
+            std::string namespaced_component;
+            {
+                std::ostringstream osstr;
+                osstr << "components::";
+                if (! ns.empty()) {
+                    osstr << ns << "::";
+                }
+                osstr << struct_name;
+                namespaced_component = osstr.str();
+            }
+
             loader.out() << "{";
             loader.out.indent();
-            loader.out() << "gou::api::definitions::Component component {\"" << name << "\"_hs, \"" << struct_name << "\"};";
+            loader.out() << "gou::api::definitions::Component component {\"" << name << "\"_hs, \"" << struct_name << "\", entt::type_id<" << namespaced_component << ">().seq()};";
             loader.out() << "component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {";
             loader.out.indent();
             bool empty = true;
@@ -381,11 +392,7 @@ public:
                     }
                 }
             }
-            loader.out() << "registry.emplace_or_replace<components::";
-            if (! ns.empty()) {
-                loader.out(false) << ns << "::";
-            }
-            loader.out(false) << struct_name << ">(entity";
+            loader.out() << "registry.emplace_or_replace<" << namespaced_component << ">(entity";
             for (auto attribute : attributes) {
                 auto& data_type = attribute.second.type;
                 auto& identifier = attribute.second.identifier;
@@ -417,22 +424,14 @@ public:
                 auto it = data_type_enums.find(attribute.second.type);
                 if (it != data_type_enums.end()) {
                     loader.out() << "component.attributes.push_back({\"" << attribute.first << "\", ";
-                    loader.out(false) << "gou::types::Type::" << it->second << ", offsetof(components::";
-                    if (! ns.empty()) {
-                        loader.out(false) << ns << "::";
-                    }
-                    loader.out(false) << struct_name << ", " << attribute.second.identifier;
-                    loader.out(false) << ")});";
+                    loader.out(false) << "gou::types::Type::" << it->second << ", offsetof(" << namespaced_component << ", " << attribute.second.identifier << ")});";
                 }
             }
             if (attributes.empty()) {
                 loader.out() << "component.getter = nullptr;";
             } else {
-                loader.out() << "component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::";
-                if (! ns.empty()) {
-                    loader.out(false) << ns << "::";
-                }
-                loader.out(false) << struct_name << ">(entity)); };";
+                loader.out() << "component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<";
+                loader.out(false) << namespaced_component << ">(entity)); };";
             }
             loader.out() << "engine->registerComponent(component);";
             loader.out.dedent();

@@ -117,6 +117,7 @@ namespace gou::api {
         struct Component {
             entt::hashed_string id;
             std::string name;
+            entt::id_type type_id;
             LoaderFn loader;
             GetterFn getter;
             std::vector<Attribute> attributes;
