@@ -18,6 +18,8 @@ public:
     EntityPropertiesPanel () : Panel<EntityPropertiesPanel>("Entity Properties") {}
     virtual ~EntityPropertiesPanel() {}
 
+    void load (gou::Engine&);
+
     void beforeRender (gou::Engine& engine, gou::Scene& scene);
     void render ();
 
@@ -40,7 +42,7 @@ private:
 
     template <typename Component>
     void make_editor (gou::Engine& engine) {
-        auto& registry = engine.engine.registry();
+        auto& registry = engine.engine.registry(gou::api::Engine::Registry::Runtime);
         auto type = entt::type_id<Component>().seq();
         if (registry.any_of<Component>(m_selected_entity)) {
             auto it = m_data_editors.find(type);

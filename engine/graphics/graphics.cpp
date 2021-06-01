@@ -129,12 +129,7 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
     glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &max_frag_uniform_vec);
     glGetIntegerv(GL_MAX_VARYING_VECTORS, &max_varying_vec);
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
-    spdlog::debug("Shader limits: {}    
-    Renderer* renderer = static_cast<Rs_ViewportsEnable)
-    {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }vertex attributes, {} varying vectors, {} vertex vectors, {} fragment vectors", max_vertex_attribs, max_varying_vec, max_vert_uniform_vec, max_frag_uniform_vec);
+    spdlog::debug("Shader limits: {} vertex attributes, {} varying vectors, {} vertex vectors, {} fragment vectors", max_vertex_attribs, max_varying_vec, max_vert_uniform_vec, max_frag_uniform_vec);
 #endif
 
     // Setup Dear ImGui context
@@ -186,7 +181,7 @@ int render (void* data) {
 
         // Setup Platform/Renderer backends
         ImGui_ImplSDL2_InitForOpenGL(render_api->window, render_api->gl_render_context);
-        ImGui_ImplOpenGL3_Init("#version 150");
+        ImGui_ImplOpenGL3_Init("#version 450");
 
         // Get context data
         auto& running = render_api->running;

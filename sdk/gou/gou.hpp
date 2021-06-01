@@ -177,16 +177,10 @@ namespace gou {
          * current_time()   seconds since startup
          * delta_time()     seconds since last frame
          * current_frame()  the number of frames since startup
-         * TimeAware overloads scale the time by the TimeAware's scale factor
          */
         Time currentTime () const { return m_current_time; }
-        Time currentTime (const components::TimeAware& time) const { return m_current_time * time.scale_factor; }
-
         DeltaTime deltaTime() const { return m_delta_time; }
-        DeltaTime deltaTime (const components::TimeAware& time) const { return m_delta_time * time.scale_factor; }
-
         uint64_t currentFrame() const { return m_current_frame; }
-        uint64_t currentFrame (const components::TimeAware& time) const { return uint64_t(float(m_current_frame) * time.scale_factor); }
 
         /*
          * Name of the scene
@@ -257,7 +251,7 @@ namespace gou {
     template <typename Derived>
     class Module : public gou::api::Module {
     public:
-        Module (const std::string& name, gou::api::Engine& engine) : m_moduleName{name}, m_engine{engine}, m_scene{engine.registry(), m_engine} {}
+        Module (const std::string& name, gou::api::Engine& engine) : m_moduleName{name}, m_engine{engine}, m_scene{engine.registry(gou::api::Engine::Registry::Runtime), m_engine} {}
         virtual ~Module () {}
 
 ///////////////////////////////////////////////////////////////////////////////

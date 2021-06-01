@@ -144,10 +144,18 @@ namespace gou::api {
         virtual const detail::EventsIterator& events () = 0;
 
         // Access to the ECS registry
-        virtual entt::registry& registry() = 0;
+        enum class Registry : std::uint32_t {
+            // The main registry, used to run the game
+            Runtime = 0x1,
+            // The background registry, used for background loading, scene editing etc, can be copied to the Runtime registry
+            Background = 0x2,
+            // The prototype registry, used by the component loader setup code, not meant for module users
+            Prototype = 0x3,
+        };
+        virtual entt::registry& registry (Registry) = 0;
 
         // Access ECS organizers through which to register systems
-        virtual entt::organizer& organizer(std::uint32_t) = 0;
+        virtual entt::organizer& organizer (std::uint32_t) = 0;
 
         // Find a named entity
         virtual entt::entity findEntity (entt::hashed_string) const = 0;
@@ -166,9 +174,6 @@ namespace gou::api {
 
         // Get a list of components (note: only available during on_load!)
         virtual const std::vector<definitions::Component>& getRegisteredComponents () = 0;
-
-        // Get the prototype registry, used by the component loader setup code, not meant for module users
-        virtual entt::registry& prototypeRegistry () = 0;
 
         // Retrieve a resource handle by name
         virtual gou::resources::Handle findResource (entt::hashed_string::hash_type) = 0;

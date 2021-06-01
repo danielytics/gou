@@ -45,9 +45,8 @@ namespace core {
         gou::api::Renderer& renderer () const final;
         gou::events::Event* emit () final;
         const gou::api::detail::EventsIterator& events () final;
-        entt::registry& registry() final;
-        entt::registry& prototypeRegistry () final;
-        entt::organizer& organizer(std::uint32_t) final;
+        entt::registry& registry (gou::api::Engine::Registry) final;
+        entt::organizer& organizer (std::uint32_t) final;
         entt::entity findEntity (entt::hashed_string) const final;
         const std::string& findEntityName (const components::Named&) const final;
         entt::entity loadEntity (entt::hashed_string) final;
@@ -133,9 +132,11 @@ namespace core {
             std::string name;
         };
 
-        // ECS registry to manage all entities
+        // ECS registries to manage all entities
         entt::registry m_registry;
+        entt::registry m_background_registry;
         entt::registry m_prototype_registry;
+
         spp::sparse_hash_map<entt::hashed_string::hash_type, gou::api::definitions::LoaderFn, helpers::Identity> m_component_loaders;
         std::vector<gou::api::definitions::Component> m_component_definitions;
         spp::sparse_hash_map<entt::hashed_string::hash_type, NamedEntityInfo, helpers::Identity> m_named_entities;

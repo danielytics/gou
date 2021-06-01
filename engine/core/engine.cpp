@@ -71,9 +71,16 @@ gou::api::Renderer& core::Engine::renderer () const
     return *m_renderer;
 }
 
-entt::registry& core::Engine::registry()
+entt::registry& core::Engine::registry(gou::api::Engine::Registry which)
 {
-    return m_registry;
+    switch (which) {
+    case gou::api::Engine::Registry::Runtime:
+        return m_registry;
+    case gou::api::Engine::Registry::Background:
+        return m_background_registry;
+    case gou::api::Engine::Registry::Prototype:
+        return m_prototype_registry;
+    };
 }
 
 entt::organizer& core::Engine::organizer(std::uint32_t type)
@@ -167,12 +174,6 @@ void core::Engine::loadComponent (core::Engine::EntityLoadType loadType, entt::h
         spdlog::warn("Tried to load non-existent component: {}", component.data());
     }
 }
-
-entt::registry& core::Engine::prototypeRegistry ()
-{
-    return m_prototype_registry;
-}
-
 
 void core::Engine::createTaskGraph () {
     // Setup Systems by creating a Taskflow graph for each stage

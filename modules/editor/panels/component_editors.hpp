@@ -90,14 +90,6 @@ public:
         dirty |= editors::vec3("Scale", copy.scale);
     }    
 };
-template <> class TemlpatedDataEditor<components::TimeAware>  : public TemlpatedDataEditorBase<components::TimeAware, 1> {
-public:
-    virtual ~TemlpatedDataEditor() {}
-    const char* name () final { return "TimeAware"; }
-    void render () final {
-        dirty |= editors::f("Scale Factor", copy.scale_factor);
-    }    
-};
 
 // class DataEditorWidgets {
 // public:

@@ -5,3 +5,4 @@ void GlobalSettingsPanel::render ()
 {
 
 }
+

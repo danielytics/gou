@@ -15,7 +15,7 @@ public:
         auto entity = scene.find("test-entity"_hs);
         if (entity != entt::null) {
             const auto& position = scene.get<components::Position>(entity);
-            info("Entity position = ({}, {}, {})", position.x, position.y, position.z);
+            info("Entity position = ({}, {}, {})", position.point.x, position.point.y, position.point.z);
         }
     }
 

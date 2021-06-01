@@ -21,6 +21,34 @@ glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
     };
 }
 
+static std::map<gou::types::Type, std::string> type_to_string {
+    {gou::types::Type::Vec2,            "vec2"},
+    {gou::types::Type::Vec3,            "vec3"},
+    {gou::types::Type::Vec4,            "vec4"},
+    {gou::types::Type::UInt8,           "uint8"},
+    {gou::types::Type::UInt16,          "uint16"},
+    {gou::types::Type::UInt32,          "uint32"},
+    {gou::types::Type::UInt64,          "uint64"},
+    {gou::types::Type::Int8,            "int8"},
+    {gou::types::Type::Int16,           "int16"},
+    {gou::types::Type::Int32,           "int32"},
+    {gou::types::Type::Int64,           "int64"},
+    {gou::types::Type::Byte,            "byte"},
+    {gou::types::Type::Resource,        "resource"},
+    {gou::types::Type::TextureResource, "texture-resource"},
+    {gou::types::Type::MeshResource,    "mesh-resource"},
+    {gou::types::Type::Entity,          "entity"},
+    {gou::types::Type::Float,           "float"},
+    {gou::types::Type::Double,          "double"},
+    {gou::types::Type::Bool,            "bool"},
+    {gou::types::Type::Event,           "event"},
+    {gou::types::Type::Ref,             "ref"},
+    {gou::types::Type::HashedString,    "hashed-string"},
+    {gou::types::Type::RGB,             "rgb"},
+    {gou::types::Type::RGBA,            "rgba"},
+    {gou::types::Type::Signal,          "signal"},
+};
+
 
 class EditorModule : public gou::Module<EditorModule> {
     GOU_MODULE_CLASS(EditorModule)
@@ -37,12 +65,7 @@ public:
                        | ImGuiWindowFlags_NoNavFocus;
         m_gameplan_panel.load();
         // Load components
-        for (const auto& component : engine.engine.getRegisteredComponents()) {
-            debug("Component: {}", component.name);
-            for (const auto& attribute : component.attributes) {
-                debug("  - attribute: {} (offset: {})", attribute.name, attribute.offset);
-            }
-        }
+        m_properties_panel.load(engine);
     }
 
     void onUnload (gou::Engine)

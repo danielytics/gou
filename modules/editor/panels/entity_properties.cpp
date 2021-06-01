@@ -1,13 +1,21 @@
 
 #include "entity_properties.hpp"
 
+void EntityPropertiesPanel::load (gou::Engine& engine) {
+    for (const auto& component : engine.engine.getRegisteredComponents()) {
+        // debug("Component: {}", component.name);
+        for (const auto& attribute : component.attributes) {
+            // debug("  - attribute: {} (offset: {}, type: {})", attribute.name, attribute.offset, type_to_string[attribute.type]);
+        }
+    }
+}
+
 void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene)
 {
     if (m_selected_entity != entt::null) {
         maybe_clear();
         make_editor<components::Position>(engine);
         make_editor<components::Transform>(engine);
-        make_editor<components::TimeAware>(engine);
 
         if (m_entity_action != EntityAction::None) {
             switch (m_entity_action) {

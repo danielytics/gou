@@ -83,7 +83,7 @@ void physics::prepare (Context* context, entt::registry& registry)
     auto dynamic = registry.view<components::Position, components::physics::DynamicBody>();
     dynamic.each([context](auto entity, auto& position, auto& physics) {
         if (physics.physics_body == nullptr) {
-            spdlog::warn("Creating new RigidBody: {},{},{} mass: {}", position.x, position.y, position.z, physics.mass);
+            spdlog::warn("Creating new RigidBody: {},{},{} mass: {}", position.point.x, position.point.y, position.point.z, physics.mass);
             btCollisionShape* shape = new btSphereShape(1.0);
             context->collisionShapes.push_back(shape);
 		    btVector3 local_inertia(0, 0, 0);
@@ -92,7 +92,7 @@ void physics::prepare (Context* context, entt::registry& registry)
             }
             btQuaternion rotation;
             rotation.setEulerZYX(0, 0, 0);
-            btDefaultMotionState* motion_state = new btDefaultMotionState(btTransform{rotation, btVector3{position.x, position.y, position.z}});
+            btDefaultMotionState* motion_state = new btDefaultMotionState(btTransform{rotation, btVector3{position.point.x, position.point.y, position.point.z}});
             btRigidBody::btRigidBodyConstructionInfo rigitbody_info(physics.mass, motion_state, shape, local_inertia);
             rigitbody_info.m_restitution = 1.0f;
             rigitbody_info.m_friction = 0.5f;
@@ -118,9 +118,9 @@ void physics::flush_dynamic (Context*, physics::view_flush_dynamic view)
     view.each([](auto entity, auto& position, const auto& body){
         auto& transform = body.physics_body->getWorldTransform();
         const auto& origin = transform.getOrigin();
-        position.x = origin.x();
-        position.y = origin.y();
-        position.z = origin.z();
+        position.point.x = origin.x();
+        position.point.y = origin.y();
+        position.point.z = origin.z();
     });
 }
 

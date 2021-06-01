@@ -8,8 +8,8 @@ using namespace entt::literals;
 namespace gou {
 	void register_components (gou::api::Engine* engine)
 	{
-		entt::registry& registry = engine->registry();
-		entt::registry& prototype_registry = engine->prototypeRegistry();
+		entt::registry& registry = engine->registry(gou::api::Engine::Registry::Runtime);
+		entt::registry& prototype_registry = engine->registry(gou::api::Engine::Registry::Prototype);
 		
 		registry.prepare<components::Named>();
 		prototype_registry.prepare<components::Named>();
@@ -35,6 +35,20 @@ namespace gou {
 			engine->registerComponent(component);
 		}
 		
+		registry.prepare<components::Position>();
+		prototype_registry.prepare<components::Position>();
+		{
+			gou::api::definitions::Component component {"position"_hs, "Position", entt::type_id<components::Position>().seq()};
+			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
+				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
+				auto point = table.at("point");
+				registry.emplace_or_replace<components::Position>(entity, glm::vec3{float(toml::find<toml::floating>(point, "x")), float(toml::find<toml::floating>(point, "y")), float(toml::find<toml::floating>(point, "z"))});
+			};
+			component.attributes.push_back({"point", gou::types::Type::Vec3, offsetof(components::Position, point)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Position>(entity)); };
+			engine->registerComponent(component);
+		}
+		
 		registry.prepare<components::Transform>();
 		prototype_registry.prepare<components::Transform>();
 		{
@@ -48,67 +62,6 @@ namespace gou {
 			component.attributes.push_back({"rotation", gou::types::Type::Vec3, offsetof(components::Transform, rotation)});
 			component.attributes.push_back({"scale", gou::types::Type::Vec3, offsetof(components::Transform, scale)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Transform>(entity)); };
-			engine->registerComponent(component);
-		}
-		
-		registry.prepare<components::Position>();
-		prototype_registry.prepare<components::Position>();
-		{
-			gou::api::definitions::Component component {"position"_hs, "Position", entt::type_id<components::Position>().seq()};
-			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
-				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-				registry.emplace_or_replace<components::Position>(entity, float(toml::find<toml::floating>(table, "x")), float(toml::find<toml::floating>(table, "y")), float(toml::find<toml::floating>(table, "z")));
-			};
-			component.attributes.push_back({"x", gou::types::Type::Float, offsetof(components::Position, x)});
-			component.attributes.push_back({"y", gou::types::Type::Float, offsetof(components::Position, y)});
-			component.attributes.push_back({"z", gou::types::Type::Float, offsetof(components::Position, z)});
-			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Position>(entity)); };
-			engine->registerComponent(component);
-		}
-		
-		registry.prepare<components::TriggerRegion>();
-		prototype_registry.prepare<components::TriggerRegion>();
-		{
-			gou::api::definitions::Component component {"trigger-region"_hs, "TriggerRegion", entt::type_id<components::TriggerRegion>().seq()};
-			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
-				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-				auto enter_event = table.at("enter-event");
-				auto exit_event = table.at("exit-event");
-				registry.emplace_or_replace<components::TriggerRegion>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), gou::events::Event{entt::hashed_string::value(toml::find<std::string>(enter_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(enter_event, "x")), float(toml::find<toml::floating>(enter_event, "y")), float(toml::find<toml::floating>(enter_event, "z"))}}, gou::events::Event{entt::hashed_string::value(toml::find<std::string>(exit_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(exit_event, "x")), float(toml::find<toml::floating>(exit_event, "y")), float(toml::find<toml::floating>(exit_event, "z"))}}, engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-enter").c_str())), engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-exit").c_str())), std::uint32_t(toml::find<toml::integer>(table, "trigger-mask")));
-			};
-			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::TriggerRegion, shape)});
-			component.attributes.push_back({"enter-event", gou::types::Type::Event, offsetof(components::TriggerRegion, enter_event)});
-			component.attributes.push_back({"exit-event", gou::types::Type::Event, offsetof(components::TriggerRegion, exit_event)});
-			component.attributes.push_back({"on-enter", gou::types::Type::Signal, offsetof(components::TriggerRegion, on_enter)});
-			component.attributes.push_back({"on-exit", gou::types::Type::Signal, offsetof(components::TriggerRegion, on_exit)});
-			component.attributes.push_back({"trigger-mask", gou::types::Type::UInt32, offsetof(components::TriggerRegion, trigger_mask)});
-			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::TriggerRegion>(entity)); };
-			engine->registerComponent(component);
-		}
-		
-		registry.prepare<components::TimeAware>();
-		prototype_registry.prepare<components::TimeAware>();
-		{
-			gou::api::definitions::Component component {"time-aware"_hs, "TimeAware", entt::type_id<components::TimeAware>().seq()};
-			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
-				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-				registry.emplace_or_replace<components::TimeAware>(entity, float(toml::find<toml::floating>(table, "scale-factor")));
-			};
-			component.attributes.push_back({"scale-factor", gou::types::Type::Float, offsetof(components::TimeAware, scale_factor)});
-			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::TimeAware>(entity)); };
-			engine->registerComponent(component);
-		}
-		
-		registry.prepare<components::ScriptedBehavior>();
-		prototype_registry.prepare<components::ScriptedBehavior>();
-		{
-			gou::api::definitions::Component component {"scripted-behavior"_hs, "ScriptedBehavior", entt::type_id<components::ScriptedBehavior>().seq()};
-			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
-				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-				registry.emplace_or_replace<components::ScriptedBehavior>(entity, entt::hashed_string::value(toml::find<std::string>(table, "script").c_str()));
-			};
-			component.attributes.push_back({"script", gou::types::Type::Ref, offsetof(components::ScriptedBehavior, script)});
-			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::ScriptedBehavior>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -136,16 +89,27 @@ namespace gou {
 			engine->registerComponent(component);
 		}
 		
+		registry.prepare<components::graphics::StaticImage>();
+		prototype_registry.prepare<components::graphics::StaticImage>();
+		{
+			gou::api::definitions::Component component {"static-image"_hs, "StaticImage", entt::type_id<components::graphics::StaticImage>().seq()};
+			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
+				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
+				registry.emplace_or_replace<components::graphics::StaticImage>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "image").c_str())));
+			};
+			component.attributes.push_back({"image", gou::types::Type::TextureResource, offsetof(components::graphics::StaticImage, image)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::StaticImage>(entity)); };
+			engine->registerComponent(component);
+		}
+		
 		registry.prepare<components::graphics::Billboard>();
 		prototype_registry.prepare<components::graphics::Billboard>();
 		{
 			gou::api::definitions::Component component {"billboard"_hs, "Billboard", entt::type_id<components::graphics::Billboard>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
-				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-				registry.emplace_or_replace<components::graphics::Billboard>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "image").c_str())));
+				registry.emplace_or_replace<components::graphics::Billboard>(entity);
 			};
-			component.attributes.push_back({"image", gou::types::Type::Resource, offsetof(components::graphics::Billboard, image)});
-			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Billboard>(entity)); };
+			component.getter = nullptr;
 			engine->registerComponent(component);
 		}
 		
@@ -155,11 +119,29 @@ namespace gou {
 			gou::api::definitions::Component component {"model"_hs, "Model", entt::type_id<components::graphics::Model>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-				registry.emplace_or_replace<components::graphics::Model>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "mesh").c_str())), engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "material").c_str())));
+				registry.emplace_or_replace<components::graphics::Model>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "mesh").c_str())));
 			};
-			component.attributes.push_back({"mesh", gou::types::Type::Resource, offsetof(components::graphics::Model, mesh)});
-			component.attributes.push_back({"material", gou::types::Type::Resource, offsetof(components::graphics::Model, material)});
+			component.attributes.push_back({"mesh", gou::types::Type::MeshResource, offsetof(components::graphics::Model, mesh)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Model>(entity)); };
+			engine->registerComponent(component);
+		}
+		
+		registry.prepare<components::graphics::Material>();
+		prototype_registry.prepare<components::graphics::Material>();
+		{
+			gou::api::definitions::Component component {"material"_hs, "Material", entt::type_id<components::graphics::Material>().seq()};
+			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
+				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
+				auto color = table.at("color");
+				registry.emplace_or_replace<components::graphics::Material>(entity, glm::vec3{float(toml::find<toml::floating>(color, "x")), float(toml::find<toml::floating>(color, "y")), float(toml::find<toml::floating>(color, "z"))}, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "albedo").c_str())), engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "normal").c_str())), engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "metalic").c_str())), engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "roughness").c_str())), engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "ambient-occlusion").c_str())));
+			};
+			component.attributes.push_back({"color", gou::types::Type::RGB, offsetof(components::graphics::Material, color)});
+			component.attributes.push_back({"albedo", gou::types::Type::TextureResource, offsetof(components::graphics::Material, albedo)});
+			component.attributes.push_back({"normal", gou::types::Type::TextureResource, offsetof(components::graphics::Material, normal)});
+			component.attributes.push_back({"metalic", gou::types::Type::TextureResource, offsetof(components::graphics::Material, metalic)});
+			component.attributes.push_back({"roughness", gou::types::Type::TextureResource, offsetof(components::graphics::Material, roughness)});
+			component.attributes.push_back({"ambient-occlusion", gou::types::Type::TextureResource, offsetof(components::graphics::Material, ambient_occlusion)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Material>(entity)); };
 			engine->registerComponent(component);
 		}
 		
@@ -248,6 +230,26 @@ namespace gou {
 			};
 			component.attributes.push_back({"on-collision", gou::types::Type::Signal, offsetof(components::physics::CollisionSensor, on_collision)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::CollisionSensor>(entity)); };
+			engine->registerComponent(component);
+		}
+		
+		registry.prepare<components::physics::TriggerRegion>();
+		prototype_registry.prepare<components::physics::TriggerRegion>();
+		{
+			gou::api::definitions::Component component {"trigger-region"_hs, "TriggerRegion", entt::type_id<components::physics::TriggerRegion>().seq()};
+			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
+				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
+				auto enter_event = table.at("enter-event");
+				auto exit_event = table.at("exit-event");
+				registry.emplace_or_replace<components::physics::TriggerRegion>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), gou::events::Event{entt::hashed_string::value(toml::find<std::string>(enter_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(enter_event, "x")), float(toml::find<toml::floating>(enter_event, "y")), float(toml::find<toml::floating>(enter_event, "z"))}}, gou::events::Event{entt::hashed_string::value(toml::find<std::string>(exit_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(exit_event, "x")), float(toml::find<toml::floating>(exit_event, "y")), float(toml::find<toml::floating>(exit_event, "z"))}}, engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-enter").c_str())), engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-exit").c_str())), std::uint32_t(toml::find<toml::integer>(table, "trigger-mask")));
+			};
+			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::TriggerRegion, shape)});
+			component.attributes.push_back({"enter-event", gou::types::Type::Event, offsetof(components::physics::TriggerRegion, enter_event)});
+			component.attributes.push_back({"exit-event", gou::types::Type::Event, offsetof(components::physics::TriggerRegion, exit_event)});
+			component.attributes.push_back({"on-enter", gou::types::Type::Signal, offsetof(components::physics::TriggerRegion, on_enter)});
+			component.attributes.push_back({"on-exit", gou::types::Type::Signal, offsetof(components::physics::TriggerRegion, on_exit)});
+			component.attributes.push_back({"trigger-mask", gou::types::Type::UInt32, offsetof(components::physics::TriggerRegion, trigger_mask)});
+			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::TriggerRegion>(entity)); };
 			engine->registerComponent(component);
 		}
 	}

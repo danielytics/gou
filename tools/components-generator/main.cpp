@@ -76,6 +76,8 @@ std::map<std::string, std::string> data_types{
     {"int8", "std::int8_t"},
     {"byte", "std::byte"},
     {"resource", "gou::resources::Handle"},
+    {"texture", "gou::resources::Handle"},
+    {"mesh", "gou::resources::Handle"},
     {"entity", "entt::entity"},
     {"entity-set", "gou::resources::EntitySetHandle"},
     {"float", "float"},
@@ -103,6 +105,8 @@ std::map<std::string, std::string> data_type_enums{
     {"int8",    "Int8"},
     {"byte",    "Byte"},
     {"resource","Resource"},
+    {"texture", "TextureResource"},
+    {"mesh",    "MeshResource"},
     {"entity",  "Entity"},
     // {"entity-set", "gou::resources::EntitySetHandle"},
     {"float",   "Float"},
@@ -194,10 +198,14 @@ std::map<std::string, std::pair<bool, std::function<std::string(const std::strin
     {"vec2",            {true,      load_vec2}},
     {"vec3",            {true,      load_vec3}},
     {"vec4",            {true,      load_vec4}},
+    {"rgb",             {true,      load_vec3}},
+    {"rgba",            {true,      load_vec4}},
     {"event",           {true,      load_event}},
     {"ref",             {false,     load_hash_value}},
     {"hashed-string",   {false,     load_hashed_string}},
     {"resource",        {false,     load_resource_handle}},
+    {"texture",         {false,     load_resource_handle}},
+    {"mesh",            {false,     load_resource_handle}},
     {"signal",          {false,     load_signal}},
     //{"entity", "entt::entity"},
     //{"entity-set", "frenzy::resources::EntitySetHandle"},
@@ -501,9 +509,9 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
     source() << "void register_components (gou::api::Engine* engine)";
     source() << "{";
     source.indent();
-    source() << "entt::registry& registry = engine->registry();";
-    source() << "entt::registry& prototype_registry = engine->prototypeRegistry();";
-    
+    source() << "entt::registry& registry = engine->registry(gou::api::Engine::Registry::Runtime);";
+    source() << "entt::registry& prototype_registry = engine->registry(gou::api::Engine::Registry::Prototype);";
+
     HeaderGenerator header(header_file);
     RegistrationGenerator registration(source);
     LoaderGenerator loader(source);

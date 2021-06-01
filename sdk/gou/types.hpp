@@ -30,6 +30,8 @@ namespace gou {
             Int64,
             Byte,
             Resource,
+            TextureResource,
+            MeshResource,
             Entity,
             Float,
             Double,
