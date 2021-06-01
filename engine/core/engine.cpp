@@ -268,6 +268,9 @@ ImGuiContext* core::Engine::init ()
     m_renderer = graphics::init(*this, m_graphics_sync, imgui_ctx);
     // Register core components
     gou::register_components(this);
+    // Set system status
+    m_system_status = SystemStatus::Stopped;
+
     return imgui_ctx;
 }
 
@@ -384,17 +387,30 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
     // // Process previous frames events, looking for ones the core engine cares about
     // Yes, its a bit wasteful to loop them all like this, but they should be hot in cache so ¯\_(ツ)_/¯
     for (auto& event : helpers::const_iterate(events())) {
-        if (event.type == "engine/exit"_event) {
-            // No longer running, return false
-            return false;
-        }
+        switch (event.type) {
+            case "engine/exit"_event:
+                return false;
+            case "engine/set-system-status/running"_event:
+                m_system_status = SystemStatus::Running;
+                break;
+            case "engine/set-system-status/stopped"_event:
+                m_system_status = SystemStatus::Stopped;
+                break;
+            default:
+                break;
+        };
     }
 
     // Run the before-frame hook for each module, updating the current time
     callModuleHook<CM::BEFORE_FRAME>(current_time, delta, frame_count);
 
-    // Execute the taskflow graph
-    m_executor.run(m_coordinator);
+    if (m_system_status == SystemStatus::Running) {
+        // Execute the taskflow graph if systems are running
+        m_executor.run(m_coordinator);
+    } else {
+        // If systems are stopped, only pump events
+        pumpEvents();
+    }
 
     // Run the after-frame hook for each module
     callModuleHook<CM::AFTER_FRAME>();

@@ -148,6 +148,12 @@ namespace core {
         tf::Taskflow m_coordinator;
         tf::Executor m_executor;
 
+        enum class SystemStatus {
+            Running,
+            Stopped,
+        };
+        SystemStatus m_system_status;
+
         // Timing
         DeltaTime m_current_time_delta = 0;
 
