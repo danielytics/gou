@@ -22,7 +22,7 @@ void ScenePanel::beforeRender (gou::Engine& engine)
 	}
 
 	m_entities.clear();
-	const auto& view = engine.engine.registry(gou::api::Engine::Registry::Runtime).view<const components::Named>();
+	const auto& view = engine.engine.registry(gou::api::Registry::Runtime).view<const components::Named>();
 	for (auto&& [entity, named] : view.each()) {
 		m_entities.push_back({
 			engine.engine.findEntityName(named),

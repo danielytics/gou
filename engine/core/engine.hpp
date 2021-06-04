@@ -45,8 +45,8 @@ namespace core {
         gou::api::Renderer& renderer () const final;
         gou::events::Event* emit () final;
         const gou::api::detail::EventsIterator& events () final;
-        entt::registry& registry (gou::api::Engine::Registry) final;
-        entt::organizer& organizer (std::uint32_t) final;
+        entt::registry& registry (gou::api::Registry) final;
+        entt::organizer& organizer (gou::api::SystemStage) final;
         entt::entity findEntity (entt::hashed_string) const final;
         const std::string& findEntityName (const components::Named&) const final;
         entt::entity loadEntity (entt::hashed_string) final;
@@ -145,7 +145,7 @@ namespace core {
         const std::string m_empty_string = {};
 
         // System and task scheduling
-        spp::sparse_hash_map<uint32_t, entt::organizer> m_organizers;
+        spp::sparse_hash_map<gou::api::SystemStage, entt::organizer> m_organizers;
         tf::Taskflow m_coordinator;
         tf::Executor m_executor;
 

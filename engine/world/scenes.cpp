@@ -42,8 +42,8 @@ void world::SceneManager::loadScene (entt::hashed_string scene)
 
     auto it = m_scenes.find(scene);
     if (it != m_scenes.end()) {
-        auto& registry = m_engine.registry(gou::api::Engine::Registry::Runtime);
-        auto& prototype_registry = m_engine.registry(gou::api::Engine::Registry::Prototype);
+        auto& registry = m_engine.registry(gou::api::Registry::Runtime);
+        auto& prototype_registry = m_engine.registry(gou::api::Registry::Prototype);
 
         // Unload previous scene, if there is one
         if (m_current_scene != entt::hashed_string{}) {

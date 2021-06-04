@@ -8,8 +8,8 @@ using namespace entt::literals;
 namespace gou {
 	void register_components (gou::api::Engine* engine)
 	{
-		entt::registry& registry = engine->registry(gou::api::Engine::Registry::Runtime);
-		entt::registry& prototype_registry = engine->registry(gou::api::Engine::Registry::Prototype);
+		entt::registry& registry = engine->registry(gou::api::Registry::Runtime);
+		entt::registry& prototype_registry = engine->registry(gou::api::Registry::Prototype);
 		
 		registry.prepare<components::Named>();
 		prototype_registry.prepare<components::Named>();
@@ -21,6 +21,8 @@ namespace gou {
 			};
 			component.attributes.push_back({"name", gou::types::Type::HashedString, offsetof(components::Named, name)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Named>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::Named>(entity); };
+			component.size_in_bytes = sizeof(components::Named);
 			engine->registerComponent(component);
 		}
 		
@@ -32,6 +34,8 @@ namespace gou {
 				registry.emplace_or_replace<components::Global>(entity);
 			};
 			component.getter = nullptr;
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::Global>(entity); };
+			component.size_in_bytes = sizeof(components::Global);
 			engine->registerComponent(component);
 		}
 		
@@ -46,6 +50,8 @@ namespace gou {
 			};
 			component.attributes.push_back({"point", gou::types::Type::Vec3, offsetof(components::Position, point)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Position>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::Position>(entity); };
+			component.size_in_bytes = sizeof(components::Position);
 			engine->registerComponent(component);
 		}
 		
@@ -62,6 +68,8 @@ namespace gou {
 			component.attributes.push_back({"rotation", gou::types::Type::Vec3, offsetof(components::Transform, rotation)});
 			component.attributes.push_back({"scale", gou::types::Type::Vec3, offsetof(components::Transform, scale)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::Transform>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::Transform>(entity); };
+			component.size_in_bytes = sizeof(components::Transform);
 			engine->registerComponent(component);
 		}
 		
@@ -75,6 +83,8 @@ namespace gou {
 			};
 			component.attributes.push_back({"layer", gou::types::Type::UInt8, offsetof(components::graphics::Layer, layer)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Layer>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::Layer>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::Layer);
 			engine->registerComponent(component);
 		}
 		
@@ -86,6 +96,8 @@ namespace gou {
 				registry.emplace_or_replace<components::graphics::Sprite>(entity);
 			};
 			component.getter = nullptr;
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::Sprite>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::Sprite);
 			engine->registerComponent(component);
 		}
 		
@@ -99,6 +111,8 @@ namespace gou {
 			};
 			component.attributes.push_back({"image", gou::types::Type::TextureResource, offsetof(components::graphics::StaticImage, image)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::StaticImage>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::StaticImage>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::StaticImage);
 			engine->registerComponent(component);
 		}
 		
@@ -110,6 +124,8 @@ namespace gou {
 				registry.emplace_or_replace<components::graphics::Billboard>(entity);
 			};
 			component.getter = nullptr;
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::Billboard>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::Billboard);
 			engine->registerComponent(component);
 		}
 		
@@ -123,6 +139,8 @@ namespace gou {
 			};
 			component.attributes.push_back({"mesh", gou::types::Type::MeshResource, offsetof(components::graphics::Model, mesh)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Model>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::Model>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::Model);
 			engine->registerComponent(component);
 		}
 		
@@ -142,6 +160,8 @@ namespace gou {
 			component.attributes.push_back({"roughness", gou::types::Type::TextureResource, offsetof(components::graphics::Material, roughness)});
 			component.attributes.push_back({"ambient-occlusion", gou::types::Type::TextureResource, offsetof(components::graphics::Material, ambient_occlusion)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::Material>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::Material>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::Material);
 			engine->registerComponent(component);
 		}
 		
@@ -158,6 +178,8 @@ namespace gou {
 			component.attributes.push_back({"color", gou::types::Type::Vec3, offsetof(components::graphics::PointLight, color)});
 			component.attributes.push_back({"intensity", gou::types::Type::Float, offsetof(components::graphics::PointLight, intensity)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::PointLight>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::PointLight>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::PointLight);
 			engine->registerComponent(component);
 		}
 		
@@ -176,6 +198,8 @@ namespace gou {
 			component.attributes.push_back({"direction", gou::types::Type::Vec3, offsetof(components::graphics::SpotLight, direction)});
 			component.attributes.push_back({"intensity", gou::types::Type::Float, offsetof(components::graphics::SpotLight, intensity)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::SpotLight>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::SpotLight>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::SpotLight);
 			engine->registerComponent(component);
 		}
 		
@@ -189,6 +213,8 @@ namespace gou {
 			};
 			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::StaticBody, shape)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::StaticBody>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::physics::StaticBody>(entity); };
+			component.size_in_bytes = sizeof(components::physics::StaticBody);
 			engine->registerComponent(component);
 		}
 		
@@ -203,6 +229,8 @@ namespace gou {
 			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::DynamicBody, shape)});
 			component.attributes.push_back({"mass", gou::types::Type::Float, offsetof(components::physics::DynamicBody, mass)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::DynamicBody>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::physics::DynamicBody>(entity); };
+			component.size_in_bytes = sizeof(components::physics::DynamicBody);
 			engine->registerComponent(component);
 		}
 		
@@ -217,6 +245,8 @@ namespace gou {
 			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::KinematicBody, shape)});
 			component.attributes.push_back({"mass", gou::types::Type::Float, offsetof(components::physics::KinematicBody, mass)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::KinematicBody>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::physics::KinematicBody>(entity); };
+			component.size_in_bytes = sizeof(components::physics::KinematicBody);
 			engine->registerComponent(component);
 		}
 		
@@ -230,6 +260,8 @@ namespace gou {
 			};
 			component.attributes.push_back({"on-collision", gou::types::Type::Signal, offsetof(components::physics::CollisionSensor, on_collision)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::CollisionSensor>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::physics::CollisionSensor>(entity); };
+			component.size_in_bytes = sizeof(components::physics::CollisionSensor);
 			engine->registerComponent(component);
 		}
 		
@@ -250,6 +282,8 @@ namespace gou {
 			component.attributes.push_back({"on-exit", gou::types::Type::Signal, offsetof(components::physics::TriggerRegion, on_exit)});
 			component.attributes.push_back({"trigger-mask", gou::types::Type::UInt32, offsetof(components::physics::TriggerRegion, trigger_mask)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::TriggerRegion>(entity)); };
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::physics::TriggerRegion>(entity); };
+			component.size_in_bytes = sizeof(components::physics::TriggerRegion);
 			engine->registerComponent(component);
 		}
 	}

@@ -380,7 +380,7 @@ public:
             loader.out.indent();
             bool empty = true;
             for (auto attribute : attributes) {
-                if (attribute.first != "_name_" && attribute.first != "_description_" && attribute.first != "_namespace_") {
+                if (attribute.first[0] != '_' || attribute.first[attribute.first.size() - 1] != '_') {
                     empty = false;
                     break;
                 }
@@ -390,6 +390,9 @@ public:
             }
             
             for (auto attribute : attributes) {
+                if (attribute.first[0] == '_' && attribute.first[attribute.first.size() - 1] == '_') {
+                    continue;
+                }
                 auto& data_type = attribute.second.type;
                 auto& identifier = attribute.second.identifier;
                 auto it = data_type_loaders.find(data_type);
@@ -402,6 +405,9 @@ public:
             }
             loader.out() << "registry.emplace_or_replace<" << namespaced_component << ">(entity";
             for (auto attribute : attributes) {
+                if (attribute.first[0] == '_' && attribute.first[attribute.first.size() - 1] == '_') {
+                    continue;
+                }
                 auto& data_type = attribute.second.type;
                 auto& identifier = attribute.second.identifier;
                 auto it = data_type_loaders.find(data_type);
@@ -441,6 +447,8 @@ public:
                 loader.out() << "component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<";
                 loader.out(false) << namespaced_component << ">(entity)); };";
             }
+            loader.out() << "component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<" << namespaced_component << ">(entity); };";
+            loader.out() << "component.size_in_bytes = sizeof(" << namespaced_component << ");";
             loader.out() << "engine->registerComponent(component);";
             loader.out.dedent();
             loader.out() << "}";
@@ -509,8 +517,8 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
     source() << "void register_components (gou::api::Engine* engine)";
     source() << "{";
     source.indent();
-    source() << "entt::registry& registry = engine->registry(gou::api::Engine::Registry::Runtime);";
-    source() << "entt::registry& prototype_registry = engine->registry(gou::api::Engine::Registry::Prototype);";
+    source() << "entt::registry& registry = engine->registry(gou::api::Registry::Runtime);";
+    source() << "entt::registry& prototype_registry = engine->registry(gou::api::Registry::Prototype);";
 
     HeaderGenerator header(header_file);
     RegistrationGenerator registration(source);

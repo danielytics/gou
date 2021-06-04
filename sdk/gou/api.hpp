@@ -36,9 +36,22 @@ namespace gou::api {
         };
     }
 
-    enum class SystemStage {
-        GameLogic = 0,
-        Update = 1
+    // Which system organiser
+    enum class SystemStage : std::uint32_t {
+        // Game logic is run prior to physics and pumping events and is meant for processing components
+        GameLogic,
+        // Update logic is run after pumping events and is meant for writing data back to components
+        Update,
+    };
+
+    // Access to the ECS registry
+    enum class Registry : std::uint32_t {
+        // The main registry, used to run the game
+        Runtime,
+        // The background registry, used for background loading, scene editing etc, can be copied to the Runtime registry
+        Background,
+        // The prototype registry, used by the component loader setup code, not meant for module users
+        Prototype,
     };
 
     class Renderer {
@@ -113,12 +126,15 @@ namespace gou::api {
             std::size_t offset;
         };
         using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
+        using CheckerFn = bool(*)(entt::registry& registry, entt::entity entity);
         using GetterFn = char*(*)(entt::registry& registry, entt::entity entity);
         struct Component {
             entt::hashed_string id;
             std::string name;
             entt::id_type type_id;
+            std::size_t size_in_bytes;
             LoaderFn loader;
+            CheckerFn attached_to_entity;
             GetterFn getter;
             std::vector<Attribute> attributes;
         };
@@ -128,49 +144,59 @@ namespace gou::api {
     class Engine {
     public:
         virtual ~Engine() {}
-        // Used internally by module boilerplate to ensure ECS type ID's are consistent across modules
+
+        /* Internal API */
+        /* ------------ */
+
+        /** Used internally by module boilerplate to ensure ECS type ID's are consistent across modules */
         virtual detail::type_context* type_context() const = 0;
 
-        // Used internally to register a modules callback hooks
+        /** Used internally to register a modules callback hooks */
         virtual void registerModule(std::uint32_t, Module*) = 0;
 
-        // Used internally to provide the module with access to the renderer
+        /** Used internally to provide the module with access to the renderer */
         virtual Renderer& renderer () const = 0;
 
-        // Emit an event
+        /** Used internally to register a component */
+        virtual void registerComponent (definitions::Component&) = 0;
+
+        /** Internal module creation API */
+        template <class Module> Module* createModule (const std::string& name) {
+            return new (allocModule(sizeof(Module))) Module(name, *this);
+        }
+
+        /** Internal module destruction API */
+        template <class Module> void destroyModule (Module* mod) {
+            mod->~Module();
+            deallocModule(mod);
+        }
+
+        /* User API (Note that users should use the API wrapper classes in gou.hpp) */
+        /* ------------------------------------------------------------------------ */
+
+        /** Returns a pointer to a newly created event, that will be accessible next frame */
         virtual events::Event* emit () = 0;
 
-        // Access events emitted last frame
+        /** Access events emitted last frame */
         virtual const detail::EventsIterator& events () = 0;
 
-        // Access to the ECS registry
-        enum class Registry : std::uint32_t {
-            // The main registry, used to run the game
-            Runtime = 0x1,
-            // The background registry, used for background loading, scene editing etc, can be copied to the Runtime registry
-            Background = 0x2,
-            // The prototype registry, used by the component loader setup code, not meant for module users
-            Prototype = 0x3,
-        };
+        /** Access an ECS registry */
         virtual entt::registry& registry (Registry) = 0;
 
-        // Access ECS organizers through which to register systems
-        virtual entt::organizer& organizer (std::uint32_t) = 0;
+        /** Access ECS organizers through which to register systems */
+        virtual entt::organizer& organizer (SystemStage) = 0;
 
-        // Find a named entity
+        /** Find a named entity. Returns entt::null if no such entity exists */
         virtual entt::entity findEntity (entt::hashed_string) const = 0;
 
-        // Get the string name of a named entity
+        /** Get the string name of a named entity */
         virtual const std::string& findEntityName (const components::Named& named) const = 0;
 
-        // Load an entity from a template
+        /** Load an entity from a template */
         virtual entt::entity loadEntity (entt::hashed_string) = 0;
 
-        // Merge a template into an entity
+        /** Merge a template into an entity */
         virtual void mergeEntity (entt::entity, entt::hashed_string, bool) = 0;
-
-        // Register a component
-        virtual void registerComponent (definitions::Component&) = 0;
 
         // Get a list of components (note: only available during on_load!)
         virtual const std::vector<definitions::Component>& getRegisteredComponents () = 0;
@@ -181,14 +207,6 @@ namespace gou::api {
         // Retrieve a signal by name
         virtual gou::resources::Signal findSignal (entt::hashed_string::hash_type) = 0;
 
-        // Internal module creation and destruction API
-        template <class Module> Module* createModule (const std::string& name) {
-            return new (allocModule(sizeof(Module))) Module(name, *this);
-        }
-        template <class Module> void destroyModule (Module* mod) {
-            mod->~Module();
-            deallocModule(mod);
-        }
     private:
         // Allow engine to decide where the module classes are allocated
         virtual void* allocModule (std::size_t) = 0;
@@ -196,6 +214,7 @@ namespace gou::api {
     };
 
     namespace helpers {
+        /** Helper function to construct an event to emit in-place */
         template <typename... Args>
         gou::events::Event& emitEvent (Engine& engine, Args&&... args) {
             return *new (engine.emit())gou:: events::Event{args...};

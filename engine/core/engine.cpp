@@ -71,19 +71,19 @@ gou::api::Renderer& core::Engine::renderer () const
     return *m_renderer;
 }
 
-entt::registry& core::Engine::registry(gou::api::Engine::Registry which)
+entt::registry& core::Engine::registry(gou::api::Registry which)
 {
     switch (which) {
-    case gou::api::Engine::Registry::Runtime:
+    case gou::api::Registry::Runtime:
         return m_registry;
-    case gou::api::Engine::Registry::Background:
+    case gou::api::Registry::Background:
         return m_background_registry;
-    case gou::api::Engine::Registry::Prototype:
+    case gou::api::Registry::Prototype:
         return m_prototype_registry;
     };
 }
 
-entt::organizer& core::Engine::organizer(std::uint32_t type)
+entt::organizer& core::Engine::organizer(gou::api::SystemStage type)
 {
     return m_organizers[type];
 }
@@ -181,7 +181,7 @@ void core::Engine::createTaskGraph () {
     auto registry = &m_registry;
     spp::sparse_hash_map<Stage, tf::Taskflow*> taskflows;
     for (auto type : {Stage::GameLogic, Stage::Update}) {
-        auto it = m_organizers.find(helpers::enum_value(type));
+        auto it = m_organizers.find(type);
         if (it != m_organizers.end()) {
             tf::Taskflow* taskflow = new tf::Taskflow();
             taskflows[type] = taskflow;

@@ -3,19 +3,37 @@
 
 void EntityPropertiesPanel::load (gou::Engine& engine) {
     for (const auto& component : engine.engine.getRegisteredComponents()) {
-        // debug("Component: {}", component.name);
-        for (const auto& attribute : component.attributes) {
-            // debug("  - attribute: {} (offset: {}, type: {})", attribute.name, attribute.offset, type_to_string[attribute.type]);
-        }
+        m_component_editors[component.type_id] = component;
     }
 }
 
 void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene)
 {
     if (m_selected_entity != entt::null) {
-        maybe_clear();
-        make_editor<components::Position>(engine);
-        make_editor<components::Transform>(engine);
+
+        if (m_selected_entity != m_prev_selected_entity) {
+            m_data_editors.clear();
+            auto& registry = engine.engine.registry(gou::api::Registry::Runtime);
+            registry.visit(m_selected_entity, [&registry, this](auto type){
+                auto it = m_component_editors.find(type.seq());
+                if (it != m_component_editors.end()) {
+                    gou::api::definitions::Component& component = it->second;
+                    if (component.name != "Named" && component.attached_to_entity(registry, m_selected_entity)) {
+                        char* component_ptr = component.getter ? component.getter(registry, m_selected_entity) : nullptr;
+                        m_data_editors.push_back(DataEditor{
+                            component.name,
+                            component.attributes,
+                            component_ptr,
+                            component.size_in_bytes,
+                        });
+                    }
+                }
+            });
+            m_prev_selected_entity = m_selected_entity;
+        }
+        for (auto& editor : m_data_editors) {
+            editor.update();
+        }
 
         if (m_entity_action != EntityAction::None) {
             switch (m_entity_action) {
@@ -46,7 +64,8 @@ void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene
             m_entity_action = EntityAction::None;
         }
     } else {
-        maybe_clear();
+        m_data_editors.clear();
+        m_prev_selected_entity = entt::null;
     }
 }
 
@@ -113,11 +132,11 @@ void EntityPropertiesPanel::render ()
 
             ImGui::EndTable();
         }
-        for (auto& [_, editor] : m_data_editors) {
-            editor->doRender();
-            if (editor->action() != EntityAction::None) {
-                m_entity_action = editor->action();
-                m_action_component = editor;
+        for (auto& editor : m_data_editors) {
+            editor.render();
+            if (editor.action() != EntityAction::None) {
+                m_entity_action = editor.action();
+                m_action_component = &editor;
             }
         }
     }

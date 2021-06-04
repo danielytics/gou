@@ -43,3 +43,6 @@
 [submodule "vendor/imgui-node-editor"]
 	path = vendor/imgui-node-editor
 	url = https://github.com/thedmd/imgui-node-editor
+[submodule "vendor/tweeny"]
+	path = vendor/tweeny
+	url = https://github.com/mobius3/tweeny

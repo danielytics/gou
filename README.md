@@ -42,6 +42,7 @@ Engine dependencies:
 * [ordered-map](https://github.com/Tessil/ordered-map) - Order-preserving hash map/set (MIT License)
 * [Sparsepp](https://github.com/greg7mdp/sparsepp) - A fast, memory efficient hash map for C++ ([Custom do-almost-anything License](https://github.com/greg7mdp/sparsepp/blob/master/LICENSE))
 * [imgui-node-editor](https://github.com/thedmd/imgui-node-editor) - A node graph editor for ImGUI (MIT License)
+* [tweeny](https://github.com/mobius3/tweeny) - Inbetweening library (MIT License)
 * [Catch2](https://github.com/catchorg/Catch2) - C++ testing library (Boost Software License)
 
 Building from surce:

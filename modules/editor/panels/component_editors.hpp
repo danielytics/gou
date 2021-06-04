@@ -5,9 +5,28 @@
 
 class DataEditor {
 public:
-    virtual ~DataEditor() {}
-    virtual const char* name() = 0;
-    inline void doRender () {
+    DataEditor (const std::string& name, const std::vector<gou::api::definitions::Attribute>& attributes, char* ptr, std::size_t size) 
+        : m_name(name),
+          m_attributes(attributes),
+          m_component_ptr(ptr),
+          m_component_size(size)
+    {
+        // m_component_copy = new char[size];
+    }
+    ~DataEditor() {
+        // delete [] m_component_copy;
+    }
+    
+    void update () {
+        if (dirty) {
+            std::copy_n(m_component_copy, m_component_size, m_component_ptr);
+        } else {
+            std::copy_n(m_component_ptr, m_component_size, m_component_copy);
+        }
+        dirty = false;
+    }
+
+    inline void render () {
         m_action = EntityAction::None;
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::CollapsingHeader(name(), ImGuiTreeNodeFlags_None)) {
@@ -23,73 +42,87 @@ public:
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-FLT_MIN); 
-                render();
-                ImGui::EndTable();
+                render_editors();
+                ImGui::EndTable();    
             }
         }
     }
-    virtual void remove (gou::Scene&, entt::entity) = 0;
 
     EntityAction action () const { return m_action; }
-protected:
-    virtual int numInputs () = 0;
-    virtual void render () = 0;
-
-    EntityAction m_action;
-};
-
-template <typename T, int NumInputs> class TemlpatedDataEditorBase : public DataEditor {
-public:
-    virtual ~TemlpatedDataEditorBase() {}
     
-    void update (gou::Engine& engine, T& data) {
-        if (dirty) {
-            beforeUpdate(engine);
-            data = copy;
-        } else {
-            copy = data;
-            afterUpdate(engine);
-        }
-        dirty = false;
+    void remove (gou::Scene& scene, entt::entity entity) {
+        // scene.remove<T>(entity);
     }
-    virtual void beforeUpdate (gou::Engine&) {}
-    virtual void afterUpdate (gou::Engine&) {}
-
-protected:
-    T copy;
-    bool dirty = false;
 
 private:
-    void remove (gou::Scene& scene, entt::entity entity) final {
-        scene.remove<T>(entity);
+    const std::string& m_name;
+    const std::vector<gou::api::definitions::Attribute>& m_attributes;
+    char* m_component_ptr;
+    std::size_t m_component_size;
+    char* m_component_copy;
+    bool dirty = false;
+    EntityAction m_action;
+
+    const char* name () { return m_name.c_str(); }
+
+    void render_editors () {
+        // dirty |= editors::vec3("Position", (float*)(&copy));
     }
-    int numInputs () final {
-        return NumInputs;
-    }
+
 };
 
-template <typename T> class TemlpatedDataEditor : public TemlpatedDataEditorBase<T, 0> {
-public:
-};
 
-template <> class TemlpatedDataEditor<components::Position>  : public TemlpatedDataEditorBase<components::Position, 1> {
-public:
-    virtual ~TemlpatedDataEditor() {}
-    const char* name () final { return "Position"; }
-    void render () final {
-        dirty |= editors::vec3("Position", (float*)(&copy));
-    }
-};
-template <> class TemlpatedDataEditor<components::Transform>  : public TemlpatedDataEditorBase<components::Transform, 2> {
-public:
-    virtual ~TemlpatedDataEditor() {}
-    const char* name () final { return "Transform"; }
-    void render () final {
-        dirty |= editors::vec3("Rotation", copy.rotation);
-        ImGui::TableNextRow();
-        dirty |= editors::vec3("Scale", copy.scale);
-    }    
-};
+// template <typename T, int NumInputs> class TemlpatedDataEditorBase : public DataEditor {
+// public:
+//     virtual ~TemlpatedDataEditorBase(const std::string& name)
+//         : m_name(name),
+//     {}
+    
+//     void update (gou::Engine& engine, T& data) {
+//         if (dirty) {
+//             beforeUpdate(engine);
+//             data = copy;
+//         } else {
+//             copy = data;
+//             afterUpdate(engine);
+//         }
+//         dirty = false;
+//     }
+//     virtual void beforeUpdate (gou::Engine&) {}
+//     virtual void afterUpdate (gou::Engine&) {}
+
+// protected:
+//     T copy;
+//     bool dirty = false;
+
+// private:
+//     void remove (gou::Scene& scene, entt::entity entity) final {
+//         scene.remove<T>(entity);
+//     }
+// };
+
+// template <typename T> class TemlpatedDataEditor : public TemlpatedDataEditorBase<T, 0> {
+// public:
+// };
+
+// template <> class TemlpatedDataEditor<components::Position>  : public TemlpatedDataEditorBase<components::Position, 1> {
+// public:
+//     virtual ~TemlpatedDataEditor() {}
+//     const char* name () final { return "Position"; }
+//     void render () final {
+//         dirty |= editors::vec3("Position", (float*)(&copy));
+//     }
+// };
+// template <> class TemlpatedDataEditor<components::Transform>  : public TemlpatedDataEditorBase<components::Transform, 2> {
+// public:
+//     virtual ~TemlpatedDataEditor() {}
+//     const char* name () final { return "Transform"; }
+//     void render () final {
+//         dirty |= editors::vec3("Rotation", copy.rotation);
+//         ImGui::TableNextRow();
+//         dirty |= editors::vec3("Scale", copy.scale);
+//     }    
+// };
 
 // class DataEditorWidgets {
 // public:

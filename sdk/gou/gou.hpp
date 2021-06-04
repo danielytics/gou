@@ -65,7 +65,6 @@ namespace gou {
 
         /*
          * Look up entity by Named, returning its human-readable string name
-         *
          */
         const std::string& readableName (const components::Named& named) {
             return m_engine.findEntityName(named);
@@ -251,7 +250,7 @@ namespace gou {
     template <typename Derived>
     class Module : public gou::api::Module {
     public:
-        Module (const std::string& name, gou::api::Engine& engine) : m_moduleName{name}, m_engine{engine}, m_scene{engine.registry(gou::api::Engine::Registry::Runtime), m_engine} {}
+        Module (const std::string& name, gou::api::Engine& engine) : m_moduleName{name}, m_engine{engine}, m_scene{engine.registry(gou::api::Registry::Runtime), m_engine} {}
         virtual ~Module () {}
 
 ///////////////////////////////////////////////////////////////////////////////
