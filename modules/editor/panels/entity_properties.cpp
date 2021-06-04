@@ -3,8 +3,9 @@
 
 void EntityPropertiesPanel::load (gou::Engine& engine) {
     for (const auto& component : engine.engine.getRegisteredComponents()) {
-        m_component_editors[component.type_id] = component;
+        m_components[component.type_id] = component;
     }
+    // m_data_editors.reserve(m_components.size());
 }
 
 void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene)
@@ -15,17 +16,17 @@ void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene
             m_data_editors.clear();
             auto& registry = engine.engine.registry(gou::api::Registry::Runtime);
             registry.visit(m_selected_entity, [&registry, this](auto type){
-                auto it = m_component_editors.find(type.seq());
-                if (it != m_component_editors.end()) {
+                auto it = m_components.find(type.seq());
+                if (it != m_components.end()) {
                     gou::api::definitions::Component& component = it->second;
                     if (component.name != "Named" && component.attached_to_entity(registry, m_selected_entity)) {
                         char* component_ptr = component.getter ? component.getter(registry, m_selected_entity) : nullptr;
-                        m_data_editors.push_back(DataEditor{
+                        m_data_editors.emplace_back(
                             component.name,
                             component.attributes,
                             component_ptr,
-                            component.size_in_bytes,
-                        });
+                            component.size_in_bytes
+                        );
                     }
                 }
             });

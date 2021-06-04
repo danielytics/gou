@@ -9,7 +9,8 @@ CPPFLAGS += -std=c++17
 # Default build is with opitmisations.
 # Release build is the same as default build, but with debug symbols stripped
 ifdef CONFIG_DEBUG_BUILD
-    CFLAGS += -O0 -g -DDEBUG_BUILD -DDEV_TOOLS
+    CFLAGS += -O0 -g -fsanitize=address -DDEBUG_BUILD -DDEV_TOOLS
+    LINKER += -fsanitize=address
     BINARY_NAME_SUFFIX = -debug
 else
     CFLAGS += -Ofast

@@ -8,6 +8,13 @@ namespace detail {
     HAS_MEMBER_FUNCTION(afterRender, ())
 }
 
+enum class EntityAction {
+    None,
+    Rename,
+    Delete,
+    RemoveComponent,
+};
+
 template <typename Derived>
 class Panel {
 public:

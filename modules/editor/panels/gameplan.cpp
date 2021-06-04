@@ -131,7 +131,7 @@ void GameplanPanel::load ()
 
 void GameplanPanel::unload ()
 {
-    ed::DestroyEditor(g_Context);
+    // ed::DestroyEditor(g_Context);
 }
 
 void GameplanPanel::render ()

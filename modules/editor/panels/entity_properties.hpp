@@ -5,13 +5,7 @@
 #include <entt/core/type_info.hpp>
 #include <sparsepp/spp.h>
 
-enum class EntityAction {
-    None,
-    Rename,
-    Delete,
-    RemoveComponent,
-};
-#include "component_editors.hpp"
+#include "component_editor.hpp"
 
 class EntityPropertiesPanel : public Panel<EntityPropertiesPanel> {
 public:
@@ -34,7 +28,7 @@ private:
     entt::entity m_selected_entity = entt::null;
     entt::entity m_prev_selected_entity = entt::null;
     std::vector<DataEditor> m_data_editors;
-    spp::sparse_hash_map<entt::id_type, gou::api::definitions::Component> m_component_editors;
+    spp::sparse_hash_map<entt::id_type, gou::api::definitions::Component> m_components;
 
     EntityAction m_entity_action = EntityAction::None;
     DataEditor* m_action_component = nullptr;
