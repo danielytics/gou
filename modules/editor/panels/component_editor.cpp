@@ -52,9 +52,9 @@ namespace editors {
 
 void DataEditor::render_editors () {
     using Type = gou::types::Type;
-    for (auto i = 0; i < m_attributes.size(); ++i) {
-        auto& attribute = m_attributes[i];
-        auto id_str = std::string{"##"} + m_name + std::string{":"} + attribute.name;
+    for (auto i = 0; i < m_component_def.attributes.size(); ++i) {
+        auto& attribute = m_component_def.attributes[i];
+        auto id_str = std::string{"##"} + m_component_def.name + std::string{":"} + attribute.name;
         const char* id = id_str.c_str();
         char* ptr = m_component_copy + attribute.offset;
         char label[attribute.name.size() + 1];
@@ -74,8 +74,8 @@ void DataEditor::render_editors () {
             default:
             break;
         }
-        
-        if (i != m_attributes.size() - 1) {
+
+        if (i != m_component_def.attributes.size() - 1) {
             ImGui::TableNextRow();
         }
     }
@@ -105,9 +105,9 @@ void DataEditor::render () {
 
 void DataEditor::update () {
     if (m_dirty) {
-        std::copy_n(m_component_copy, m_component_size, m_component_ptr);
+        std::copy_n(m_component_copy, m_component_def.size_in_bytes, m_component_ptr);
     } else {
-        std::copy_n(m_component_ptr, m_component_size, m_component_copy);
+        std::copy_n(m_component_ptr, m_component_def.size_in_bytes, m_component_copy);
     }
     m_dirty = false;
 }

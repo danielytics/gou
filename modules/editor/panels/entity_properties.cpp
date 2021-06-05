@@ -20,12 +20,7 @@ void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene
                     gou::api::definitions::Component& component = it->second;
                     if (component.name != "Named" && component.attached_to_entity(registry, m_selected_entity)) {
                         char* component_ptr = component.getter ? component.getter(registry, m_selected_entity) : nullptr;
-                        m_data_editors.emplace_back(
-                            component.name,
-                            component.attributes,
-                            component_ptr,
-                            component.size_in_bytes
-                        );
+                        m_data_editors.emplace_back(component, component_ptr);
                     }
                 }
             });
@@ -56,7 +51,8 @@ void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene
                 m_selected_entity = entt::null;
                 break;
             case EntityAction::RemoveComponent:
-                m_action_component->remove(scene, m_selected_entity);
+                m_action_component->remove(engine, m_selected_entity);
+                m_prev_selected_entity = entt::null; // Force a refresh of components
                 break;
             default:
                 break;

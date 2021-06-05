@@ -4,22 +4,18 @@
 
 class DataEditor {
 public:
-    DataEditor (const std::string& name, const std::vector<gou::api::definitions::Attribute>& attributes, char* ptr, std::size_t size) 
-        : m_name(name),
-          m_attributes(attributes),
+    DataEditor (const gou::api::definitions::Component& component_def, char* ptr) 
+        : m_component_def(component_def),
           m_component_ptr(ptr),
-          m_component_size(size),
           m_dirty(false),
           m_action(EntityAction::None)
     {
-        m_component_copy = new char[size];
+        m_component_copy = new char[component_def.size_in_bytes];
     }
 
     DataEditor(DataEditor&& other)
-        : m_name(other.m_name),
-          m_attributes(other.m_attributes),
+        : m_component_def(other.m_component_def),
           m_component_ptr(other.m_component_ptr),
-          m_component_size(other.m_component_size),
           m_component_copy(other.m_component_copy),
           m_dirty(other.m_dirty),
           m_action(other.m_action)
@@ -38,20 +34,18 @@ public:
 
     EntityAction action () const { return m_action; }
     
-    void remove (gou::Scene& scene, entt::entity entity) {
-        // scene.remove<T>(entity);
+    void remove (gou::Engine& engine, entt::entity entity) {
+        m_component_def.manage(engine.engine.registry(gou::api::Registry::Runtime), entity, gou::api::definitions::ManageOperation::Remove);
     }
 
 private:
-    const std::string& m_name;
-    const std::vector<gou::api::definitions::Attribute>& m_attributes;
+    const gou::api::definitions::Component& m_component_def;
     char* m_component_ptr;
-    std::size_t m_component_size;
     char* m_component_copy;
     bool m_dirty;
     EntityAction m_action;
 
-    const char* name () { return m_name.c_str(); }
+    const char* name () { return m_component_def.name.c_str(); }
     void render_editors ();
 
 };
