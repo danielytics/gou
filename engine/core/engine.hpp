@@ -216,6 +216,9 @@ namespace core {
         // Merge a prototype entity into an entity
         void mergeEntityInternal (entt::entity, entt::entity, bool);
 
+        // Copy all entities from one registry to another
+        void copyRegistry (entt::registry& from, entt::registry& to);
+
         // Callbacks to manage Named entities
         void onAddNamedEntity (entt::registry&, entt::entity);
         void onRemoveNamedEntity (entt::registry&, entt::entity);

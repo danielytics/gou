@@ -397,6 +397,18 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
             case "engine/set-system-status/stopped"_event:
                 m_system_status = SystemStatus::Stopped;
                 break;
+            case "scene/registry/runtime->background"_event:
+                copyRegistry(m_registry, m_background_registry);
+                break;
+            case "scene/registry/background->runtime"_event:
+                copyRegistry(m_background_registry, m_registry);
+                break;
+            case "scene/registry/clear-background"_event:
+                m_background_registry.clear();
+                break;
+            case "scene/registry/clear-runtime"_event:
+                m_registry.clear();
+                break;
             default:
                 break;
         };
@@ -456,6 +468,13 @@ void core::Engine::reset ()
     m_registry = {};
     // Clear the prototype registry
     m_prototype_registry = {};
+}
+
+void core::Engine::copyRegistry (entt::registry& from, entt::registry& to)
+{
+    from.visit([&from, &to](const auto info) {
+        std::as_const(from).storage(info)->copy_to(to);
+    });
 }
 
 void core::Engine::setupInitialScene ()
