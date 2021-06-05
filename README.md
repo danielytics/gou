@@ -49,7 +49,7 @@ Building from surce:
 
 * [tup](http://gittup.org/tup/) - Tup is a file-based build system for Linux, OSX, and Windows ([Dual License](http://gittup.org/tup/license.html) GPL-v2 or Commercial)
 
-# Building
+# Building (with Tup)
 
 Make sure you have Git, Clang, SDL2 and Tup installed.
 
@@ -58,14 +58,15 @@ git clone git@github.com:danielytics/gou.git
 cd gou
 git submodule update --init
 ./generate_components.sh
+tup variant configs/*.config
 tup
 ```
 
 Now you can run the engine using one of:
 
-* `./debug.sh` to run the debug build (no optimisations, debug and development features)
-* `./dev.sh` to run the development build (optimisations, development features)
-* `./release.sh` to run the release build (optimisations, development features & debugger symbols stripped)
+* `./run.sh debug` to run the debug build (no optimisations, debug and development features)
+* `./run.sh dev` to run the development build (optimisations, development features)
+* `./run.sh release` to run the release build (optimisations, development features & debugger symbols stripped)
 
 The development version is intended for developing games with GOU and includes access to editor tools.
 
@@ -78,6 +79,33 @@ When developing GOU modules (or the engine itself), always building all three bu
 * `tup build-release` to build the release build
 
 Components are specified in `components.toml` files (in `engine/components.toml` for core engine components, or in `modules/*/components.toml` for module-specific components). If these files are modified, it is necessary to rerun `./generate_components.sh` to regenerate the component header and source files. The initial run also compiles the generator, but subsequent runs should be very quick.
+
+# Building (without Tup)
+
+Alternatively, you can use the tup-generated build scripts to build the engine and modules without tup. Note that any newly added files or modules won't be built unless you update the scripts.
+
+Make sure you have Git, Clang and SDL2 installed.
+
+```
+git clone git@github.com:danielytics/gou.git
+cd gou
+git submodule update --init
+./generate_components.sh
+```
+
+Then, on Windows:
+
+```
+build.bat
+```
+
+And on Linux:
+
+```
+./build.sh
+```
+
+Alternatively, use `build_debug.sh`/`build_debug.bat` to build a debug build, or `build_dev.sh`/`build_dev.bat` to build a dev build.
 
 # License
 

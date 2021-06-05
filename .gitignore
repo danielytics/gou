@@ -1,7 +1,8 @@
 .vscode
-build-debug/modules/*.module
-build-dev/modules/*.module
-build-release/modules/*.module
+build-debug-with-asan/
+build-debug/
+build-dev/
+build-release/
 tools/generate-components
 sdk/components/*.hpp
 engine/core_components.cpp
