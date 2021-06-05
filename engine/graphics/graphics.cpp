@@ -177,6 +177,7 @@ int render (void* data) {
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable multiple windows
         imgui::initTheme();
 
         // Setup Platform/Renderer backends
@@ -264,6 +265,13 @@ int render (void* data) {
             // glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
             // glClear(GL_COLOR_BUFFER_BIT);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+                SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
+            }
 
             // End Frame
             SDL_GL_SwapWindow(render_api->window);
