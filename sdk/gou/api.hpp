@@ -126,17 +126,24 @@ namespace gou::api {
             gou::types::Type type;
             std::size_t offset;
         };
+        enum class ManageOperation {
+            Add,
+            Remove,
+        };
         using LoaderFn = void(*)(Engine* engine, entt::registry& registry, const void* table, entt::entity entity);
         using CheckerFn = bool(*)(entt::registry& registry, entt::entity entity);
         using GetterFn = char*(*)(entt::registry& registry, entt::entity entity);
+        using ManageFn = void(*)(entt::registry& registry, entt::entity entity, ManageOperation);
         struct Component {
             entt::hashed_string id;
+            std::string group;
             std::string name;
             entt::id_type type_id;
             std::size_t size_in_bytes;
             LoaderFn loader;
             CheckerFn attached_to_entity;
             GetterFn getter;
+            ManageFn manage;
             std::vector<Attribute> attributes;
         };
     }

@@ -131,7 +131,7 @@ namespace gou {
          */
         template <typename Component>
         void remove(entt::entity entity) {
-            m_registry.remove_if_exists<Component>(entity);
+            m_registry.remove<Component>(entity);
         }
 
         /*

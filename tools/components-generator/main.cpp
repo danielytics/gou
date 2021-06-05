@@ -375,7 +375,7 @@ public:
 
             loader.out() << "{";
             loader.out.indent();
-            loader.out() << "gou::api::definitions::Component component {\"" << name << "\"_hs, \"" << struct_name << "\", entt::type_id<" << namespaced_component << ">().seq()};";
+            loader.out() << "gou::api::definitions::Component component {\"" << name << "\"_hs, \"" << (ns == "" ? "core" : ns) << "\", \"" << struct_name << "\", entt::type_id<" << namespaced_component << ">().seq()};";
             loader.out() << "component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {";
             loader.out.indent();
             bool empty = true;
@@ -449,6 +449,25 @@ public:
             }
             loader.out() << "component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<" << namespaced_component << ">(entity); };";
             loader.out() << "component.size_in_bytes = sizeof(" << namespaced_component << ");";
+            loader.out() << "component.manage = [](entt::registry& registry, entt::entity entity, gou::api::definitions::ManageOperation op){";
+            loader.out.indent();
+                loader.out() << "switch (op) {";
+                loader.out.indent();
+                    loader.out() << "case gou::api::definitions::ManageOperation::Add:";
+                    loader.out.indent();
+                        loader.out() << "registry.emplace_or_replace<" << namespaced_component << ">(entity);";
+                        loader.out() << "break;";
+                    loader.out.dedent();
+                    loader.out() << "case gou::api::definitions::ManageOperation::Remove:";
+                    loader.out.indent();
+                        loader.out() << "registry.remove<" << namespaced_component << ">(entity);";
+                        loader.out() << "break;";
+                    loader.out.dedent();
+                    loader.out() << "default: break;";
+                loader.out.dedent();
+                loader.out() << "}";
+            loader.out.dedent();
+            loader.out() << "};";
             loader.out() << "engine->registerComponent(component);";
             loader.out.dedent();
             loader.out() << "}";
