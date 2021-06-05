@@ -29,8 +29,8 @@ CR_EXPORT int cr_main(cr_plugin* ctx, cr_op operation)
             std::string{"["} + info->name + std::string{"] "},
             info->engine
         );
-        // Call onLoad() and register module hooks with engine
-        info->engine->registerModule(gou::ctx::gou_module->on_load(), gou::ctx::gou_module);
+        // Register module with engine
+        info->mod = gou::ctx::gou_module;
     }
     switch (operation) {
         // Hot-code reloading

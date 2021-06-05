@@ -59,6 +59,7 @@ bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger, ImGuiCon
                     m_engine,
                     logger,
                     imgui_context,
+                    nullptr,
                 };
 
                 bool required = toml::find_or<bool>(module_config, "required", false);
@@ -97,7 +98,12 @@ bool core::ModuleManager::load (std::shared_ptr<spdlog::logger> logger, ImGuiCon
         SPDLOG_DEBUG("No 'module' list found in {}", modules);
     }
 
-    if (! success) {
+    if (success) {
+        for (auto& ctx : m_data->modules) {
+            auto info = static_cast<gou::api::detail::ModuleInfo*>(ctx.userdata);
+            m_engine->registerModule(info->mod->on_load(), info->mod);
+        }
+    } else {
         unload();
     }
 

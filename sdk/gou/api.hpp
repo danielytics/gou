@@ -19,14 +19,15 @@ namespace components {
 
 namespace gou::api {
     class Engine;
+    class Module;
     namespace detail {
         class type_context;
         struct ModuleInfo {
-            // ModuleInfo (const std::string& name, Engine* engine, std::shared_ptr<spdlog::logger> logger) : name{name}, engine{engine}, logger{logger} {}
             const std::string name;
             Engine* const engine;
             const std::shared_ptr<spdlog::logger> logger;
             ImGuiContext* imgui_context;
+            Module* mod;
         };
 
         struct EventsIterator {
@@ -150,9 +151,6 @@ namespace gou::api {
 
         /** Used internally by module boilerplate to ensure ECS type ID's are consistent across modules */
         virtual detail::type_context* type_context() const = 0;
-
-        /** Used internally to register a modules callback hooks */
-        virtual void registerModule(std::uint32_t, Module*) = 0;
 
         /** Used internally to provide the module with access to the renderer */
         virtual Renderer& renderer () const = 0;

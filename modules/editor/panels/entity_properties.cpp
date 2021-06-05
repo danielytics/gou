@@ -5,7 +5,6 @@ void EntityPropertiesPanel::load (gou::Engine& engine) {
     for (const auto& component : engine.engine.getRegisteredComponents()) {
         m_components[component.type_id] = component;
     }
-    // m_data_editors.reserve(m_components.size());
 }
 
 void EntityPropertiesPanel::beforeRender (gou::Engine& engine, gou::Scene& scene)

@@ -41,7 +41,6 @@ namespace core {
 
         // Implement API interface
         gou::api::detail::type_context* type_context() const final;
-        void registerModule (std::uint32_t, gou::api::Module*) final;
         gou::api::Renderer& renderer () const final;
         gou::events::Event* emit () final;
         const gou::api::detail::EventsIterator& events () final;
@@ -113,6 +112,9 @@ namespace core {
                 }
             }
         }
+
+        // Register module hooks
+        void registerModule (std::uint32_t, gou::api::Module*);
 
         template <typename... Args>
         gou::events::Event& emit (Args&&... args) {
