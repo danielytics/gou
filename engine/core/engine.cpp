@@ -103,6 +103,7 @@ gou::resources::Signal core::Engine::findSignal (entt::hashed_string::hash_type)
 
 void core::Engine::loadComponent (core::Engine::EntityLoadType loadType, entt::hashed_string component, entt::entity entity, const void* table)
 {
+    EASY_FUNCTION(profiler::colors::Green100);
     auto it = m_component_loaders.find(component);
     if (it != m_component_loaders.end()) {
         const auto& loader = it->second;
@@ -115,6 +116,7 @@ void core::Engine::loadComponent (core::Engine::EntityLoadType loadType, entt::h
 
 void core::Engine::handleInput ()
 {
+    EASY_FUNCTION(profiler::colors::LightBlue100);
     /**
      * Gather input from input devices: keyboard, mouse, gamepad, joystick
      * Input is mapped to events and those events are emitted for systems to process.
@@ -204,6 +206,7 @@ void core::Engine::handleInput ()
 
 bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_count)
 {
+    EASY_FUNCTION(profiler::colors::Blue100);
     m_current_time_delta = delta;
 
     // Read input device states and dispatch events. Input events are emitted directly into the global pool, immediately readable "this frame" (no frame delay!)
@@ -212,6 +215,7 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
     // // Process previous frames events, looking for ones the core engine cares about
     // Yes, its a bit wasteful to loop them all like this, but they should be hot in cache so ¯\_(ツ)_/¯
     for (auto& event : helpers::const_iterate(events())) {
+        EASY_BLOCK("Handling event", profiler::colors::Amber100);
         switch (event.type) {
             case "engine/exit"_event:
                 return false;
@@ -243,6 +247,7 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
 
     if (m_system_status == SystemStatus::Running) {
         // Execute the taskflow graph if systems are running
+        EASY_BLOCK("Executing tasks", profiler::colors::Indigo200);
         m_executor.run(m_coordinator);
     } else {
         // If systems are stopped, only pump events
@@ -258,17 +263,19 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
      * a render list and hand exclusive access back to the engine. The renderer wil then asynchronously
      * render from its locally owned render list.
      */
-
-    // First, signal to the renderer that it has exclusive access to the engines state
     {
-        std::scoped_lock<std::mutex> lock(m_graphics_sync->state_mutex);
-        m_graphics_sync->owner = graphics::Sync::Owner::Renderer;
-    }
-    m_graphics_sync->sync_cv.notify_one();
+        EASY_BLOCK("Waiting on renderer", profiler::colors::Red100);
+        // First, signal to the renderer that it has exclusive access to the engines state
+        {
+            std::scoped_lock<std::mutex> lock(m_graphics_sync->state_mutex);
+            m_graphics_sync->owner = graphics::Sync::Owner::Renderer;
+        }
+        m_graphics_sync->sync_cv.notify_one();
 
-    // Now wait for the renderer to relinquish exclusive access back to the engine
-    std::unique_lock<std::mutex> lock(m_graphics_sync->state_mutex);
-    m_graphics_sync->sync_cv.wait(lock, [this]{ return m_graphics_sync->owner == graphics::Sync::Owner::Engine; });
+        // Now wait for the renderer to relinquish exclusive access back to the engine
+        std::unique_lock<std::mutex> lock(m_graphics_sync->state_mutex);
+        m_graphics_sync->sync_cv.wait(lock, [this]{ return m_graphics_sync->owner == graphics::Sync::Owner::Engine; });
+    }
 
     /*
      * Engine has exclusive access again.
@@ -296,6 +303,7 @@ void core::Engine::reset ()
 
 void core::Engine::copyRegistry (entt::registry& from, entt::registry& to)
 {
+    EASY_FUNCTION(profiler::colors::RichYellow);
     from.visit([&from, &to](const auto info) {
         std::as_const(from).storage(info)->copy_to(to);
     });

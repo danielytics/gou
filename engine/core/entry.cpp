@@ -77,8 +77,9 @@ int main (int argc, char* argv[])
     }
 
 #ifdef BUILD_WITH_EASY_PROFILER
-    const bool& profiling_enabled = entt::monostate<"tools/log-level"_hs>{};
+    const bool& profiling_enabled = entt::monostate<"tools/profiling"_hs>{};
     if (profiling_enabled) {
+        spdlog::info("Starting easy_profiler");
         profiler::startListen();
     }
 #endif

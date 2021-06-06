@@ -196,6 +196,7 @@ int render (void* data) {
         spdlog::info("Render thread running");
         // Run render loop
         do {
+            EASY_BLOCK("Rendering frame", profiler::colors::Teal100);
             /*********************************************************************/
             /* Wait for engine to hand over exclusive access to engine state.
             * Renderer will then access the ECS registry to gather all components needed for rengering,
@@ -205,7 +206,11 @@ int render (void* data) {
             {
                 // Wait for exclusive access to engine state
                 std::unique_lock<std::mutex> lock(state_sync.state_mutex);
-                cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
+                {
+                    EASY_BLOCK("Renderer waiting for exclusive access to engine", profiler::colors::Red100);
+                    cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
+                }
+                EASY_BLOCK("Collecting render data", profiler::colors::Red300);
 
                 // Let Dear ImGui process events from event queue
                 for (const auto& event : engine.inputEvents()) {
@@ -236,6 +241,7 @@ int render (void* data) {
             }
             // Now render frame from render list
             /*********************************************************************/
+            EASY_BLOCK("Frame Render", profiler::colors::Orange100);
 
             // Start the Dear ImGui frame
             ImGui_ImplOpenGL3_NewFrame();
@@ -255,26 +261,35 @@ int render (void* data) {
             engine.callModuleHook<CM::BEFORE_RENDER>();
 
             // Game Rendering here
+            {
+                EASY_BLOCK("Rendering scene", profiler::colors::Orange200);
+            }
 
             // Call module hook onAfterRender after rendering the frame
             engine.callModuleHook<CM::AFTER_RENDER>();
 
             // Render Dear ImGUI interface
-            ImGui::Render();
-            // glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-            // glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-            // glClear(GL_COLOR_BUFFER_BIT);
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
             {
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
-                SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
+                EASY_BLOCK("Rendering ImGui", profiler::colors::Orange200);
+                ImGui::Render();
+                // glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+                // glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+                // glClear(GL_COLOR_BUFFER_BIT);
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+                if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+                {
+                    ImGui::UpdatePlatformWindows();
+                    ImGui::RenderPlatformWindowsDefault();
+                    SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
+                }
             }
 
             // End Frame
-            SDL_GL_SwapWindow(render_api->window);
+            {
+                EASY_BLOCK("Swap Window", profiler::colors::DeepOrange500);
+                SDL_GL_SwapWindow(render_api->window);
+            }
         } while (running.load());
 
         ImGui_ImplOpenGL3_Shutdown();

@@ -118,9 +118,11 @@ void core::Engine::createTaskGraph () {
      * [*] = GAME LOGIC & UPDATE LOGIC are modules of subtasks
      **/
     tf::Task physics_task_prepare = m_coordinator.emplace([this](){
+        EASY_BLOCK("Physics/prepare", profiler::colors::Purple100);
         physics::prepare(m_physics_context, m_registry);
     }).name("Physics/prepare");
     tf::Task physics_task_simulate = m_coordinator.emplace([this](){
+        EASY_BLOCK("Physics/simulate", profiler::colors::Purple200);
         physics::simulate(m_physics_context);
     }).name("Physics/simulate");
     tf::Task before_update_task = m_coordinator.emplace([this](){
@@ -136,12 +138,36 @@ void core::Engine::createTaskGraph () {
     if (tf::Taskflow* game_logic_flow = helpers::find_or(taskflows, Stage::GameLogic, nullptr)) {
         game_logic_flow->name("Game Logic");
         tf::Task game_logic_tasks = m_coordinator.composed_of(*game_logic_flow).name("Systems");
+#ifdef BUILD_WITH_EASY_PROFILER
+        tf::Task before_logic_task = m_coordinator.emplace([](){
+            EASY_NONSCOPED_BLOCK("Game Logic Systems", profiler::colors::Indigo400);
+        }).name("profiler/before-logic");
+        tf::Task after_logic_task = m_coordinator.emplace([](){
+            EASY_END_BLOCK;
+        }).name("profiler/after-logic");
+        game_logic_tasks.succeed(before_logic_task);
+        after_logic_task.succeed(game_logic_tasks);
+        after_logic_task.precede(before_update_task, physics_task_prepare);
+#else
         game_logic_tasks.precede(before_update_task, physics_task_prepare);
+#endif
     }
     if (tf::Taskflow* updater_flow = helpers::find_or(taskflows, Stage::Update, nullptr)) {
         updater_flow->name("State Update");
         tf::Task updater_tasks = m_coordinator.composed_of(*updater_flow).name("Systems");
+#ifdef BUILD_WITH_EASY_PROFILER
+        tf::Task before_updates_task = m_coordinator.emplace([](){
+            EASY_NONSCOPED_BLOCK("Update Systems", profiler::colors::Indigo600);
+        }).name("profiler/before-update");
+        tf::Task after_updates_task = m_coordinator.emplace([](){
+            EASY_END_BLOCK;
+        }).name("profiler/after-update");
+        before_updates_task.succeed(pump_events_task, physics_task_simulate);
+        updater_tasks.succeed(before_updates_task);
+        after_updates_task.succeed(updater_tasks);
+#else
         updater_tasks.succeed(pump_events_task, physics_task_simulate);
+#endif
     }
 
 #ifdef DEBUG_BUILD

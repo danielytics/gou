@@ -20,6 +20,7 @@ gou::events::Event* core::Engine::emit ()
 // Move events from the thread local pools into the global event pool
 void core::Engine::pumpEvents ()
 {
+    EASY_FUNCTION(profiler::colors::Amber200);
     m_event_pool.reset();
     // Copy thread local events into global pool and reset thread local pools
     for (auto* pool : m_event_pools) {

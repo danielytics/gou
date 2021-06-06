@@ -3,6 +3,7 @@
 
 entt::entity core::Engine::loadEntity (entt::hashed_string prototype_id)
 {
+    EASY_FUNCTION(profiler::colors::Yellow100);
     auto it = m_prototype_entities.find(prototype_id);
     if (it != m_prototype_entities.end()) {
         auto entity = m_registry.create();
@@ -14,6 +15,7 @@ entt::entity core::Engine::loadEntity (entt::hashed_string prototype_id)
 
 void core::Engine::mergeEntity (entt::entity entity, entt::hashed_string prototype_id, bool overwrite_components)
 {
+    EASY_FUNCTION(profiler::colors::Yellow100);
     auto it = m_prototype_entities.find(prototype_id);
     if (it != m_prototype_entities.end()) {
         mergeEntityInternal(entity, it->second, overwrite_components);

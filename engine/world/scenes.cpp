@@ -38,6 +38,7 @@ void world::SceneManager::loadSceneList (const std::string& filename)
 
 void world::SceneManager::loadScene (entt::hashed_string scene)
 {
+    EASY_FUNCTION(profiler::colors::RichYellow);
     using CM = gou::api::Module::CallbackMasks;
 
     auto it = m_scenes.find(scene);

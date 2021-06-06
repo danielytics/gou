@@ -79,34 +79,42 @@ namespace core {
         template <gou::api::Module::CallbackMasks Hook, typename... T> void callModuleHook (T... args) {
             using CM = gou::api::Module::CallbackMasks;
             if constexpr (Hook == CM::BEFORE_FRAME) {
+                EASY_BLOCK("callModuleHook<BEFORE_FRAME>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_beforeFrame) {
                     mod->on_before_frame(args...);
                 }
             } else if constexpr (Hook == CM::AFTER_FRAME) {
+                EASY_BLOCK("callModuleHook<AFTER_FRAME>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_afterFrame) {
                     mod->on_after_frame(args...);
                 }
             } else if constexpr (Hook == CM::LOAD_SCENE) {
+                EASY_BLOCK("callModuleHook<LOAD_SCENE>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_loadScene) {
                     mod->on_load_scene(args...);
                 }
             } else if constexpr (Hook == CM::UNLOAD_SCENE) {
+                EASY_BLOCK("callModuleHook<UNLOAD_SCENE>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_unloadScene) {
                     mod->on_unload_scene(args...);
                 }
             } else if constexpr (Hook == CM::PREPARE_RENDER) {
+                EASY_BLOCK("callModuleHook<PREPARE_RENDER>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_prepareRender) {
                     mod->on_prepare_render(args...);
                 }
             } else if constexpr (Hook == CM::BEFORE_RENDER) {
+                EASY_BLOCK("callModuleHook<BEFORE_RENDER>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_beforeRender) {
                     mod->on_before_render(args...);
                 }
             } else if constexpr (Hook == CM::AFTER_RENDER) {
+                EASY_BLOCK("callModuleHook<AFTER_RENDER>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_afterRender) {
                     mod->on_after_render(args...);
                 }
             } else if constexpr (Hook == CM::BEFORE_UPDATE) {
+                EASY_BLOCK("callModuleHook<BEFORE_UPDATE>", profiler::colors::Indigo100);
                 for (auto& mod : m_hooks_beforeUpdate) {
                     mod->on_before_update(args...);
                 }
