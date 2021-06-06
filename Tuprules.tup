@@ -15,7 +15,7 @@ else
     CFLAGS += -Ofast
     LTO += -flto
     ifndef CONFIG_RELEASE_BUILD
-        CFLAGS += -g -DDEV_TOOLS
+        CFLAGS += -g -DDEV_TOOLS -DBUILD_WITH_EASY_PROFILER
         BINARY_NAME_SUFFIX = -dev
     endif
 endif

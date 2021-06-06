@@ -12,6 +12,7 @@ debug = false # Only in debug builds
 [telemetry]
 # trace, debug, info, warn, error, off. Both trace and debug are only available in debug builds.
 logging = "debug"
+profiling = true
 
 # Developer mode
 [dev-mode] # Only in dev builds

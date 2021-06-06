@@ -13,6 +13,10 @@
 #include <sparsepp/spp.h>
 #include <tsl/ordered_map.h>
 
+// Profiling
+#include <easy/profiler.h>
+#include <easy/arbitrary_value.h>
+
 using namespace entt::literals;
 
 #include <glm/glm.hpp>

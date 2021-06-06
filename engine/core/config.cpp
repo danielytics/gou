@@ -46,9 +46,8 @@ bool core::readUserConfig (int argc, char* argv[])
         if (result["loglevel"].count() == 0 ) {
             if (config.contains("telemetry")) {
                 const auto& telemetry = config.at("telemetry");
-                if (telemetry.contains("logging")) {
-                    maybe_set<"tools/log-level"_hs, std::string>(telemetry, "logging");
-                }
+                maybe_set<"tools/log-level"_hs, std::string>(telemetry, "logging");
+                maybe_set<"tools/profiling"_hs, bool>(telemetry, "profiling");
             } else {
                 entt::monostate<"tools/log-level"_hs>{} = "info";
             }

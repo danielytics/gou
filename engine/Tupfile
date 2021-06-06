@@ -23,6 +23,7 @@ INCLUDES += -I$(VENDOR)/bullet3/src
 INCLUDES += -I$(VENDOR)/orderedmap/include
 INCLUDES += -I$(VENDOR)/sparsepp
 INCLUDES += -I$(VENDOR)/stb
+INCLUDES += -I$(VENDOR)/easy_profiler/easy_profiler_core/include
 
 ifdef CONFIG_DEBUG_BUILD
     INCLUDES += -I$(VENDOR)/glad/debug/include

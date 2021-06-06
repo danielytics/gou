@@ -46,3 +46,6 @@
 [submodule "vendor/tweeny"]
 	path = vendor/tweeny
 	url = https://github.com/mobius3/tweeny
+[submodule "vendor/easy_profiler"]
+	path = vendor/easy_profiler
+	url = git@github.com:yse/easy_profiler.git

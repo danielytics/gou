@@ -75,6 +75,13 @@ int main (int argc, char* argv[])
     if (! core::readGameConfig()) {
         return -1;
     }
+
+#ifdef BUILD_WITH_EASY_PROFILER
+    const bool& profiling_enabled = entt::monostate<"tools/log-level"_hs>{};
+    if (profiling_enabled) {
+        profiler::startListen();
+    }
+#endif
     
     // Now start up the engine
     spdlog::info("Initialising");
