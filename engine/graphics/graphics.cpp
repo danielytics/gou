@@ -174,6 +174,7 @@ int render (void* data) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontDefault();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
@@ -192,6 +193,18 @@ int render (void* data) {
 
         glm::mat4 projection_matrix;
         glm::vec4 viewport;
+        
+        // Sync with the engine, so that it knows the render thread is set up
+        {
+            // Wait to grab the lock
+            std::unique_lock<std::mutex> lock(state_sync.state_mutex);
+            cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
+            // And release it again right away
+            state_sync.owner = graphics::Sync::Owner::Engine;
+            lock.unlock();
+            cv.notify_one();
+        }
+
         
         spdlog::info("Render thread running");
         // Run render loop
@@ -310,5 +323,20 @@ void graphics::windowChanged(gou::api::Renderer* render_api)
 
 void graphics::term (gou::api::Renderer* render_api)
 {
+    auto api = static_cast<graphics::RenderAPI*>(render_api);
+    // Mark the thread as stoppedm_graphics_sync
+    api->running.store(false);
+    
+    // Give the render thread exclusive access ito make sure its unblocked
+    {
+        std::scoped_lock<std::mutex> lock(api->state_sync.state_mutex);
+        api->state_sync.owner = graphics::Sync::Owner::Renderer;
+    }
+    api->state_sync.sync_cv.notify_one();
+
+    // Wait for the thread to finish
+    SDL_WaitThread(api->render_thread, nullptr);
+    
+    // Now that the render thread is no longer accessing it, delete the render API
     delete render_api;
 }

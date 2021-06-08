@@ -189,6 +189,19 @@ ImGuiContext* core::Engine::init ()
     // Set system status
     m_system_status = SystemStatus::Stopped;
 
+    // Sync with graphics to make sure render thread is set up before continuing
+    {
+        // First, signal to the renderer that it has exclusive access to the engines state
+        {
+            std::scoped_lock<std::mutex> lock(m_graphics_sync->state_mutex);
+            m_graphics_sync->owner = graphics::Sync::Owner::Renderer;
+        }
+        m_graphics_sync->sync_cv.notify_one();
+        // Now wait for the renderer to relinquish exclusive access back to the engine
+        std::unique_lock<std::mutex> lock(m_graphics_sync->state_mutex);
+        m_graphics_sync->sync_cv.wait(lock, [this]{ return m_graphics_sync->owner == graphics::Sync::Owner::Engine; });
+    }
+
     return imgui_ctx;
 }
 

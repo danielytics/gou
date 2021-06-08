@@ -3,13 +3,6 @@
 
 graphics::RenderAPI::~RenderAPI()
 {
-    // Mark the thread as stoppedm_graphics_sync
-    running.store(false);
-    // Unblock engine state, in case the render thread is currently waiting for it
-    state_sync.state_mutex.unlock();
-    state_sync.sync_cv.notify_one();
-    // Wait for the thread to finish
-    SDL_WaitThread(render_thread, nullptr);
     // Clean up OpenGL and the window
     spdlog::info("Deleting graphics context.");
     SDL_GL_DeleteContext(gl_render_context);

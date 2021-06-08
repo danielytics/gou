@@ -297,6 +297,8 @@ void core::Engine::reset ()
     }
     // Clear the registry
     m_registry = {};
+    // Clear background registry
+    m_background_registry = {};
     // Clear the prototype registry
     m_prototype_registry = {};
 }
