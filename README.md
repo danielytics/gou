@@ -44,6 +44,7 @@ Engine dependencies:
 * [imgui-node-editor](https://github.com/thedmd/imgui-node-editor) - A node graph editor for ImGUI (MIT License)
 * [tweeny](https://github.com/mobius3/tweeny) - Inbetweening library (MIT License)
 * [easy_profiler](https://github.com/yse/easy_profiler) - Function runtime profiling (choice of MIT and Apache v2)
+* [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) - C++ headers for Icon fonts (zlib License)
 * [Catch2](https://github.com/catchorg/Catch2) - C++ testing library (Boost Software License)
 
 Building from surce:

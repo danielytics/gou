@@ -49,3 +49,6 @@
 [submodule "vendor/easy_profiler"]
 	path = vendor/easy_profiler
 	url = git@github.com:yse/easy_profiler.git
+[submodule "vendor/IconFontCppHeaders"]
+	path = vendor/IconFontCppHeaders
+	url = https://github.com/juliettef/IconFontCppHeaders
