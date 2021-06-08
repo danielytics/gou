@@ -28,10 +28,11 @@ private:
     entt::entity m_selected_entity = entt::null;
     entt::entity m_prev_selected_entity = entt::null;
     std::vector<DataEditor> m_data_editors;
-    spp::sparse_hash_map<entt::id_type, gou::api::definitions::Component> m_components;
+    spp::sparse_hash_map<entt::id_type, const gou::api::definitions::Component*> m_components_by_type;
+    std::vector<std::pair<std::string, std::vector<const gou::api::definitions::Component*>>> m_components_by_category;
 
     EntityAction m_entity_action = EntityAction::None;
-    DataEditor* m_action_component = nullptr;
+    const gou::api::definitions::Component* m_active_compoment = nullptr;
     std::string m_entity_name;
     char m_name_buffer[32] = "\0";
 };

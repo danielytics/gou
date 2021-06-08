@@ -12,6 +12,7 @@ enum class EntityAction {
     None,
     Rename,
     Delete,
+    AddComponent,
     RemoveComponent,
 };
 

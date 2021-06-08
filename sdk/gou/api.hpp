@@ -136,7 +136,7 @@ namespace gou::api {
         using ManageFn = void(*)(entt::registry& registry, entt::entity entity, ManageOperation);
         struct Component {
             entt::hashed_string id;
-            std::string group;
+            std::string category;
             std::string name;
             entt::id_type type_id;
             std::size_t size_in_bytes;

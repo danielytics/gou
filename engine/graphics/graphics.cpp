@@ -177,7 +177,7 @@ int render (void* data) {
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable multiple windows
+        // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable multiple windows
         imgui::initTheme();
 
         // Setup Platform/Renderer backends

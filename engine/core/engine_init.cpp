@@ -198,8 +198,6 @@ void core::Engine::setupGame ()
     m_physics_context = physics::init(*this);
     // Create task graph
     createTaskGraph();
-    // Clear component definition data, only available during module loading
-    m_component_definitions.clear();
     // Load game data
     setupInitialScene();
     // Make events generated during module loading available during first frame
