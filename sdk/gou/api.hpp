@@ -9,6 +9,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include "entt_polystorage.hpp"
 #include "types.hpp"
 
 struct ImGuiContext;

@@ -211,7 +211,6 @@ public:
         ImGui::Begin("Toolbar", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         maybeDisabled(running, {0.1f, 0.7f, 0.1f}, [this](){
             if (ImGui::Button(ICON_FK_PLAY)) {
-                emit("scene/registry/clear-background"_event);
                 emit("scene/registry/runtime->background"_event);
                 emit("engine/set-system-status/running"_event);
                 m_running = true;
@@ -221,8 +220,9 @@ public:
         maybeDisabled(!running, {0.7f, 0.1f, 0.1f}, [this](){
             if (ImGui::Button(ICON_FK_STOP)) {
                 emit("engine/set-system-status/stopped"_event);
-                emit("scene/registry/clear-runtime"_event);
                 emit("scene/registry/background->runtime"_event);
+                emit("scene/registry/clear-background"_event);
+                m_properties_panel.reset();
                 m_running = false;
             }
         });

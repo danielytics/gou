@@ -21,6 +21,7 @@ public:
         m_selected_entity = entity;
         m_entity_name = name;
     }
+    void reset () { m_selected_entity = entt::null; }
 
     entt::entity selected () const { return m_selected_entity; }
 

@@ -87,6 +87,8 @@ const std::string& core::Engine::findEntityName (const components::Named& named)
     auto it = m_named_entities.find(named.name);
     if (it != m_named_entities.end()) {
         return it->second.name;
+    } else {
+        spdlog::warn("No name for {}", named.name.data());
     }
     return m_empty_string;
 }
@@ -234,7 +236,11 @@ bool core::Engine::execute (Time current_time, DeltaTime delta, uint64_t frame_c
                 copyRegistry(m_registry, m_background_registry);
                 break;
             case "scene/registry/background->runtime"_event:
-                copyRegistry(m_background_registry, m_registry);
+                {
+                    auto names = m_named_entities;
+                    copyRegistry(m_background_registry, m_registry);
+                    m_named_entities = names;
+                }
                 break;
             case "scene/registry/clear-background"_event:
                 m_background_registry.clear();
@@ -311,6 +317,8 @@ void core::Engine::reset ()
 void core::Engine::copyRegistry (const entt::registry& from, entt::registry& to)
 {
     EASY_FUNCTION(profiler::colors::RichYellow);
+    to = {}; // TODO: Relax the requirement to copy to an empty registry
+    to.assign(from.data(), from.data() + from.size(), from.destroyed());
     from.visit([&from, &to](const auto info) {
         from.storage(info)->copy_to(to);
     });

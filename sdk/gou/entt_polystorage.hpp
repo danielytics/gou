@@ -42,7 +42,7 @@ struct PolyStorage: entt::type_list_cat_t<
             auto new_data = static_cast<const typename Type::value_type*>(instance);
             if (self.contains(entity)) {
                 if (overwrite_existing) {
-                    self.patch(owner, entity, [new_data](auto&& old_data){
+                    self.patch(owner, entity, [new_data](auto& old_data){
                         std::memcpy(&old_data, new_data, sizeof(typename Type::value_type));
                     });
                 }

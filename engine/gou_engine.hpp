@@ -31,6 +31,7 @@ using namespace entt::literals;
 
 
 // From SDK
+#include <gou/entt_polystorage.hpp>
 #include <gou/types.hpp>
 #include <components/core.hpp>
 #include <gou/helpers.hpp>
