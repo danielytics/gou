@@ -9,9 +9,11 @@ namespace gou {
 	void register_components (gou::api::Engine* engine)
 	{
 		entt::registry& registry = engine->registry(gou::api::Registry::Runtime);
+		entt::registry& background_registry = engine->registry(gou::api::Registry::Background);
 		entt::registry& prototype_registry = engine->registry(gou::api::Registry::Prototype);
 		
 		registry.prepare<components::Named>();
+		background_registry.prepare<components::Named>();
 		prototype_registry.prepare<components::Named>();
 		{
 			gou::api::definitions::Component component {"named"_hs, "core", "Named", entt::type_id<components::Named>().seq()};
@@ -38,6 +40,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::Global>();
+		background_registry.prepare<components::Global>();
 		prototype_registry.prepare<components::Global>();
 		{
 			gou::api::definitions::Component component {"global"_hs, "core", "Global", entt::type_id<components::Global>().seq()};
@@ -62,6 +65,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::Position>();
+		background_registry.prepare<components::Position>();
 		prototype_registry.prepare<components::Position>();
 		{
 			gou::api::definitions::Component component {"position"_hs, "core", "Position", entt::type_id<components::Position>().seq()};
@@ -89,6 +93,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::Transform>();
+		background_registry.prepare<components::Transform>();
 		prototype_registry.prepare<components::Transform>();
 		{
 			gou::api::definitions::Component component {"transform"_hs, "core", "Transform", entt::type_id<components::Transform>().seq()};
@@ -118,6 +123,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::Layer>();
+		background_registry.prepare<components::graphics::Layer>();
 		prototype_registry.prepare<components::graphics::Layer>();
 		{
 			gou::api::definitions::Component component {"layer"_hs, "graphics", "Layer", entt::type_id<components::graphics::Layer>().seq()};
@@ -144,6 +150,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::Sprite>();
+		background_registry.prepare<components::graphics::Sprite>();
 		prototype_registry.prepare<components::graphics::Sprite>();
 		{
 			gou::api::definitions::Component component {"sprite"_hs, "graphics", "Sprite", entt::type_id<components::graphics::Sprite>().seq()};
@@ -168,6 +175,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::StaticImage>();
+		background_registry.prepare<components::graphics::StaticImage>();
 		prototype_registry.prepare<components::graphics::StaticImage>();
 		{
 			gou::api::definitions::Component component {"static-image"_hs, "graphics", "StaticImage", entt::type_id<components::graphics::StaticImage>().seq()};
@@ -194,6 +202,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::Billboard>();
+		background_registry.prepare<components::graphics::Billboard>();
 		prototype_registry.prepare<components::graphics::Billboard>();
 		{
 			gou::api::definitions::Component component {"billboard"_hs, "graphics", "Billboard", entt::type_id<components::graphics::Billboard>().seq()};
@@ -218,6 +227,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::Model>();
+		background_registry.prepare<components::graphics::Model>();
 		prototype_registry.prepare<components::graphics::Model>();
 		{
 			gou::api::definitions::Component component {"model"_hs, "graphics", "Model", entt::type_id<components::graphics::Model>().seq()};
@@ -244,6 +254,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::Material>();
+		background_registry.prepare<components::graphics::Material>();
 		prototype_registry.prepare<components::graphics::Material>();
 		{
 			gou::api::definitions::Component component {"material"_hs, "graphics", "Material", entt::type_id<components::graphics::Material>().seq()};
@@ -276,6 +287,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::PointLight>();
+		background_registry.prepare<components::graphics::PointLight>();
 		prototype_registry.prepare<components::graphics::PointLight>();
 		{
 			gou::api::definitions::Component component {"point-light"_hs, "graphics", "PointLight", entt::type_id<components::graphics::PointLight>().seq()};
@@ -305,6 +317,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::graphics::SpotLight>();
+		background_registry.prepare<components::graphics::SpotLight>();
 		prototype_registry.prepare<components::graphics::SpotLight>();
 		{
 			gou::api::definitions::Component component {"spot-light"_hs, "graphics", "SpotLight", entt::type_id<components::graphics::SpotLight>().seq()};
@@ -336,6 +349,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::physics::StaticBody>();
+		background_registry.prepare<components::physics::StaticBody>();
 		prototype_registry.prepare<components::physics::StaticBody>();
 		{
 			gou::api::definitions::Component component {"static-body"_hs, "physics", "StaticBody", entt::type_id<components::physics::StaticBody>().seq()};
@@ -362,6 +376,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::physics::DynamicBody>();
+		background_registry.prepare<components::physics::DynamicBody>();
 		prototype_registry.prepare<components::physics::DynamicBody>();
 		{
 			gou::api::definitions::Component component {"dynamic-body"_hs, "physics", "DynamicBody", entt::type_id<components::physics::DynamicBody>().seq()};
@@ -389,6 +404,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::physics::KinematicBody>();
+		background_registry.prepare<components::physics::KinematicBody>();
 		prototype_registry.prepare<components::physics::KinematicBody>();
 		{
 			gou::api::definitions::Component component {"kinematic-body"_hs, "physics", "KinematicBody", entt::type_id<components::physics::KinematicBody>().seq()};
@@ -416,6 +432,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::physics::CollisionSensor>();
+		background_registry.prepare<components::physics::CollisionSensor>();
 		prototype_registry.prepare<components::physics::CollisionSensor>();
 		{
 			gou::api::definitions::Component component {"collision-sensor"_hs, "physics", "CollisionSensor", entt::type_id<components::physics::CollisionSensor>().seq()};
@@ -442,6 +459,7 @@ namespace gou {
 		}
 		
 		registry.prepare<components::physics::TriggerRegion>();
+		background_registry.prepare<components::physics::TriggerRegion>();
 		prototype_registry.prepare<components::physics::TriggerRegion>();
 		{
 			gou::api::definitions::Component component {"trigger-region"_hs, "physics", "TriggerRegion", entt::type_id<components::physics::TriggerRegion>().seq()};

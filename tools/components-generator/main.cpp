@@ -507,7 +507,7 @@ public:
 
     void add (const std::string& ns, const std::string& component) {
         out();
-        for (const auto& registry : {"registry", "prototype_registry"}) {
+        for (const auto& registry : {"registry", "background_registry", "prototype_registry"}) {
             out() << registry << ".prepare<components::";
             if (! ns.empty()) {
                 out(false) << ns << "::";
@@ -537,6 +537,7 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
     source() << "{";
     source.indent();
     source() << "entt::registry& registry = engine->registry(gou::api::Registry::Runtime);";
+    source() << "entt::registry& background_registry = engine->registry(gou::api::Registry::Background);";
     source() << "entt::registry& prototype_registry = engine->registry(gou::api::Registry::Prototype);";
 
     HeaderGenerator header(header_file);

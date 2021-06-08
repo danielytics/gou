@@ -45,6 +45,7 @@ MODULE_INCLUDES += -I$(VENDOR)/glm
 MODULE_INCLUDES += -I$(VENDOR)/spdlog/include
 MODULE_INCLUDES += -I$(VENDOR)/imgui
 MODULE_INCLUDES += -I$(VENDOR)/sparsepp
+MODULE_INCLUDES += -I$(VENDOR)/IconFontCppHeaders
 
 # Engine
 !pch = |> clang++ $(CPPFLAGS) $(INCLUDES) -stdlib=libstdc++ -x c++-header %f -o %o |>

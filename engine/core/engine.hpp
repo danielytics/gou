@@ -42,6 +42,7 @@ namespace core {
         // Implement API interface
         gou::api::detail::type_context* type_context() const final;
         gou::api::Renderer& renderer () const final;
+        void readBinaryFile (const std::string& filename, std::string& buffer) const final;
         gou::events::Event* emit () final;
         const gou::api::detail::EventsIterator& events () final;
         entt::registry& registry (gou::api::Registry) final;
@@ -225,7 +226,7 @@ namespace core {
         void mergeEntityInternal (entt::entity, entt::entity, bool);
 
         // Copy all entities from one registry to another
-        void copyRegistry (entt::registry& from, entt::registry& to);
+        void copyRegistry (const entt::registry& from, entt::registry& to);
 
         // Callbacks to manage Named entities
         void onAddNamedEntity (entt::registry&, entt::entity);

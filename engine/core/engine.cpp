@@ -51,6 +51,11 @@ gou::api::Renderer& core::Engine::renderer () const
     return *m_renderer;
 }
 
+void core::Engine::readBinaryFile (const std::string& filename, std::string& buffer) const
+{
+    buffer = helpers::readToString(filename);
+}
+
 entt::registry& core::Engine::registry(gou::api::Registry which)
 {
     switch (which) {
@@ -303,11 +308,11 @@ void core::Engine::reset ()
     m_prototype_registry = {};
 }
 
-void core::Engine::copyRegistry (entt::registry& from, entt::registry& to)
+void core::Engine::copyRegistry (const entt::registry& from, entt::registry& to)
 {
     EASY_FUNCTION(profiler::colors::RichYellow);
     from.visit([&from, &to](const auto info) {
-        std::as_const(from).storage(info)->copy_to(to);
+        from.storage(info)->copy_to(to);
     });
 }
 

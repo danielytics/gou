@@ -10,6 +10,9 @@
 
 #include "widgets/curve_editor.hpp"
 
+#include <IconsForkAwesome.h>
+#include <imgui_internal.h>
+
 glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
 {
     auto centeralNode = ImGui::DockBuilderGetCentralNode(dockspaceId);
@@ -19,6 +22,26 @@ glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
         centeralNode->Size.x,
         centeralNode->Size.y
     };
+}
+
+template <typename WidgetFunc>
+void maybeDisabled(bool disabled, const std::array<float, 3>& rgb, WidgetFunc widget_func)
+{
+    if (disabled) {
+        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+    } else {
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(rgb[0], rgb[1], rgb[2], 0.8f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(rgb[0], rgb[1], rgb[2], 0.9f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(rgb[0], rgb[1], rgb[2], 1.0f));
+    }
+    widget_func();
+    ImGui::PopStyleColor(3);
+    if (disabled) {
+        ImGui::PopItemFlag();
+    }
 }
 
 static std::map<gou::types::Type, std::string> type_to_string {
@@ -63,14 +86,32 @@ public:
                        | ImGuiWindowFlags_NoBringToFrontOnFocus
                        | ImGuiWindowFlags_NoBackground
                        | ImGuiWindowFlags_NoNavFocus;
+        
         m_gameplan_panel.load();
+
         // Load components
         m_properties_panel.load(engine);
+
+        // Load fonts
+        ImGuiIO& io = ImGui::GetIO();
+        ImFontConfig icons_config;
+        icons_config.MergeMode = true;
+        icons_config.PixelSnapH = true;
+        engine.readDataFile("fonts/" FONT_ICON_FILE_NAME_FK, m_font_buffer);
+        if (! m_font_buffer.empty()) {
+            io.Fonts->AddFontFromMemoryTTF(m_font_buffer.data(), m_font_buffer.size(), 16.0f, &icons_config, m_icons_ranges);
+        }
+        io.Fonts->Build();
+
     }
 
     void onUnload (gou::Engine)
     {
         m_gameplan_panel.unload();
+        // Unload icon font
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->Clear();
+        m_font_buffer.clear();
     }
 
     void onBeforeFrame (gou::Scene& scene) {
@@ -165,6 +206,28 @@ public:
 			ImGui::EndMenuBar();
 		}
 
+
+        bool running = m_running;
+        ImGui::Begin("Toolbar", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        maybeDisabled(running, {0.1f, 0.7f, 0.1f}, [this](){
+            if (ImGui::Button(ICON_FK_PLAY)) {
+                emit("scene/registry/clear-background"_event);
+                emit("scene/registry/runtime->background"_event);
+                emit("engine/set-system-status/running"_event);
+                m_running = true;
+            }
+        });
+        ImGui::SameLine();
+        maybeDisabled(!running, {0.7f, 0.1f, 0.1f}, [this](){
+            if (ImGui::Button(ICON_FK_STOP)) {
+                emit("engine/set-system-status/stopped"_event);
+                emit("scene/registry/clear-runtime"_event);
+                emit("scene/registry/background->runtime"_event);
+                m_running = false;
+            }
+        });
+        ImGui::End();
+
         m_scene_panel.renderPanel(renderer);
         m_properties_panel.renderPanel();
         m_gameplan_panel.renderPanel();
@@ -220,6 +283,10 @@ private:
     GameplanPanel m_gameplan_panel;
 
     bool m_exit = false;
+    bool m_running = false;
+
+    static constexpr ImWchar m_icons_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
+    std::string m_font_buffer;
 
     void newScene ()
     {

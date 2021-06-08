@@ -214,6 +214,13 @@ namespace gou {
         Scene& scene;
 
         /*
+         * Read a data file 
+         */
+        void readDataFile (const std::string& filename, std::string& buffer) {
+            engine.readBinaryFile(filename, buffer);
+        }
+
+        /*
          * Emit an event
          */
         template <typename... Args>
@@ -256,6 +263,14 @@ namespace gou {
 ///////////////////////////////////////////////////////////////////////////////
 // Public Module API
 ///////////////////////////////////////////////////////////////////////////////
+
+    /*
+     * Emit an event
+     */
+    template <typename... Args>
+    events::Event& emit (Args&&... args) {
+        return api::helpers::emitEvent(m_engine, std::forward<Args>(args)...);
+    }
 
     /*
      * Logging functions

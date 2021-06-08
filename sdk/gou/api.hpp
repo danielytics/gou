@@ -179,6 +179,8 @@ namespace gou::api {
         /* User API (Note that users should use the API wrapper classes in gou.hpp) */
         /* ------------------------------------------------------------------------ */
 
+        virtual void readBinaryFile (const std::string& filename, std::string& buffer) const = 0;
+
         /** Returns a pointer to a newly created event, that will be accessible next frame */
         virtual events::Event* emit () = 0;
 

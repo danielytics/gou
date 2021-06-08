@@ -25,6 +25,6 @@ theme = "ui-dark-theme.toml"
 
 # Where to find the game files
 [game]
-sources = ["game.data", "game/", "common/"]
+sources = ["game.data", "common/", "game/"]
 modules = "modules.toml"
 config = "game.toml"

@@ -13,5 +13,5 @@ else
 		BINARY=gou
 	fi
 	shift
-	cd build-$VARIANT && ./$BINARY --gamefiles ../game --gamefiles ../common $@
+	cd build-$VARIANT && ./$BINARY --gamefiles ../common --gamefiles ../game $@
 fi
