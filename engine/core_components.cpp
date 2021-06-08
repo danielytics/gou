@@ -223,7 +223,7 @@ namespace gou {
 				registry.emplace_or_replace<components::graphics::PointLight>(entity, float(toml::find<toml::floating>(table, "radius")), glm::vec3{float(toml::find<toml::floating>(color, "x")), float(toml::find<toml::floating>(color, "y")), float(toml::find<toml::floating>(color, "z"))}, float(toml::find<toml::floating>(table, "intensity")));
 			};
 			component.attributes.push_back({"radius", gou::types::Type::Float, offsetof(components::graphics::PointLight, radius)});
-			component.attributes.push_back({"color", gou::types::Type::Vec3, offsetof(components::graphics::PointLight, color)});
+			component.attributes.push_back({"color", gou::types::Type::RGB, offsetof(components::graphics::PointLight, color)});
 			component.attributes.push_back({"intensity", gou::types::Type::Float, offsetof(components::graphics::PointLight, intensity)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::PointLight>(entity)); };
 			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::PointLight>(entity); };
@@ -254,7 +254,7 @@ namespace gou {
 				registry.emplace_or_replace<components::graphics::SpotLight>(entity, float(toml::find<toml::floating>(table, "range")), glm::vec3{float(toml::find<toml::floating>(color, "x")), float(toml::find<toml::floating>(color, "y")), float(toml::find<toml::floating>(color, "z"))}, glm::vec3{float(toml::find<toml::floating>(direction, "x")), float(toml::find<toml::floating>(direction, "y")), float(toml::find<toml::floating>(direction, "z"))}, float(toml::find<toml::floating>(table, "intensity")));
 			};
 			component.attributes.push_back({"range", gou::types::Type::Float, offsetof(components::graphics::SpotLight, range)});
-			component.attributes.push_back({"color", gou::types::Type::Vec3, offsetof(components::graphics::SpotLight, color)});
+			component.attributes.push_back({"color", gou::types::Type::RGB, offsetof(components::graphics::SpotLight, color)});
 			component.attributes.push_back({"direction", gou::types::Type::Vec3, offsetof(components::graphics::SpotLight, direction)});
 			component.attributes.push_back({"intensity", gou::types::Type::Float, offsetof(components::graphics::SpotLight, intensity)});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::graphics::SpotLight>(entity)); };

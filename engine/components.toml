@@ -67,7 +67,7 @@ namespace = ""
     _namespace_ = "graphics"
     _description_ = "An emitter of light, in all directions"
     radius = "float"
-    color = "vec3"
+    color = "rgb"
     intensity = "float"
 
 [[component]]
@@ -75,7 +75,7 @@ namespace = ""
     _namespace_ = "graphics"
     _description_ = "An emitter of light, in one direction"
     range = "float"
-    color = "vec3"
+    color = "rgb"
     direction = "vec3"
     intensity = "float"
 
