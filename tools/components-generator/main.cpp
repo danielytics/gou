@@ -362,11 +362,6 @@ public:
     public:
         Component(LoaderGenerator& loader, const std::string& ns, const std::string& name, const std::string& struct_name) : loader(loader), ns(ns), name(name), struct_name(struct_name) {}
         ~Component() {
-            // TODO: Until poly_storage code is figured out, don't generate definitions for empty component...
-            if (attributes.empty()) {
-                return;
-            }
-
             std::string namespaced_component;
             {
                 std::ostringstream osstr;

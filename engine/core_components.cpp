@@ -40,6 +40,31 @@ namespace gou {
 			engine->registerComponent(component);
 		}
 		
+		{ // components::Global
+			registry.prepare<components::Global>();
+			background_registry.prepare<components::Global>();
+			prototype_registry.prepare<components::Global>();
+			gou::api::definitions::Component component {"global"_hs, "core", "Global", entt::type_id<components::Global>().seq()};
+			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
+				registry.emplace_or_replace<components::Global>(entity);
+			};
+			component.getter = nullptr;
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::Global>(entity); };
+			component.size_in_bytes = sizeof(components::Global);
+			component.manage = [](entt::registry& registry, entt::entity entity, gou::api::definitions::ManageOperation op){
+				switch (op) {
+					case gou::api::definitions::ManageOperation::Add:
+						registry.emplace_or_replace<components::Global>(entity);
+						break;
+					case gou::api::definitions::ManageOperation::Remove:
+						registry.remove<components::Global>(entity);
+						break;
+					default: break;
+				}
+			};
+			engine->registerComponent(component);
+		}
+		
 		{ // components::Position
 			registry.prepare<components::Position>();
 			background_registry.prepare<components::Position>();
@@ -125,6 +150,31 @@ namespace gou {
 			engine->registerComponent(component);
 		}
 		
+		{ // components::graphics::Sprite
+			registry.prepare<components::graphics::Sprite>();
+			background_registry.prepare<components::graphics::Sprite>();
+			prototype_registry.prepare<components::graphics::Sprite>();
+			gou::api::definitions::Component component {"sprite"_hs, "graphics", "Sprite", entt::type_id<components::graphics::Sprite>().seq()};
+			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
+				registry.emplace_or_replace<components::graphics::Sprite>(entity);
+			};
+			component.getter = nullptr;
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::Sprite>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::Sprite);
+			component.manage = [](entt::registry& registry, entt::entity entity, gou::api::definitions::ManageOperation op){
+				switch (op) {
+					case gou::api::definitions::ManageOperation::Add:
+						registry.emplace_or_replace<components::graphics::Sprite>(entity);
+						break;
+					case gou::api::definitions::ManageOperation::Remove:
+						registry.remove<components::graphics::Sprite>(entity);
+						break;
+					default: break;
+				}
+			};
+			engine->registerComponent(component);
+		}
+		
 		{ // components::graphics::StaticImage
 			registry.prepare<components::graphics::StaticImage>();
 			background_registry.prepare<components::graphics::StaticImage>();
@@ -145,6 +195,31 @@ namespace gou {
 						break;
 					case gou::api::definitions::ManageOperation::Remove:
 						registry.remove<components::graphics::StaticImage>(entity);
+						break;
+					default: break;
+				}
+			};
+			engine->registerComponent(component);
+		}
+		
+		{ // components::graphics::Billboard
+			registry.prepare<components::graphics::Billboard>();
+			background_registry.prepare<components::graphics::Billboard>();
+			prototype_registry.prepare<components::graphics::Billboard>();
+			gou::api::definitions::Component component {"billboard"_hs, "graphics", "Billboard", entt::type_id<components::graphics::Billboard>().seq()};
+			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
+				registry.emplace_or_replace<components::graphics::Billboard>(entity);
+			};
+			component.getter = nullptr;
+			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::graphics::Billboard>(entity); };
+			component.size_in_bytes = sizeof(components::graphics::Billboard);
+			component.manage = [](entt::registry& registry, entt::entity entity, gou::api::definitions::ManageOperation op){
+				switch (op) {
+					case gou::api::definitions::ManageOperation::Add:
+						registry.emplace_or_replace<components::graphics::Billboard>(entity);
+						break;
+					case gou::api::definitions::ManageOperation::Remove:
+						registry.remove<components::graphics::Billboard>(entity);
 						break;
 					default: break;
 				}

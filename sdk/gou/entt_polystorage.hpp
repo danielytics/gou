@@ -39,25 +39,37 @@ struct PolyStorage: entt::type_list_cat_t<
     template<typename Type>
     struct members {
         static void copy (Type& self, entt::basic_registry<Entity>& owner, const entity_type entity, const void* instance, bool overwrite_existing) {
-            auto new_data = static_cast<const typename Type::value_type*>(instance);
-            if (self.contains(entity)) {
-                if (overwrite_existing) {
-                    self.patch(owner, entity, [new_data](auto& old_data){
-                        std::memcpy(&old_data, new_data, sizeof(typename Type::value_type));
-                    });
-                }
+            if constexpr(std::is_empty_v<typename Type::value_type>) {
+                self.emplace(owner, entity);
             } else {
-                self.emplace(owner, entity, *new_data);
+                auto new_data = static_cast<const typename Type::value_type*>(instance);
+                if (self.contains(entity)) {
+                    if (overwrite_existing) {
+                        self.patch(owner, entity, [new_data](auto& old_data){
+                            std::memcpy(&old_data, new_data, sizeof(typename Type::value_type));
+                        });
+                    }
+                } else {
+                    self.emplace(owner, entity, *new_data);
+                }
             }
         }
 
-        static const typename Type::value_type* get(const Type& self, const entity_type entity) {
-            return &self.get(entity);
+        static const typename Type::value_type* get(const Type &self, const entity_type entity) {
+            if constexpr(std::is_empty_v<typename Type::value_type>) {
+                return nullptr;
+            } else {
+                return &self.get(entity);
+            }
         }
 
         static void copy_to(const Type &self, entt::basic_registry<entity_type> &other) {
             const entt::sparse_set &base = self;
-            other.template insert<typename Type::value_type>(base.rbegin(), base.rend(), self.rbegin());
+            if constexpr(std::is_empty_v<typename Type::value_type>) {
+                other.template insert<typename Type::value_type>(base.rbegin(), base.rend());
+            } else {
+                other.template insert<typename Type::value_type>(base.rbegin(), base.rend(), self.rbegin());
+            }
         }
     };
 
