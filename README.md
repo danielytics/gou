@@ -23,33 +23,38 @@ The name **GOU** is in honour of the [Game of Ur](https://en.wikipedia.org/wiki/
 Engine dependencies:
 
 * C++17 and OpenGL 4.6 (4.1 on OSX)
-* [SDL2](http://libsdl.org/) - Windowing & Input (ZLIB License)
+* [Bullet Physics](https://github.com/bulletphysics/bullet3) - Physics engine (zlib License) [TODO: Replace with PhysX]
+* [Catch2](https://github.com/catchorg/Catch2) - C++ testing library (Boost Software License)
+* [cr.h](https://github.com/fungos/cr) - Module live reload library (MIT License)
+* [cxxopts](https://github.com/jarro2783/cxxopts) - Lightweight C++ command line option parser (MIT License)
+* [Dear ImGui](https://github.com/ocornut/imgui) - Bloat-free graphical user interface library for C++ (MIT License)
+* [easy_profiler](https://github.com/yse/easy_profiler) - Function runtime profiling (choice of MIT and Apache v2)
 * [EnTT](https://github.com/skypjack/entt) - Entity Component System (MIT License)
+* [FastNoiseSIMD](https://github.com/Auburns/FastNoiseSIMD) - Library of various SIMD-optimised noise functions (MIT License, note: Simplex noise is patent-encumbered when used for texture generation)
 * [GLAD](https://github.com/Dav1dde/glad) - OpenGL extension generator (MIT License)
 * [GLM](https://glm.g-truc.net/0.9.8/index.html) - OpenGL Mathematics library (The Happy Bunny/Modified MIT License)
-* [spdlog](https://github.com/gabime/spdlog) - Fast logging library (MIT License)
-* [FastNoiseSIMD](https://github.com/Auburns/FastNoiseSIMD) - Library of various SIMD-optimised noise functions (MIT License, note: Simplex noise is patent-encumbered when used for texture generation)
-* [PhysicsFS](http://icculus.org/physfs/) - Library for filesystem abstraction (zlib License)
-* [PhysFS++](https://github.com/danielytics/physfs-hpp) - C++ wrapper for PhysicsFS (zlib License + [notes](https://github.com/Ybalrid/physfs-hpp/blob/master/LICENSE.txt))
-* [toml11](https://github.com/ToruNiina/toml11) - TOML data file loader (MIT License)
-* [cr.h](https://github.com/fungos/cr) - Module live reload library (MIT License)
-* [stb_image](https://github.com/nothings/stb) - Image loader (Public Domain)
-* [Bullet Physics](https://github.com/bulletphysics/bullet3) - Physics engine (zlib License)
-* [cxxopts](https://github.com/jarro2783/cxxopts) - Lightweight C++ command line option parser (MIT License)
-* [taskflow](https://github.com/taskflow/taskflow) - Parallel task programming framework (MIT-like [Taskflow Lisence](https://github.com/taskflow/taskflow/blob/master/LICENSE))
-* [Dear ImGui](https://github.com/ocornut/imgui) - Bloat-free graphical user interface library for C++ (MIT License)
-* [vecmath](https://github.com/GaijinEntertainment/vecmath) - SIMD vector math HAL (BSD 3-Clause License)
 * [ordered-map](https://github.com/Tessil/ordered-map) - Order-preserving hash map/set (MIT License)
+* [vecmath](https://github.com/GaijinEntertainment/vecmath) - SIMD vector math HAL (BSD 3-Clause License)
+* [PhysFS++](https://github.com/danielytics/physfs-hpp) - C++ wrapper for PhysicsFS (zlib License + [notes](https://github.com/Ybalrid/physfs-hpp/blob/master/LICENSE.txt))
+* [PhysicsFS](http://icculus.org/physfs/) - Library for filesystem abstraction (zlib License)
+* [SDL2](http://libsdl.org/) - Windowing & Input (ZLIB License)
 * [Sparsepp](https://github.com/greg7mdp/sparsepp) - A fast, memory efficient hash map for C++ ([Custom do-almost-anything License](https://github.com/greg7mdp/sparsepp/blob/master/LICENSE))
-* [imgui-node-editor](https://github.com/thedmd/imgui-node-editor) - A node graph editor for ImGUI (MIT License)
+* [spdlog](https://github.com/gabime/spdlog) - Fast logging library (MIT License)
+* [stb_image](https://github.com/nothings/stb) - Image loader (Public Domain)
+* [taskflow](https://github.com/taskflow/taskflow) - Parallel task programming framework (MIT-like [Taskflow Lisence](https://github.com/taskflow/taskflow/blob/master/LICENSE))
+* [toml11](https://github.com/ToruNiina/toml11) - TOML data file loader (MIT License)
 * [tweeny](https://github.com/mobius3/tweeny) - Inbetweening library (MIT License)
-* [easy_profiler](https://github.com/yse/easy_profiler) - Function runtime profiling (choice of MIT and Apache v2)
+
+Editor-specific dependencies:
+
 * [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) - C++ headers for Icon fonts (zlib License)
-* [Catch2](https://github.com/catchorg/Catch2) - C++ testing library (Boost Software License)
+* [imgui-node-editor](https://github.com/thedmd/imgui-node-editor) - A node graph editor for ImGUI (MIT License)
 
 Building from surce:
 
 * [tup](http://gittup.org/tup/) - Tup is a file-based build system for Linux, OSX, and Windows ([Dual License](http://gittup.org/tup/license.html) GPL-v2 or Commercial)
+
+All dependencies (except SDL and the build tool, Tup) are contained in the source tree (under `vendor/`) as git submodules.
 
 # Building (with Tup)
 
