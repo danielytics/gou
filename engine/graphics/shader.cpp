@@ -37,7 +37,7 @@ GLuint compileAndAttach (GLuint shaderProgram, GLenum shaderType, const std::str
     return shader;
 }
 
-graphics::shader graphics::shader::load (const spp::sparse_hash_map<graphics::shader::Types, std::string>& shaderFiles)
+graphics::Shader graphics::Shader::load (const spp::sparse_hash_map<graphics::Shader::Types, std::string>& shaderFiles)
 {
     GLuint shaderProgram = glCreateProgram();
     std::vector<GLuint> shaders;
@@ -67,7 +67,7 @@ graphics::shader graphics::shader::load (const spp::sparse_hash_map<graphics::sh
 }
 
 
-void graphics::shader::unload () const
+void graphics::Shader::unload () const
 {
     glUseProgram(0);
     for (auto shader : shaders) {
@@ -77,13 +77,13 @@ void graphics::shader::unload () const
     glDeleteProgram(programID);
 }
 
-void graphics::shader::bindUnfiromBlock(const std::string& blockName, unsigned int bindingPoint) const
+void graphics::Shader::bindUnfiromBlock(const std::string& blockName, unsigned int bindingPoint) const
 {
     GLuint location = glGetUniformBlockIndex(programID, blockName.c_str());
     glUniformBlockBinding(programID, location, bindingPoint);
 }
 
-graphics::uniform graphics::shader::uniform(const std::string& name) const
+graphics::uniform graphics::Shader::uniform(const std::string& name) const
 {
     return {
         glGetUniformLocation(programID, name.c_str())
