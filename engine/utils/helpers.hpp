@@ -65,6 +65,28 @@ namespace helpers {
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    // Remove items for which pred(item) is true and place into the removed container. Remove by swapping with last item and shrinking
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename ContainerType, typename Predicate>
+    void remove_into(ContainerType& container, ContainerType& removed, Predicate pred)
+    {
+        auto last = container.end() - 1;
+        for (auto it = last; it >= container.begin(); --it) {
+            if (pred(*it)) {
+                // Move the item to remove into the 'removed' container
+                removed.push_back(std::move(*it));
+                // If not the last item, move the last into this element
+                if (it != last) {
+                    *it = std::move(*last);    
+                }
+                // Remove the last item in the container
+                container.pop_back();
+                --last;
+            }
+        }        
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     // Move item at 'index' to back of the container and move 'data' into index
     ///////////////////////////////////////////////////////////////////////////
     template <typename ContainerType>
