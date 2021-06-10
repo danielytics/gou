@@ -2,6 +2,7 @@
 
 #include <entt/core/utility.hpp>
 #include <entt/entity/poly_storage.hpp>
+#include <cstring>
 
 template<typename... Type>
 entt::type_list<Type...> as_type_list(const entt::type_list<Type...> &);
