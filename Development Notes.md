@@ -65,6 +65,7 @@ Gameplans can contain a certain amount of logic:
 1. make the "gameplan" node graphs be attached to component signals
 1. implement nodes for adapters, filters and transformation of signals before passing them to slots
 1. a runtime system for that which plays well with my task system
+1. Wrap build setup, component generation and building in make so that you can do `make debug` or `make components`
 
 ## Renderer Notes
 
