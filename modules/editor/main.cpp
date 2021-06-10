@@ -245,9 +245,6 @@ public:
             ImGui::ShowDemoWindow();
         }
 #endif
-#ifndef DEV_TOOLS
-        noDevToolsWarning();
-#endif
 
         renderer.setViewport(getCentralNodeRect(dockspace_id));
 
@@ -259,20 +256,6 @@ private:
 #ifdef DEBUG_BUILD
     bool m_show_demo = false;
     bool m_show_curve_editor = false;
-#endif
-#ifndef DEV_TOOLS
-    bool m_dev_mode_warning_open = true;
-    void noDevToolsWarning () 
-    {
-        if (m_dev_mode_warning_open) {
-            ImGui::SetNextWindowPos(ImVec2{500, 400});
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
-            ImGui::Begin("WARNING", &m_dev_mode_warning_open, ImGuiWindowFlags_Modal | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
-            ImGui::Text("You are using the editor, but not running a 'dev' build.");
-            ImGui::End();
-            ImGui::PopStyleColor();
-        }
-    }
 #endif
 
     ScenePanel m_scene_panel;

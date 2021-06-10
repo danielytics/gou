@@ -5,9 +5,9 @@ PROJECT_ROOT = $(TUP_CWD)
 CFLAGS += -ffast-math -ffp-contract=fast -msse4.1 -mfma -mavx2
 CPPFLAGS += -std=c++17
 
-# Debug build is without optimisations and with DEBUG_BUILD and DEV_TOOLS defined.
+# Debug build is without optimisations and with DEBUG_BUILD defined.
 # Default build is with opitmisations.
-# Release build is the same as default build, but with debug symbols stripped
+# Release build is the same as default build, but without profiling and with debug symbols stripped
 ifdef CONFIG_DEBUG_BUILD
     CFLAGS += -O0 -g -DDEBUG_BUILD -DDEV_TOOLS
     BINARY_NAME_SUFFIX = -debug
@@ -15,7 +15,7 @@ else
     CFLAGS += -Ofast
     LTO += -flto
     ifndef CONFIG_RELEASE_BUILD
-        CFLAGS += -g -DDEV_TOOLS -DBUILD_WITH_EASY_PROFILER
+        CFLAGS += -g -DBUILD_WITH_EASY_PROFILER
         BINARY_NAME_SUFFIX = -dev
     endif
 endif
