@@ -8,79 +8,43 @@
 
 namespace editors {
 
-    bool floating (const char* id, const char* label, float* data) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);
+    bool floating (const char* id, float* data) {
         bool dirty = ImGui::DragFloat(id, data, 0.005f);
         return dirty;
     }
 
-    bool vec2 (const char* id, const char* label, float data[2]) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);        
+    bool vec2 (const char* id, float data[2]) {
         bool dirty = ImGui::DragFloat2(id, data, 0.005f);
         return dirty;
     }
 
-    bool vec3 (const char* id, const char* label, float data[3]) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);        
+    bool vec3 (const char* id, float data[3]) {    
         bool dirty = ImGui::DragFloat3(id, data, 0.005f);
         return dirty;
     }
 
-    bool vec4 (const char* id, const char* label, float data[4]) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);        
+    bool vec4 (const char* id, float data[4]) { 
         bool dirty = ImGui::DragFloat4(id, data, 0.005f);
         return dirty;
     }
 
-    template <typename Text> bool text (const char* id, const char* label, Text text) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);
+    template <typename Text> bool text (const char* id, Text text) {
         return ImGui::InputText(id, text.data(), text.max_size());
     }
 
-    template <typename T> bool integer (const char* id, const char* label, int* data, const char* format = "%d") {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);
+    template <typename T> bool integer (const char* id, int* data, const char* format = "%d") {
         return ImGui::DragInt(id, data, 1.0f, int(std::numeric_limits<T>::min()), int(std::numeric_limits<T>::max()), format);
     }
 
-    bool boolean (const char* id, const char* label, bool* data) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);
+    bool boolean (const char* id, bool* data) {
         return ImGui::Checkbox(id, data);
     }
 
-    bool rgb (const char* id, const char* label, float data[3]) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);
+    bool rgb (const char* id, float data[3]) {
         return ImGui::ColorEdit3(id, data);
     }
 
-    bool rgba (const char* id, const char* label, float data[4]) {
-        ImGui::TableSetColumnIndex(0);
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);
+    bool rgba (const char* id, float data[4]) {
         return ImGui::ColorEdit4(id, data);
     }
 
@@ -104,35 +68,40 @@ void DataEditor::render_editors () {
         label[0] = std::toupper(label[0]); // Capitalise the string
         label[attribute.name.size()] = 0; // NULL terminate the string
 
+        ImGui::TableSetColumnIndex(0);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("%s", label);
+        ImGui::TableSetColumnIndex(1);
+
         switch (attribute.type) {
             case Type::Vec2:
-                m_dirty |= editors::vec2(id, label, (float*)ptr);
+                m_dirty |= editors::vec2(id, (float*)ptr);
                 break;
             case Type::Vec3:
-                m_dirty |= editors::vec3(id, label, (float*)ptr);
+                m_dirty |= editors::vec3(id, (float*)ptr);
                 break;
             case Type::Vec4:
-                m_dirty |= editors::vec4(id, label, (float*)ptr);
+                m_dirty |= editors::vec4(id, (float*)ptr);
                 break;
             case Type::UInt8:
-                m_dirty |= editors::integer<std::uint8_t>(id, label, (int*)ptr);
+                m_dirty |= editors::integer<std::uint8_t>(id, (int*)ptr);
                 break;
             case Type::UInt16:
-                m_dirty |= editors::integer<std::uint16_t>(id, label, (int*)ptr);
+                m_dirty |= editors::integer<std::uint16_t>(id, (int*)ptr);
                 break;
             case Type::UInt32:
-                m_dirty |= editors::integer<std::uint32_t>(id, label, (int*)ptr);
+                m_dirty |= editors::integer<std::uint32_t>(id, (int*)ptr);
                 break;
             case Type::Int8:
-                m_dirty |= editors::integer<std::int8_t>(id, label, (int*)ptr);
+                m_dirty |= editors::integer<std::int8_t>(id, (int*)ptr);
                 break;
             case Type::Int16:
-                m_dirty |= editors::integer<std::int16_t>(id, label, (int*)ptr);
+                m_dirty |= editors::integer<std::int16_t>(id, (int*)ptr);
                 break;
             case Type::Int32:
-                m_dirty |= editors::integer<std::int32_t>(id, label, (int*)ptr);
+                m_dirty |= editors::integer<std::int32_t>(id, (int*)ptr);
             case Type::Byte:
-                m_dirty |= editors::integer<std::byte>(id, label, (int*)ptr, "%x");
+                m_dirty |= editors::integer<std::byte>(id, (int*)ptr, "%x");
             case Type::Resource:
                 break;
             case Type::TextureResource:
@@ -142,13 +111,13 @@ void DataEditor::render_editors () {
             case Type::Entity:
                 break;
             case Type::Float:
-                m_dirty |= editors::floating(id, label, (float*)ptr);
+                m_dirty |= editors::floating(id, (float*)ptr);
                 break;
             case Type::Double:
-                m_dirty |= editors::floating(id, label, (float*)ptr);
+                m_dirty |= editors::floating(id, (float*)ptr);
                 break;
             case Type::Bool:
-                m_dirty |= editors::boolean(id, label, (bool*)ptr);
+                m_dirty |= editors::boolean(id, (bool*)ptr);
                 break;
             case Type::Event:
                 break;
@@ -157,16 +126,16 @@ void DataEditor::render_editors () {
             case Type::HashedString:
             {
                 std::array<char, 256> buffer;
-                if (editors::text(id, label, buffer)) {
+                if (editors::text(id, buffer)) {
                     m_dirty = true;
                     *((entt::hashed_string*)ptr) = entt::hashed_string{buffer.data()};
                 }
             }
             case Type::RGB:
-                m_dirty |= editors::rgb(id, label, (float*)ptr);
+                m_dirty |= editors::rgb(id, (float*)ptr);
                 break;
             case Type::RGBA:
-                m_dirty |= editors::rgba(id, label, (float*)ptr);
+                m_dirty |= editors::rgba(id, (float*)ptr);
                 break;
             case Type::Signal:
                 break;
