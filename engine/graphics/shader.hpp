@@ -12,7 +12,7 @@ namespace graphics {
 
         inline void set(float v) const {return glUniform1f(location, v);}
         inline void set(int v) const {return glUniform1i(location, v);}
-        inline void set(std::size_t v) const {return glUniform1i(location, v);}
+        inline void set(unsigned int v) const {return glUniform1ui(location, v);}
         inline void set(const glm::vec2& v) const {return glUniform2fv(location, 1, glm::value_ptr(v));}
         inline void set(const glm::vec3& v) const {return glUniform3fv(location, 1, glm::value_ptr(v));}
         inline void set(const glm::vec4& v) const {return glUniform4fv(location, 1, glm::value_ptr(v));}
@@ -21,7 +21,7 @@ namespace graphics {
         inline void set(const glm::mat4& v) const {return glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(v));}
     };
 
-    struct shader {
+    struct Shader {
         enum class Types : GLenum {
             Fragment = GL_FRAGMENT_SHADER,
             Vertex = GL_VERTEX_SHADER,
@@ -38,7 +38,7 @@ namespace graphics {
             glUseProgram(programID);
         }
 
-        static graphics::shader load (const spp::sparse_hash_map<Types, std::string>& shaderFiles);
+        static graphics::Shader load (const spp::sparse_hash_map<Types, std::string>& shaderFiles);
 
         GLuint programID;
         std::vector<GLuint> shaders;
