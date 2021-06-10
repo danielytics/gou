@@ -65,7 +65,7 @@ git clone git@github.com:danielytics/gou.git
 cd gou
 git submodule update --init
 ./generate_components.sh
-tup variant configs/*.config
+tup variant build-configs/*.config
 tup
 ```
 
