@@ -6,6 +6,8 @@
 
 #include <limits>
 
+bool g_first_render = true;
+
 namespace editors {
 
     bool floating (const char* id, float* data) {
@@ -13,18 +15,165 @@ namespace editors {
         return dirty;
     }
 
-    bool vec2 (const char* id, float data[2]) {
-        bool dirty = ImGui::DragFloat2(id, data, 0.005f);
+    bool vec2 (const char* id, float data[2], float reset=0.0f) {
+        bool dirty = false;
+		ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		if (ImGui::Button("X", buttonSize)) {
+            data[0] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##X", data, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		if (ImGui::Button("Y", buttonSize)) {
+            data[1] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Y", data+1, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PopStyleVar();
+		ImGui::Columns(1);
         return dirty;
     }
 
-    bool vec3 (const char* id, float data[3]) {    
-        bool dirty = ImGui::DragFloat3(id, data, 0.005f);
+    bool vec3 (const char* id, float data[3], float reset=0.0f) {
+        bool dirty = false;
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		if (ImGui::Button("X", buttonSize)) {
+            data[0] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##X", data, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		if (ImGui::Button("Y", buttonSize)) {
+            data[1] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Y", data+1, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		if (ImGui::Button("Z", buttonSize)) {
+            data[2] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Z", data+2, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+		ImGui::Columns(1);
         return dirty;
     }
 
-    bool vec4 (const char* id, float data[4]) { 
-        bool dirty = ImGui::DragFloat4(id, data, 0.005f);
+    bool vec4 (const char* id, float data[4], float reset=0.0f) { 
+        bool dirty = false;
+		ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		if (ImGui::Button("X", buttonSize)) {
+            data[0] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##X", data, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		if (ImGui::Button("Y", buttonSize)) {
+            data[1] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Y", data+1, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		if (ImGui::Button("Z", buttonSize)) {
+            data[2] = reset;
+            dirty = true;
+        }
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Z", data+2, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		// ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		// ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+		// ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		if (ImGui::Button("W", buttonSize)) {
+            data[2] = reset;
+            dirty = true;
+        }
+		// ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Z", data+2, 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+		ImGui::Columns(1);
         return dirty;
     }
 
@@ -68,10 +217,18 @@ void DataEditor::render_editors () {
         label[0] = std::toupper(label[0]); // Capitalise the string
         label[attribute.name.size()] = 0; // NULL terminate the string
 
-        ImGui::TableSetColumnIndex(0);
+        // ImGui::TableSetColumnIndex(0);
+        ImGui::Columns(2);
+        if (g_first_render) {
+            ImGui::SetColumnWidth(0, 125.0f);
+            g_first_render = false;
+        }
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s", label);
-        ImGui::TableSetColumnIndex(1);
+        ImGui::NextColumn();
+        // ImGui::TableSetColumnIndex(1);
+
+        ImGui::PushID(id);
 
         switch (attribute.type) {
             case Type::Vec2:
@@ -142,9 +299,11 @@ void DataEditor::render_editors () {
             default: break;
         }
 
-        if (i != m_component_def->attributes.size() - 1) {
-            ImGui::TableNextRow();
-        }
+        ImGui::PopID();
+
+        // if (i != m_component_def->attributes.size() - 1) {
+        //     ImGui::TableNextRow();
+        // }
     }
 }
 
@@ -153,14 +312,15 @@ void DataEditor::render () {
     ImGui::SetNextItemOpen(data_component, ImGuiCond_Once);
     if (ImGui::CollapsingHeader(name(), &m_group_open, data_component ? ImGuiTreeNodeFlags_None : ImGuiTreeNodeFlags_Leaf)) {
         if (data_component) {
-            if (ImGui::BeginTable(name(), 2, ImGuiTableFlags_None)) {
-                ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 125.0f);
-                ImGui::TableNextRow();
-                ImGui::TableSetColumnIndex(1);
-                ImGui::PushItemWidth(-FLT_MIN); 
-                render_editors();
-                ImGui::EndTable();    
-            }
+            render_editors();
+            // if (ImGui::BeginTable(name(), 2, ImGuiTableFlags_None)) {
+                // ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 125.0f);
+                // ImGui::TableNextRow();
+                // ImGui::TableSetColumnIndex(1);
+                // ImGui::PushItemWidth(-FLT_MIN); 
+                // render_editors();
+                // ImGui::EndTable();    
+            // }
         }
     }
 }

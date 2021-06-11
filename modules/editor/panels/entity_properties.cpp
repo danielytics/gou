@@ -99,9 +99,9 @@ void EntityPropertiesPanel::render ()
     if (m_selected_entity != entt::null) {
 
         if (ImGui::BeginTable("Entity Table", 3, ImGuiTableFlags_None)) {
-            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 125.0f);
             ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None);
-            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 15.0f);
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 75.0f);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
@@ -109,16 +109,20 @@ void EntityPropertiesPanel::render ()
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(m_entity_name.c_str());
-            ImGui::SameLine();
+            
+            ImGui::TableNextColumn();
             if (ImGui::Button("Rename")) {
                 ImGui::OpenPopup("Rename");
                 std::strncpy(m_name_buffer, m_entity_name.c_str(), sizeof(m_name_buffer));
             }
-
-            ImGui::TableNextColumn();
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 1.0f, 0.5f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 1.0f, 0.7f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 1.0f, 0.9f));
             if (ImGui::Button("X")) {
                 ImGui::OpenPopup("Delete?");
             }
+            ImGui::PopStyleColor(3);
 
             if (ImGui::BeginPopupContextWindow("Edit Components", ImGuiMouseButton_Right, false)) {
                 if (ImGui::BeginMenu("Add Component")) {
@@ -144,10 +148,14 @@ void EntityPropertiesPanel::render ()
             if (ImGui::BeginPopupModal("Delete?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
                 ImGui::Text("Are you sure that you wish to delete this entity?\nThis operation cannot be undone!\n\n");
                 ImGui::Separator();
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 1.0f, 0.8f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 1.0f, 0.9f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 1.0f, 1.0f));
                 if (ImGui::Button("Delete", ImVec2(120, 0))) {
                     m_entity_action = EntityAction::Delete;
                     ImGui::CloseCurrentPopup();
                 }
+                ImGui::PopStyleColor(3);
                 ImGui::SameLine();
                 if (ImGui::Button("Cancel", ImVec2(120, 0))) {
                     ImGui::CloseCurrentPopup();
@@ -161,11 +169,15 @@ void EntityPropertiesPanel::render ()
                 ImGui::Text("Entity Name:");
                 ImGui::SameLine();
                 ImGui::InputText("##name", m_name_buffer, sizeof(m_name_buffer));
+                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.32f, 0.75f, 0.48f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.32f, 0.75f, 0.68f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.32f, 0.75f, 0.88f));
                 ImGui::Separator();
                 if (ImGui::Button("Rename", ImVec2(120, 0))) {
                     m_entity_action = EntityAction::Rename;
                     ImGui::CloseCurrentPopup();
                 }
+                ImGui::PopStyleColor(3);
                 ImGui::SameLine();
                 if (ImGui::Button("Cancel", ImVec2(120, 0))) {
                     ImGui::CloseCurrentPopup();
