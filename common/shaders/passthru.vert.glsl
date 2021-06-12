@@ -18,12 +18,12 @@ layout (location = 0) in vec3 in_position;
 
 layout (std140) uniform Matrices
 {
-	mat4 projection_view;
+	mat4 projection_view_matrix;
 };
 
-uniform mat4 u_model;
+uniform mat4 u_model_matrix;
 
 void main()
 {
-    gl_Position = projection_view * u_model * vec4(in_position, 1.0);
+    gl_Position = projection_view_matrix * u_model_matrix * vec4(in_position, 1.0);
 }
