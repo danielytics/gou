@@ -10,6 +10,7 @@
 
 #include "renderer.hpp"
 
+
 namespace imgui {
     void initTheme ();
 }
@@ -257,13 +258,14 @@ int render (void* data) {
                     cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
                 }
                 EASY_END_BLOCK;
-                EASY_BLOCK("Collecting render data", profiler::colors::Red300);
 
                 // Let Dear ImGui process events from event queue
                 for (const auto& event : engine.inputEvents()) {
                     ImGui_ImplSDL2_ProcessEvent(&event);
                 }
 
+                EASY_BLOCK("Collecting render data", profiler::colors::Red300);
+                
                 // Call onPrepareRender during the critical section, before performing any rendering
                 engine.callModuleHook<CM::PREPARE_RENDER>();
 
@@ -271,9 +273,12 @@ int render (void* data) {
                 entt::registry& registry = render_api->engine.registry(gou::api::Registry::Runtime);
 
                 sprites.clear();
-                for (auto&& [sprite, position] : registry.view<components::graphics::Sprite, components::Position>().each()) {
-                    sprites.emplace_back(Sprite{position.point});
-                }
+                registry.view<components::graphics::Sprite, components::Position>(entt::exclude<components::Transform>).each([&sprites](const auto, const auto& position) {
+                    sprites.emplace_back(Sprite{position.point, glm::vec3(0.0f), glm::vec3(1.0f)});
+                });
+                registry.view<components::graphics::Sprite, components::Position, components::Transform>().each([&sprites](const auto, const auto& position, const auto& transform) {
+                    sprites.emplace_back(Sprite{position.point, transform.rotation, transform.scale});
+                });
 
                 // Gather render data, if there is any
                 if (render_api->dirty) { // Only data set from engine thread context needs to set dirty and be gathered here

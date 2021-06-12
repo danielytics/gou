@@ -12,16 +12,18 @@
 //     vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // set the output variable to a dark-red color
 // }
 
-layout (location = 0) in vec3 aPos;
+layout (location = 0) in vec3 in_position;
+// layout (location = 1) in vec3 in_normal;
+// layout (location = 2) in vec3 in_texture_coords;
 
 layout (std140) uniform Matrices
 {
 	mat4 projection_view;
 };
 
-uniform vec3 u_position;
+uniform mat4 u_model;
 
 void main()
 {
-    gl_Position = projection_view * (vec4(aPos.x, aPos.y, aPos.z, 1.0) + vec4(u_position, 0.0));
+    gl_Position = projection_view * u_model * vec4(in_position, 1.0);
 }

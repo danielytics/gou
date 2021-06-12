@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "gou_engine.hpp"
 
 Mesh::Mesh ()
 {
@@ -63,6 +64,8 @@ Drawable Mesh::drawable (graphics::Shader& shader)
 
 void Mesh::draw (const Drawable& drawable)
 {
+    EASY_FUNCTION(profiler::colors::Orange300)
+
     // Bind textures
     unsigned i = 0;
     for(auto& [texture_id, uniform] : drawable.m_textures) {
@@ -140,6 +143,12 @@ void init ()
     g_drawable = g_mesh.drawable(g_shader);
 }
 
+
+namespace constants {
+    const float FULL_CIRCLE = glm::radians(360.0f);
+}
+
+
 void run (const glm::mat4 projection_view, std::vector<Sprite>& sprites)
 {
     glBindBuffer(GL_UNIFORM_BUFFER, matrices_ubo);
@@ -149,7 +158,13 @@ void run (const glm::mat4 projection_view, std::vector<Sprite>& sprites)
     g_shader.use();
     g_shader.uniform("u_projection_view").set(projection_view);
     for (auto& sprite : sprites) {
-        g_shader.uniform("u_position").set(sprite.position);
+        auto model_matrix = glm::translate(glm::identity<glm::mat4>(), sprite.position);
+        model_matrix = glm::rotate(model_matrix, constants::FULL_CIRCLE * sprite.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+        model_matrix = glm::rotate(model_matrix, constants::FULL_CIRCLE * sprite.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        model_matrix = glm::rotate(model_matrix, constants::FULL_CIRCLE * sprite.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        model_matrix = glm::scale(model_matrix, sprite.scale);
+
+        g_shader.uniform("u_model").set(model_matrix);
         g_mesh.draw(g_drawable);
     }
 }

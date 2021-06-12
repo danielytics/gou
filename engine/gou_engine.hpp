@@ -19,7 +19,12 @@
 
 using namespace entt::literals;
 
+#ifndef DEBUG_BUILD
+#define GLM_FORCE_INLINE
+#endif
+#define GLM_FORCE_INTRINSICS
 #include <glm/glm.hpp>
+#include <glm/ext.hpp> 
 #include <glm/gtc/type_ptr.hpp>
 
 #ifdef DEBUG_BUILD
