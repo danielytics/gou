@@ -136,7 +136,12 @@ public:
 
     void onAfterRender (gou::Renderer& renderer)
     { 
+        if (! m_setup) {
+            ImGui::GetStyle().TabBorderSize = 1.0f;
+            m_setup = true;
+        }
         ImGuiViewport* viewport = ImGui::GetMainViewport();
+        
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);
         ImGui::SetNextWindowViewport(viewport->ID);
@@ -167,14 +172,6 @@ public:
 				if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S")) {
                     saveSceneAs();
                 }
-#ifdef DEBUG_BUILD
-				if (ImGui::MenuItem(m_show_curve_editor ? "Hide Curve Editor" : "Show Curve Editor")) {
-                    m_show_curve_editor = !m_show_curve_editor;
-                }
-				if (ImGui::MenuItem(m_show_demo ? "Hide ImGUI Demo" : "Show ImGUI Demo")) {
-                    m_show_demo = !m_show_demo;
-                }
-#endif
 				if (ImGui::MenuItem("Exit")) {
                     m_exit = true;
                 }
@@ -200,6 +197,14 @@ public:
                 if (ImGui::MenuItem(m_stats_panel.visible() ? "Hide Stats" : "Show Stats", "Ctrl+6")) {
                     m_stats_panel.toggleVisible();
                 }
+#ifdef DEBUG_BUILD
+				if (ImGui::MenuItem(m_show_curve_editor ? "Hide Curve Editor" : "Show Curve Editor")) {
+                    m_show_curve_editor = !m_show_curve_editor;
+                }
+				if (ImGui::MenuItem(m_show_demo ? "Hide ImGUI Demo" : "Show ImGUI Demo")) {
+                    m_show_demo = !m_show_demo;
+                }
+#endif
                 ImGui::EndMenu();
             }
 
@@ -267,6 +272,7 @@ private:
 
     bool m_exit = false;
     bool m_running = false;
+    bool m_setup = false;
 
     static constexpr ImWchar m_icons_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
     std::string m_font_buffer;

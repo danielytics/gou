@@ -10,12 +10,12 @@ bool g_first_render = true;
 
 namespace editors {
 
-    bool floating (const char* id, float* data) {
-        bool dirty = ImGui::DragFloat(id, data, 0.005f);
+    bool floating (float* data) {
+        bool dirty = ImGui::DragFloat("##val", data, 0.005f, 0.0f, 0.0f, "%.3f");
         return dirty;
     }
 
-    bool vec2 (const char* id, float data[2], float reset=0.0f) {
+    bool vec2 (float data[2], float reset=0.0f) {
         bool dirty = false;
 		ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
@@ -33,7 +33,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##X", data, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##X", data, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -47,7 +47,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Y", data+1, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Y", data+1, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -56,7 +56,7 @@ namespace editors {
         return dirty;
     }
 
-    bool vec3 (const char* id, float data[3], float reset=0.0f) {
+    bool vec3 (float data[3], float reset=0.0f) {
         bool dirty = false;
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
@@ -74,7 +74,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##X", data, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##X", data, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -88,7 +88,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Y", data+1, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Y", data+1, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -102,7 +102,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Z", data+2, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Z", data+2, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -110,7 +110,7 @@ namespace editors {
         return dirty;
     }
 
-    bool vec4 (const char* id, float data[4], float reset=0.0f) { 
+    bool vec4 (float data[4], float reset=0.0f) { 
         bool dirty = false;
 		ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
@@ -128,7 +128,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##X", data, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##X", data, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -142,7 +142,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Y", data+1, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Y", data+1, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -156,7 +156,7 @@ namespace editors {
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Z", data+2, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Z", data+2, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		// ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
@@ -169,7 +169,7 @@ namespace editors {
 		// ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Z", data+2, 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Z", data+2, 0.005f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -220,7 +220,7 @@ void DataEditor::render_editors () {
         // ImGui::TableSetColumnIndex(0);
         ImGui::Columns(2);
         if (g_first_render) {
-            ImGui::SetColumnWidth(0, 125.0f);
+            ImGui::SetColumnWidth(0, 120.0f);
             g_first_render = false;
         }
         ImGui::AlignTextToFramePadding();
@@ -232,13 +232,13 @@ void DataEditor::render_editors () {
 
         switch (attribute.type) {
             case Type::Vec2:
-                m_dirty |= editors::vec2(id, (float*)ptr);
+                m_dirty |= editors::vec2((float*)ptr);
                 break;
             case Type::Vec3:
-                m_dirty |= editors::vec3(id, (float*)ptr);
+                m_dirty |= editors::vec3((float*)ptr);
                 break;
             case Type::Vec4:
-                m_dirty |= editors::vec4(id, (float*)ptr);
+                m_dirty |= editors::vec4((float*)ptr);
                 break;
             case Type::UInt8:
                 m_dirty |= editors::integer<std::uint8_t>(id, (int*)ptr);
@@ -268,13 +268,13 @@ void DataEditor::render_editors () {
             case Type::Entity:
                 break;
             case Type::Float:
-                m_dirty |= editors::floating(id, (float*)ptr);
+                m_dirty |= editors::floating((float*)ptr);
                 break;
             case Type::Double:
-                m_dirty |= editors::floating(id, (float*)ptr);
+                m_dirty |= editors::floating((float*)ptr);
                 break;
             case Type::Bool:
-                m_dirty |= editors::boolean(id, (bool*)ptr);
+                m_dirty |= editors::boolean((bool*)ptr);
                 break;
             case Type::Event:
                 break;
