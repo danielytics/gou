@@ -5,7 +5,6 @@
 
 graphics::Shader g_shader;
 graphics::Mesh g_mesh;
-Drawable g_drawable;
 
 GLuint matrices_ubo;
 
@@ -48,7 +47,7 @@ void run (const glm::mat4 projection_view, std::vector<Sprite>& sprites)
     glBindBuffer(GL_UNIFORM_BUFFER, matrices_ubo);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection_view));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    
+
     g_mesh.bind();
     g_shader.use();
     for (auto& sprite : sprites) {

@@ -177,24 +177,24 @@ namespace editors {
         return dirty;
     }
 
-    template <typename Text> bool text (const char* id, Text text) {
-        return ImGui::InputText(id, text.data(), text.max_size());
+    template <typename Text> bool text (Text text) {
+        return ImGui::InputText("#t", text.data(), text.max_size());
     }
 
     template <typename T> bool integer (const char* id, int* data, const char* format = "%d") {
         return ImGui::DragInt(id, data, 1.0f, int(std::numeric_limits<T>::min()), int(std::numeric_limits<T>::max()), format);
     }
 
-    bool boolean (const char* id, bool* data) {
-        return ImGui::Checkbox(id, data);
+    bool boolean (bool* data) {
+        return ImGui::Checkbox("#b", data);
     }
 
-    bool rgb (const char* id, float data[3]) {
-        return ImGui::ColorEdit3(id, data);
+    bool rgb (float data[3]) {
+        return ImGui::ColorEdit3("#rgb", data);
     }
 
-    bool rgba (const char* id, float data[4]) {
-        return ImGui::ColorEdit4(id, data);
+    bool rgba (float data[4]) {
+        return ImGui::ColorEdit4("#rgba", data);
     }
 
 }
@@ -283,16 +283,16 @@ void DataEditor::render_editors () {
             case Type::HashedString:
             {
                 std::array<char, 256> buffer;
-                if (editors::text(id, buffer)) {
+                if (editors::text(buffer)) {
                     m_dirty = true;
                     *((entt::hashed_string*)ptr) = entt::hashed_string{buffer.data()};
                 }
             }
             case Type::RGB:
-                m_dirty |= editors::rgb(id, (float*)ptr);
+                m_dirty |= editors::rgb((float*)ptr);
                 break;
             case Type::RGBA:
-                m_dirty |= editors::rgba(id, (float*)ptr);
+                m_dirty |= editors::rgba((float*)ptr);
                 break;
             case Type::Signal:
                 break;
