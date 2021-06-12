@@ -41,7 +41,7 @@ namespace graphics {
         static graphics::Shader load (const spp::sparse_hash_map<Types, std::string>& shaderFiles);
 
         GLuint programID;
-        std::vector<GLuint> shaders;
+        std::array<GLuint, 5> shaders;
     };
 
 } // graphics::

@@ -20,7 +20,7 @@ glm::vec4 getCentralNodeRect (ImGuiID dockspaceId)
         centeralNode->Pos.x,
         centeralNode->Pos.y,
         centeralNode->Size.x,
-        centeralNode->Size.y
+        centeralNode->Size.y,
     };
 }
 

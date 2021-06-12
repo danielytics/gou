@@ -10,25 +10,41 @@ graphics::RenderAPI::~RenderAPI()
     SDL_DestroyWindow(window);
 }
 
-void graphics::RenderAPI::setViewport (const glm::vec4& viewport)
+void graphics::RenderAPI::setViewport (const glm::vec4& rect)
 {
-    if (m_viewport != viewport) {
-        m_viewport = viewport;
-        dirty = true;
+    if (m_rect != rect) {
+        m_rect = rect;
+        const int height = entt::monostate<"graphics/resolution/height"_hs>();
+        m_viewport = {
+            // Bottom left corner of viewable area
+            rect.x, height - (rect.y + rect.w),
+            // Size of viewable area
+            rect.z, rect.w,
+        };
+        updateProjectionMatrix();
     }
+}
+
+void graphics::RenderAPI::updateProjectionMatrix ()
+{
+    const float field_of_view = entt::monostate<"graphics/renderer/field-of-view"_hs>();
+    const float near_distance = entt::monostate<"graphics/renderer/near-distance"_hs>();
+    const float far_distance = entt::monostate<"graphics/renderer/far-distance"_hs>();
+
+    m_projection_matrix = glm::perspective(glm::radians(field_of_view), m_viewport.z / m_viewport.w, near_distance, far_distance);
+    // m_projection_matrix = glm::ortho(m_viewport.x, m_viewport.x + m_viewport.z, m_viewport.y + m_viewport.w, m_viewport.y, near_distance, far_distance);
+
+    dirty = true;
+    viewport_changed = true;
 }
 
 // This method can be called form the engine threads
 void graphics::RenderAPI::windowChanged ()
 {
-    const float field_of_view = entt::monostate<"graphics/renderer/field-of-view"_hs>();
-    const float near_distance = entt::monostate<"graphics/renderer/near-distance"_hs>();
-    const float far_distance = entt::monostate<"graphics/renderer/far-distance"_hs>();
-    const float width = entt::monostate<"graphics/renderer/width"_hs>();
-    const float height = entt::monostate<"graphics/renderer/height"_hs>();
+    const int width = entt::monostate<"graphics/resolution/width"_hs>();
+    const int height = entt::monostate<"graphics/resolution/height"_hs>();
+    m_viewport = glm::vec4(0, 0, width, height);
+    m_rect = m_viewport;
 
-    m_projection_matrix = glm::perspective(glm::radians(field_of_view), float(width) / float(height), near_distance, far_distance);
-    m_viewport = glm::vec4(0, 0, int(width), int(height));
-    dirty = true;
-    resolution_changed = true;
+    updateProjectionMatrix();
 }

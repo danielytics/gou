@@ -40,12 +40,13 @@ GLuint compileAndAttach (GLuint shaderProgram, GLenum shaderType, const std::str
 graphics::Shader graphics::Shader::load (const spp::sparse_hash_map<graphics::Shader::Types, std::string>& shaderFiles)
 {
     GLuint shaderProgram = glCreateProgram();
-    std::vector<GLuint> shaders;
+    std::array<GLuint, 5> shaders{GLuint(-1), GLuint(-1), GLuint(-1), GLuint(-1), GLuint(-1)};
+    auto shader_it = shaders.begin();
     for (auto [type, filename] : shaderFiles) {
         auto shaderType = helpers::enum_value(type);
         auto source = helpers::readToString(filename);
         GLuint shader = compileAndAttach(shaderProgram, shaderType, filename, source);
-        shaders.push_back(shader);
+        *shader_it++ = shader;
     }
     // Link the shader programs into one
     glLinkProgram(shaderProgram);
@@ -71,6 +72,9 @@ void graphics::Shader::unload () const
 {
     glUseProgram(0);
     for (auto shader : shaders) {
+        if (shader == GLuint(-1)) {
+            break;
+        }
         glDetachShader(programID, shader);
         glDeleteShader(shader);
     }

@@ -8,6 +8,8 @@
 
 #include <atomic>
 
+#include "renderer.hpp"
+
 namespace imgui {
     void initTheme ();
 }
@@ -15,6 +17,29 @@ namespace imgui {
 #ifdef DEBUG_BUILD
 void GLAPIENTRY opengl_messageCallback (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
+    std::string source_string;
+    switch (source) {
+        case GL_DEBUG_SOURCE_API:
+            source_string = "api";
+            break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+            source_string = "window_system";
+            break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:
+            source_string = "shader_compiler";
+            break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:
+            source_string = "third_party";
+            break;
+        case GL_DEBUG_SOURCE_APPLICATION:
+            source_string = "application";
+            break;
+        case GL_DEBUG_SOURCE_OTHER:
+        default:
+            source_string = "UNKNOWN";
+            break;
+    }
+
     std::string type_string;
 	switch (type) {
         case GL_DEBUG_TYPE_ERROR:
@@ -49,9 +74,12 @@ void GLAPIENTRY opengl_messageCallback (GLenum source, GLenum type, GLuint id, G
         case GL_DEBUG_SEVERITY_HIGH:
             severity_string = "high";
             break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION:
+            severity_string = "notification";
+            break;
 	}
 
-    #define OPENGL_MESSAGE "OpenGL Message (id={:#x}, type={}, severity={}): {}", id, type_string, severity_string, message
+    #define OPENGL_MESSAGE "OpenGL Message (id={:#x}, type={}, source={}, severity={}): {}", id, type_string, source_string, severity_string, message
     if (type == GL_DEBUG_TYPE_ERROR) {
         spdlog::error(OPENGL_MESSAGE);
     } else {
@@ -84,14 +112,15 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, int(entt::monostate<"graphics/opengl/minimum-depthbuffer-bits"_hs>()));
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, bool(entt::monostate<"graphics/opengl/double-buffered"_hs>()) ? 1 : 0);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+#ifdef DEBUG_BUILD
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
 
     bool fullscreen = entt::monostate<"graphics/fullscreen"_hs>();
 
     const int width = entt::monostate<"graphics/resolution/width"_hs>();
     const int height = entt::monostate<"graphics/resolution/height"_hs>();
     const bool resizable = entt::monostate<"graphics/resolution/resizable"_hs>();
-    entt::monostate<"graphics/renderer/width"_hs>{} = float(width);
-    entt::monostate<"graphics/renderer/height"_hs>{} = float(height);
 
     // Create renderer and context to share with render thread and graphics API. Context is opague to the engine
     auto renderer = new graphics::RenderAPI(engine);
@@ -115,7 +144,7 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
         return nullptr;
     }
 
-#ifdef DEV_MODE
+#ifdef DEBUG_BUILD
     int max_tex_layers, max_combined_tex, max_vert_tex, max_geom_tex, max_frag_tex, max_tex_size;
     glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_tex_layers);
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_tex);
@@ -156,6 +185,7 @@ int render (void* data) {
         SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
 
 #ifdef DEBUG_BUILD
+        spdlog::info("Setting error callback");
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(opengl_messageCallback, 0);
         GLuint unused_ids = 0;
@@ -193,6 +223,7 @@ int render (void* data) {
 
         glm::mat4 projection_matrix;
         glm::vec4 viewport;
+        std::vector<Sprite> sprites;
         
         // Sync with the engine, so that it knows the render thread is set up
         {
@@ -205,11 +236,13 @@ int render (void* data) {
             cv.notify_one();
         }
 
+        init();
         
         spdlog::info("Render thread running");
         // Run render loop
         do {
             EASY_BLOCK("Rendering frame", profiler::colors::Teal100);
+
             /*********************************************************************/
             /* Wait for engine to hand over exclusive access to engine state.
             * Renderer will then access the ECS registry to gather all components needed for rengering,
@@ -217,12 +250,13 @@ int render (void* data) {
             * then asynchronously render from its locally owned render list.
             *********************************************************************/
             {
+                EASY_BLOCK("Renderer waiting for exclusive access to engine", profiler::colors::Red100);
                 // Wait for exclusive access to engine state
                 std::unique_lock<std::mutex> lock(state_sync.state_mutex);
                 {
-                    EASY_BLOCK("Renderer waiting for exclusive access to engine", profiler::colors::Red100);
                     cv.wait(lock, [&state_sync](){ return state_sync.owner == graphics::Sync::Owner::Renderer; });
                 }
+                EASY_END_BLOCK;
                 EASY_BLOCK("Collecting render data", profiler::colors::Red300);
 
                 // Let Dear ImGui process events from event queue
@@ -234,15 +268,20 @@ int render (void* data) {
                 engine.callModuleHook<CM::PREPARE_RENDER>();
 
                 // Gather render data into render list
-                // entt::registry& registry = context->engine.registry();
+                entt::registry& registry = render_api->engine.registry(gou::api::Registry::Runtime);
+
+                sprites.clear();
+                for (auto&& [sprite, position] : registry.view<components::graphics::Sprite, components::Position>().each()) {
+                    sprites.emplace_back(Sprite{position.point});
+                }
 
                 // Gather render data, if there is any
                 if (render_api->dirty) { // Only data set from engine thread context needs to set dirty and be gathered here
-                    viewport = render_api->viewport();
-                    if (render_api->resolution_changed) {
+                    if (render_api->viewport_changed) {
+                        viewport = render_api->viewport();
                         projection_matrix = render_api->projectionMatrix();
                         ImGui::GetIO().DisplaySize = ImVec2(viewport.z, viewport.w);
-                        render_api->resolution_changed = false;
+                        render_api->viewport_changed = false;
                     }
                     render_api->dirty = false;
                 }
@@ -254,21 +293,28 @@ int render (void* data) {
             }
             // Now render frame from render list
             /*********************************************************************/
-            EASY_BLOCK("Frame Render", profiler::colors::Orange100);
+            EASY_BLOCK("Rendering", profiler::colors::Orange100);
 
             // Start the Dear ImGui frame
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplSDL2_NewFrame(render_api->window);
-            ImGui::NewFrame();
+            {
+                EASY_BLOCK("New ImGui Frame", profiler::colors::Orange200);
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplSDL2_NewFrame(render_api->window);
+                ImGui::NewFrame();
+            }
 
-            // glm::mat4 view_matrix = services::locator::camera::ref().view();
-            // glm::mat4 projection_view_matrix = projection_matrix * view_matrix;
+            glm::vec3 camera = {0.0f, 0.0f, 10.0f};
+            glm::mat4 view_matrix = glm::lookAt(camera, glm::vec3{camera.x, camera.y, camera.z - 1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});;
+            glm::mat4 projection_view_matrix = projection_matrix * view_matrix;
 
             // auto frustum = math::frustum(projection_view_matrix);
 
-            glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
-            glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            {
+                EASY_BLOCK("Clearing viewport", profiler::colors::Orange200);
+                glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
+                glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
 
             // Call module hook onBeforeRender before rendering the frame
             engine.callModuleHook<CM::BEFORE_RENDER>();
@@ -276,6 +322,7 @@ int render (void* data) {
             // Game Rendering here
             {
                 EASY_BLOCK("Rendering scene", profiler::colors::Orange200);
+                run (projection_view_matrix, sprites);
             }
 
             // Call module hook onAfterRender after rendering the frame
@@ -285,9 +332,6 @@ int render (void* data) {
             {
                 EASY_BLOCK("Rendering ImGui", profiler::colors::Orange200);
                 ImGui::Render();
-                // glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-                // glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-                // glClear(GL_COLOR_BUFFER_BIT);
                 ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
                 if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -312,6 +356,8 @@ int render (void* data) {
     } catch (const std::exception& e) {
         spdlog::error("Uncaught exception in graphics thread: {}", e.what());
     }
+
+    term();
 
     return 0;
 }

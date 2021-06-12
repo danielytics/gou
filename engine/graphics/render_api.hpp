@@ -38,12 +38,12 @@ namespace graphics {
         SDL_Thread* render_thread;
         Sync state_sync;
         bool dirty = false;
-        bool resolution_changed = false;
+        bool viewport_changed = false;
 
         /**********************************************************************
          * Below functions must hold the state_sync lock
          */ 
-        void setViewport (const glm::vec4& viewport) final;
+        void setViewport (const glm::vec4& rect) final;
         const glm::vec4& viewport () const { return m_viewport; }
 
         const glm::mat4& projectionMatrix () const { return m_projection_matrix; }
@@ -57,6 +57,9 @@ namespace graphics {
     private:
         glm::vec4 m_viewport;
         glm::mat4 m_projection_matrix;
+        glm::vec4 m_rect;
+
+        void updateProjectionMatrix ();
     };
 
 } // graphics::

@@ -131,7 +131,7 @@ bool core::readUserConfig (int argc, char* argv[])
             entt::monostate<"graphics/resolution/height"_hs>{} = height;
             entt::monostate<"graphics/fullscreen"_hs>{} = toml::find_or<bool>(graphics, "fullscreen", false);
             entt::monostate<"graphics/v-sync"_hs>{} = toml::find_or<bool>(graphics, "vsync", true);
-            entt::monostate<"graphics/field-of-view"_hs>{} = toml::find_or<float>(graphics, "fov", 60.0f);
+            entt::monostate<"graphics/renderer/field-of-view"_hs>{} = toml::find_or<float>(graphics, "fov", 60.0f);
             entt::monostate<"graphics/debug-rendering"_hs>{} = toml::find_or<bool>(graphics, "debug", false);
             entt::monostate<"graphics/resolution/resizable"_hs>{} = toml::find_or<bool>(graphics, "resizable", false);
         } else {
@@ -141,7 +141,7 @@ bool core::readUserConfig (int argc, char* argv[])
             entt::monostate<"graphics/resolution/resizable"_hs>{} = false;
             entt::monostate<"graphics/fullscreen"_hs>{} = false;
             entt::monostate<"graphics/v-sync"_hs>{} = true;
-            entt::monostate<"graphics/field-of-view"_hs>{} = 60.0f;
+            entt::monostate<"graphics/renderer/field-of-view"_hs>{} = 60.0f;
             entt::monostate<"graphics/debug-rendering"_hs>{} = false;
         }
 #ifdef DEBUG_BUILD
