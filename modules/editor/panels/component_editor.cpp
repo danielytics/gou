@@ -52,7 +52,6 @@ namespace editors {
 		ImGui::SameLine();
 
 		ImGui::PopStyleVar();
-		ImGui::Columns(1);
         return dirty;
     }
 
@@ -106,7 +105,6 @@ namespace editors {
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
-		ImGui::Columns(1);
         return dirty;
     }
 
@@ -173,28 +171,32 @@ namespace editors {
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
-		ImGui::Columns(1);
         return dirty;
     }
 
     template <typename Text> bool text (Text text) {
-        return ImGui::InputText("#t", text.data(), text.max_size());
+        return ImGui::InputText("##t", text.data(), text.max_size());
     }
 
-    template <typename T> bool integer (const char* id, int* data, const char* format = "%d") {
-        return ImGui::DragInt(id, data, 1.0f, int(std::numeric_limits<T>::min()), int(std::numeric_limits<T>::max()), format);
+    template <typename T> bool integer (T* data, const char* format = "%d") {
+        int value = int(*data);
+        if (ImGui::DragInt("##i", &value, 1.0f, int(std::numeric_limits<T>::min()), int(std::numeric_limits<T>::max()), format)) {
+            *data = T(value);
+            return true;
+        }
+        return false;
     }
 
     bool boolean (bool* data) {
-        return ImGui::Checkbox("#b", data);
+        return ImGui::Checkbox("##b", data);
     }
 
     bool rgb (float data[3]) {
-        return ImGui::ColorEdit3("#rgb", data);
+        return ImGui::ColorEdit3("##rgb", data);
     }
 
     bool rgba (float data[4]) {
-        return ImGui::ColorEdit4("#rgba", data);
+        return ImGui::ColorEdit4("##rgba", data);
     }
 
 }
@@ -209,7 +211,7 @@ void DataEditor::render_editors () {
     
     for (auto i = 0; i < m_component_def->attributes.size(); ++i) {
         auto& attribute = m_component_def->attributes[i];
-        auto id_str = std::string{"##"} + m_component_def->name + std::string{":"} + attribute.name;
+        auto id_str = m_component_def->name + std::string{":"} + attribute.name;
         const char* id = id_str.c_str();
         char* ptr = m_component_copy + attribute.offset;
         char label[attribute.name.size() + 1];
@@ -241,24 +243,24 @@ void DataEditor::render_editors () {
                 m_dirty |= editors::vec4((float*)ptr);
                 break;
             case Type::UInt8:
-                m_dirty |= editors::integer<std::uint8_t>(id, (int*)ptr);
+                m_dirty |= editors::integer<std::uint8_t>((std::uint8_t*)ptr);
                 break;
             case Type::UInt16:
-                m_dirty |= editors::integer<std::uint16_t>(id, (int*)ptr);
+                m_dirty |= editors::integer<std::uint16_t>((std::uint16_t*)ptr);
                 break;
             case Type::UInt32:
-                m_dirty |= editors::integer<std::uint32_t>(id, (int*)ptr);
+                m_dirty |= editors::integer<std::uint32_t>((std::uint32_t*)ptr);
                 break;
             case Type::Int8:
-                m_dirty |= editors::integer<std::int8_t>(id, (int*)ptr);
+                m_dirty |= editors::integer<std::int8_t>((std::int8_t*)ptr);
                 break;
             case Type::Int16:
-                m_dirty |= editors::integer<std::int16_t>(id, (int*)ptr);
+                m_dirty |= editors::integer<std::int16_t>((std::int16_t*)ptr);
                 break;
             case Type::Int32:
-                m_dirty |= editors::integer<std::int32_t>(id, (int*)ptr);
+                m_dirty |= editors::integer<std::int32_t>((std::int32_t*)ptr);
             case Type::Byte:
-                m_dirty |= editors::integer<std::byte>(id, (int*)ptr, "%x");
+                m_dirty |= editors::integer<std::byte>((std::byte*)ptr, "%x");
             case Type::Resource:
                 break;
             case Type::TextureResource:
@@ -300,6 +302,7 @@ void DataEditor::render_editors () {
         }
 
         ImGui::PopID();
+        ImGui::Columns(1);
 
         // if (i != m_component_def->attributes.size() - 1) {
         //     ImGui::TableNextRow();
