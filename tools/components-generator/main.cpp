@@ -268,7 +268,7 @@ public:
             component_name = name;
         }
 
-        void addAttribute (const std::string& attribute, const std::string& data_type) {
+        void addAttribute (const std::string& attribute, const std::string& data_type, const std::optional<TomlValue>& default_value) {
             auto type = data_type;
             if (data_type.substr(0, 4) == "ptr:") {
                 type = header.pointer_types.at(data_type) + "*";
@@ -279,9 +279,47 @@ public:
             }
 
             header.out() << type << " " << attribute << ";";
+
+            if (default_value.has_value()) {
+                has_ctor = true;
+                std::ostringstream sstr;
+                sstr << attribute << "(" << genDefaultValue(data_type, default_value.value()) << ")";
+                default_ctor_values.push_back(sstr.str());
+            }
+            ctor_values.push_back({type, attribute});
         }
 
         ~Component() {
+            if (has_ctor) {
+                header.out.newline();
+                
+                // Generate default constructor with default values
+                header.out() << component_name << "() : ";
+                for (auto i = 0; i < default_ctor_values.size(); i++) {
+                    header.out(false) << default_ctor_values[i];
+                    if (i != default_ctor_values.size() - 1) {
+                        header.out(false) << ", ";
+                    }
+                }
+                header.out(false) << " {}";
+
+                // Generate constructor
+                header.out() << component_name << "(";
+                for (auto i = 0; i < ctor_values.size(); i++) {
+                    header.out(false) << "const " << ctor_values[i].first << "& val" << i;
+                    if (i != ctor_values.size() - 1) {
+                        header.out(false) << ", ";
+                    }
+                }
+                header.out(false) << ") : ";
+                for (auto i = 0; i < ctor_values.size(); i++) {
+                    header.out(false) << ctor_values[i].second << "(val" << i << ")";
+                    if (i != ctor_values.size() - 1) {
+                        header.out(false) << ", ";
+                    }
+                }
+                header.out(false) << " {}";
+            }
             header.out.dedent();
             header.out() << "};\n";
         }
@@ -289,6 +327,45 @@ public:
     private:
         HeaderGenerator& header;
         std::string component_name;
+        bool has_ctor = false;
+        std::vector<std::string> default_ctor_values;
+        std::vector<std::pair<std::string, std::string>> ctor_values;
+
+        std::string genDefaultValue (const std::string& type, const TomlValue& value) {
+            std::ostringstream sstr;
+            sstr.setf(std::ios::showpoint);
+            if (type == "vec2") {
+                sstr << value.at("x").as_floating() << "f,"
+                     << value.at("y").as_floating() << "f";
+            } else if (type == "vec3") {
+                sstr << value.at("x").as_floating() << "f,"
+                     << value.at("y").as_floating() << "f,"
+                     << value.at("z").as_floating() << "f";
+            } else if (type == "vec4") {
+                sstr << value.at("x").as_floating() << "f,"
+                     << value.at("y").as_floating() << "f,"
+                     << value.at("z").as_floating() << "f,"
+                     << value.at("w").as_floating();
+            } else if (type == "rgb") {
+                sstr << value.at("r").as_floating() << "f,"
+                     << value.at("g").as_floating() << "f,"
+                     << value.at("b").as_floating() << "f";
+            } else if (type == "rgba") {
+                sstr << value.at("r").as_floating() << "f,"
+                     << value.at("g").as_floating() << "f,"
+                     << value.at("b").as_floating() << "f,"
+                     << value.at("a").as_floating() << "f";
+            } else if (type == "uint64" || type == "uint32" || type == "uint16" || type == "uint8" ||
+                       type == "int64" || type == "int32" || type == "int16" || type == "int8" ||
+                       type == "byte") {
+                sstr << value.as_integer();
+            } else if (type == "float" || type == "double") {
+                sstr << value.as_floating() << "f";
+            } else if (type == "bool") {
+                sstr << (value.as_boolean() ? "true" : "false");
+            }
+            return sstr.str();
+        }
     };
 
     HeaderGenerator (std::ofstream& file) : out(file) {
@@ -532,8 +609,13 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
     // Find any custom types and forward declare themidentifier
     for (const auto& component_def : components) {
         for (const auto& [key, value] : component_def.as_table()) {
-            std::string datatype = value.as_string();
-            header.addTypeForwardDeclaration(datatype);
+            std::string data_type;
+            if (value.is_table()) {
+                data_type = toml::find<std::string>(value, "type");
+            } else {
+                data_type = value.as_string();
+            }
+            header.addTypeForwardDeclaration(data_type);
         }
     }
 
@@ -556,8 +638,17 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
         for (const auto& [key, value] : component_def.as_table()) {
             if (key.size() > 0 && key[0] != '_') {
                 std::string identifier = fromKebabCase(key, CaseStyle::Snake);
-                std::string data_type = value.as_string();
-                component.addAttribute(identifier, data_type);
+                std::string data_type;
+                std::optional<TomlValue> default_value = std::nullopt;
+                if (value.is_table()) {
+                    data_type = toml::find<std::string>(value, "type");
+                    if (value.contains("default")) {
+                        default_value.emplace(value.at("default"));
+                    }
+                } else {
+                    data_type = value.as_string();
+                }
+                component.addAttribute(identifier, data_type, default_value);
                 loader_component.addAttribute(key, data_type, identifier);
             }
         }
