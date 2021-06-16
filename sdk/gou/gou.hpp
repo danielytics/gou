@@ -191,6 +191,11 @@ namespace gou {
          * Use to do scene-specific logic: if (scene.id() == "my-scene"_hs) ...
          */ 
         entt::hashed_string id () const { return m_scene_id; }
+
+        /*
+         * Access the underlying ECS registry directly. Should be avoided, if possible.
+         */
+        entt::registry& registry () { return m_registry; }
     
     protected:
         Time m_current_time;

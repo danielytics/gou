@@ -187,7 +187,7 @@ ImGuiContext* core::Engine::init ()
     // Register core components
     gou::register_components(this);
     // Set system status
-    m_system_status = SystemStatus::Stopped;
+    m_system_status = SystemStatus::Running;
 
     // Sync with graphics to make sure render thread is set up before continuing
     {

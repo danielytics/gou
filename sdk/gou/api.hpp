@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <variant>
 
 #include <entt/core/hashed_string.hpp>
 #include <entt/entity/registry.hpp>
@@ -60,6 +61,8 @@ namespace gou::api {
     public:
         virtual ~Renderer() {}
         virtual void setViewport (const glm::vec4&) = 0;
+
+        virtual bool hasImGui () const = 0;
     };
 
     // The module-provided API to the engine
@@ -126,6 +129,11 @@ namespace gou::api {
             std::string name;
             gou::types::Type type;
             std::size_t offset;
+            struct Option {
+                std::string label;
+                entt::any value; // Warning: must be careful to make sure this value is only ever accessed as the type specified by Attribute::type
+            };
+            std::vector<Option> options;
         };
         enum class ManageOperation {
             Add,

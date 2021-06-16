@@ -253,6 +253,43 @@ std::string fromKebabCase (const std::string& kebab_case, CaseStyle style) {
     return sstr.str();
 }
 
+std::string genBasicValue (const std::string& type, const TomlValue& value) {
+    std::ostringstream sstr;
+    sstr.setf(std::ios::showpoint);
+    if (type == "vec2") {
+        sstr << value.at("x").as_floating() << "f,"
+                << value.at("y").as_floating() << "f";
+    } else if (type == "vec3") {
+        sstr << value.at("x").as_floating() << "f,"
+                << value.at("y").as_floating() << "f,"
+                << value.at("z").as_floating() << "f";
+    } else if (type == "vec4") {
+        sstr << value.at("x").as_floating() << "f,"
+                << value.at("y").as_floating() << "f,"
+                << value.at("z").as_floating() << "f,"
+                << value.at("w").as_floating();
+    } else if (type == "rgb") {
+        sstr << value.at("r").as_floating() << "f,"
+                << value.at("g").as_floating() << "f,"
+                << value.at("b").as_floating() << "f";
+    } else if (type == "rgba") {
+        sstr << value.at("r").as_floating() << "f,"
+                << value.at("g").as_floating() << "f,"
+                << value.at("b").as_floating() << "f,"
+                << value.at("a").as_floating() << "f";
+    } else if (type == "uint64" || type == "uint32" || type == "uint16" || type == "uint8" ||
+                type == "int64" || type == "int32" || type == "int16" || type == "int8") {
+        sstr << value.as_integer();
+    } else if (type == "byte") {
+        sstr << "std::byte{" << value.as_integer() << "}";
+    } else if (type == "float" || type == "double") {
+        sstr << value.as_floating() << "f";
+    } else if (type == "bool") {
+        sstr << (value.as_boolean() ? "true" : "false");
+    }
+    return sstr.str();
+}
+
 
 class HeaderGenerator {
 public:
@@ -283,7 +320,7 @@ public:
             if (default_value.has_value()) {
                 has_ctor = true;
                 std::ostringstream sstr;
-                sstr << attribute << "(" << genDefaultValue(data_type, default_value.value()) << ")";
+                sstr << attribute << "(" << genBasicValue(data_type, default_value.value()) << ")";
                 default_ctor_values.push_back(sstr.str());
             }
             ctor_values.push_back({type, attribute});
@@ -330,42 +367,6 @@ public:
         bool has_ctor = false;
         std::vector<std::string> default_ctor_values;
         std::vector<std::pair<std::string, std::string>> ctor_values;
-
-        std::string genDefaultValue (const std::string& type, const TomlValue& value) {
-            std::ostringstream sstr;
-            sstr.setf(std::ios::showpoint);
-            if (type == "vec2") {
-                sstr << value.at("x").as_floating() << "f,"
-                     << value.at("y").as_floating() << "f";
-            } else if (type == "vec3") {
-                sstr << value.at("x").as_floating() << "f,"
-                     << value.at("y").as_floating() << "f,"
-                     << value.at("z").as_floating() << "f";
-            } else if (type == "vec4") {
-                sstr << value.at("x").as_floating() << "f,"
-                     << value.at("y").as_floating() << "f,"
-                     << value.at("z").as_floating() << "f,"
-                     << value.at("w").as_floating();
-            } else if (type == "rgb") {
-                sstr << value.at("r").as_floating() << "f,"
-                     << value.at("g").as_floating() << "f,"
-                     << value.at("b").as_floating() << "f";
-            } else if (type == "rgba") {
-                sstr << value.at("r").as_floating() << "f,"
-                     << value.at("g").as_floating() << "f,"
-                     << value.at("b").as_floating() << "f,"
-                     << value.at("a").as_floating() << "f";
-            } else if (type == "uint64" || type == "uint32" || type == "uint16" || type == "uint8" ||
-                       type == "int64" || type == "int32" || type == "int16" || type == "int8" ||
-                       type == "byte") {
-                sstr << value.as_integer();
-            } else if (type == "float" || type == "double") {
-                sstr << value.as_floating() << "f";
-            } else if (type == "bool") {
-                sstr << (value.as_boolean() ? "true" : "false");
-            }
-            return sstr.str();
-        }
     };
 
     HeaderGenerator (std::ofstream& file) : out(file) {
@@ -435,6 +436,7 @@ public:
         struct Attr {
             std::string type;
             std::string identifier;
+            std::string options;
         };
     public:
         Component(LoaderGenerator& loader, const std::string& ns, const std::string& name, const std::string& struct_name) : loader(loader), ns(ns), name(name), struct_name(struct_name) {}
@@ -454,11 +456,9 @@ public:
             loader.out() << "{ // " << namespaced_component;
             loader.out.indent();
 
-            // if (!attributes.empty()) {
-                for (const auto& registry : {"registry", "background_registry", "prototype_registry"}) {
-                    loader.out() << registry << ".prepare<" << namespaced_component << ">();";
-                }
-            // }
+            for (const auto& registry : {"registry", "background_registry", "prototype_registry"}) {
+                loader.out() << registry << ".prepare<" << namespaced_component << ">();";
+            }
             loader.out() << "gou::api::definitions::Component component {\"" << name << "\"_hs, \"" << (ns == "" ? "core" : ns) << "\", \"" << struct_name << "\", entt::type_id<" << namespaced_component << ">().seq()};";
             loader.out() << "component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {";
             loader.out.indent();
@@ -522,7 +522,9 @@ public:
                 auto it = data_type_enums.find(attribute.second.type);
                 if (it != data_type_enums.end()) {
                     loader.out() << "component.attributes.push_back({\"" << attribute.first << "\", ";
-                    loader.out(false) << "gou::types::Type::" << it->second << ", offsetof(" << namespaced_component << ", " << attribute.second.identifier << ")});";
+                    loader.out(false) << "gou::types::Type::" << it->second
+                                      << ", offsetof(" << namespaced_component << ", " << attribute.second.identifier << ")"
+                                      << ", " << attribute.second.options << "});";
                 }
             }
             if (attributes.empty()) {
@@ -557,11 +559,11 @@ public:
             loader.out() << "}";
         }
 
-        void addAttribute (const std::string& attribute, const std::string& data_type, const std::string& identifier) {
+        void addAttribute (const std::string& attribute, const std::string& data_type, const std::string& identifier, const std::string& options) {
             if (data_type.substr(0, 4) == "ptr:") {
-                attributes.push_back({attribute, {"nullptr", identifier}});
+                attributes.push_back({attribute, {"nullptr", identifier, options}});
             } else {
-                attributes.push_back({attribute, {data_type, identifier}});
+                attributes.push_back({attribute, {data_type, identifier, options}});
             }
         }
     private:
@@ -640,16 +642,33 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
                 std::string identifier = fromKebabCase(key, CaseStyle::Snake);
                 std::string data_type;
                 std::optional<TomlValue> default_value = std::nullopt;
+                std::string options = "{}";
                 if (value.is_table()) {
                     data_type = toml::find<std::string>(value, "type");
                     if (value.contains("default")) {
                         default_value.emplace(value.at("default"));
                     }
+                    if (value.contains("options")) {
+                        std::ostringstream opts_sstr;
+                        opts_sstr << "{";
+                        for (auto& opt : value.at("options").as_array()) {
+                            auto data_value = genBasicValue(data_type, opt.at("value"));
+                            const auto& label = toml::find<std::string>(opt, "label");
+                            std::ostringstream sstr;
+                            auto it = data_types.find(data_type);
+                            if (it != data_types.end()) {
+                                sstr << "{\"" << label << "\", entt::make_any<" << it->second << ">(" << it->second << "{" << data_value << "})}";
+                                opts_sstr << sstr.str() << ",";
+                            }
+                        }
+                        opts_sstr << "}";
+                        options = opts_sstr.str();
+                    }
                 } else {
                     data_type = value.as_string();
                 }
                 component.addAttribute(identifier, data_type, default_value);
-                loader_component.addAttribute(key, data_type, identifier);
+                loader_component.addAttribute(key, data_type, identifier, options);
             }
         }
     }

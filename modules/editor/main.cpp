@@ -78,6 +78,12 @@ class EditorModule : public gou::Module<EditorModule> {
 public:
     void onLoad (gou::Engine engine)
     {
+        if (! engine.engine.renderer().hasImGui()) {
+            error("The editor cannot run without ImGui. Must use a 'dev' or 'debug' build.");
+            has_imgui = false; // TODO: A way for a module to unload itself? Maybe return false from onLoad?
+            return;
+        }
+
         m_window_flags = ImGuiWindowFlags_MenuBar
                        | ImGuiWindowFlags_NoTitleBar
                        | ImGuiWindowFlags_NoCollapse
@@ -103,10 +109,14 @@ public:
         }
         io.Fonts->Build();
 
+        emit("engine/set-system-status/stopped"_event);
     }
 
     void onUnload (gou::Engine)
     {
+        if (! has_imgui) {
+            return;
+        }
         m_gameplan_panel.unload();
         // Unload icon font
         ImGuiIO& io = ImGui::GetIO();
@@ -136,6 +146,10 @@ public:
 
     void onAfterRender (gou::Renderer& renderer)
     { 
+        if (! has_imgui) {
+            return;
+        }
+
         if (! m_setup) {
             ImGui::GetStyle().TabBorderSize = 1.0f;
             m_setup = true;
@@ -262,6 +276,7 @@ private:
     bool m_show_demo = false;
     bool m_show_curve_editor = false;
 #endif
+    bool has_imgui = true;
 
     ScenePanel m_scene_panel;
     EntityPropertiesPanel m_properties_panel;

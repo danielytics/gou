@@ -10,6 +10,8 @@ graphics::RenderAPI::~RenderAPI()
     SDL_DestroyWindow(window);
 }
 
+// These methods should only be called by the render thread
+
 void graphics::RenderAPI::setViewport (const glm::vec4& rect)
 {
     if (m_rect != rect) {
@@ -22,6 +24,7 @@ void graphics::RenderAPI::setViewport (const glm::vec4& rect)
             rect.z, rect.w,
         };
         updateProjectionMatrix();
+        dirty.store(true);
     }
 }
 
@@ -33,9 +36,6 @@ void graphics::RenderAPI::updateProjectionMatrix ()
 
     m_projection_matrix = glm::perspective(glm::radians(field_of_view), m_viewport.z / m_viewport.w, near_distance, far_distance);
     // m_projection_matrix = glm::ortho(m_viewport.x, m_viewport.x + m_viewport.z, m_viewport.y + m_viewport.w, m_viewport.y, near_distance, far_distance);
-
-    dirty = true;
-    viewport_changed = true;
 }
 
 // This method can be called form the engine threads
@@ -45,6 +45,5 @@ void graphics::RenderAPI::windowChanged ()
     const int height = entt::monostate<"graphics/resolution/height"_hs>();
     m_viewport = glm::vec4(0, 0, width, height);
     m_rect = m_viewport;
-
     updateProjectionMatrix();
 }

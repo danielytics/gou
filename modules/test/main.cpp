@@ -22,6 +22,7 @@ public:
         static int counter = 0;
         static ImVec4 clear_color{0.f, 0.f, 0.f, 1.0f};
 
+#ifndef WITHOUT_IMGUI
         ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
@@ -36,6 +37,13 @@ public:
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
+#endif
+    }
+
+    void onBeforeUpdate (gou::Scene& scene) {
+        scene.registry().view<components::Transform>().each([&scene](auto entity, auto& transform){
+            transform.rotation.z += 0.5f * scene.deltaTime(); // Half a rotation per second
+        });
     }
 
     void onLoadScene (gou::Scene& scene)

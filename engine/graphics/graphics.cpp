@@ -3,17 +3,9 @@
 #include "render_api.hpp"
 #include "core/engine.hpp"
 
-#include <backends/imgui_impl_sdl.h>
-#include <backends/imgui_impl_opengl3.h>
-
-#include <atomic>
+#include "imgui_integration.hpp"
 
 #include "renderer.hpp"
-
-
-namespace imgui {
-    void initTheme ();
-}
 
 #ifdef DEBUG_BUILD
 void GLAPIENTRY opengl_messageCallback (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
@@ -163,14 +155,13 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
 #endif
 
     // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    imgui_context = ImGui::CreateContext();
-
-    // Setup window
-    renderer->windowChanged();
+    imgui_context = createImGuiContext();
 
     // Share sync object with engine
     state_sync = &renderer->state_sync;
+
+    // Setup window
+    windowChanged(renderer);
 
     // Start render thread
     renderer->render_thread = SDL_CreateThread(render, "render", reinterpret_cast<void*>(renderer));
@@ -204,17 +195,7 @@ int render (void* data) {
         glFrontFace(GL_CCW);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->AddFontDefault();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-        // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable multiple windows
-        imgui::initTheme();
-
-        // Setup Platform/Renderer backends
-        ImGui_ImplSDL2_InitForOpenGL(render_api->window, render_api->gl_render_context);
-        ImGui_ImplOpenGL3_Init("#version 450");
+        initImGui(render_api);
 
         // Get context data
         auto& running = render_api->running;
@@ -260,9 +241,7 @@ int render (void* data) {
                 EASY_END_BLOCK;
 
                 // Let Dear ImGui process events from event queue
-                for (const auto& event : engine.inputEvents()) {
-                    ImGui_ImplSDL2_ProcessEvent(&event);
-                }
+                handleImGuiEvents(engine);
 
                 EASY_BLOCK("Collecting render data", profiler::colors::Red300);
                 
@@ -281,14 +260,17 @@ int render (void* data) {
                 });
 
                 // Gather render data, if there is any
-                if (render_api->dirty) { // Only data set from engine thread context needs to set dirty and be gathered here
-                    if (render_api->viewport_changed) {
+                if (render_api->dirty.exchange(false)) { // Only data set from engine thread context needs to set dirty and be gathered here
+                    if (render_api->window_changed) {
+                        render_api->windowChanged();
+                        render_api->window_changed = false;
+#ifndef WITHOUT_IMGUI
                         viewport = render_api->viewport();
-                        projection_matrix = render_api->projectionMatrix();
                         ImGui::GetIO().DisplaySize = ImVec2(viewport.z, viewport.w);
-                        render_api->viewport_changed = false;
+#endif
                     }
-                    render_api->dirty = false;
+                    viewport = render_api->viewport();
+                    projection_matrix = render_api->projectionMatrix();
                 }
 
                 // Hand exclusive access back to engine
@@ -301,12 +283,7 @@ int render (void* data) {
             EASY_BLOCK("Rendering", profiler::colors::Orange100);
 
             // Start the Dear ImGui frame
-            {
-                EASY_BLOCK("New ImGui Frame", profiler::colors::Orange200);
-                ImGui_ImplOpenGL3_NewFrame();
-                ImGui_ImplSDL2_NewFrame(render_api->window);
-                ImGui::NewFrame();
-            }
+            newImGuiFrame(render_api);
 
             glm::vec3 camera = {0.0f, 0.0f, 10.0f};
             glm::mat4 view_matrix = glm::lookAt(camera, glm::vec3{camera.x, camera.y, camera.z - 1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});;
@@ -334,18 +311,7 @@ int render (void* data) {
             engine.callModuleHook<CM::AFTER_RENDER>();
 
             // Render Dear ImGUI interface
-            {
-                EASY_BLOCK("Rendering ImGui", profiler::colors::Orange200);
-                ImGui::Render();
-                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-                if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-                {
-                    ImGui::UpdatePlatformWindows();
-                    ImGui::RenderPlatformWindowsDefault();
-                    SDL_GL_MakeCurrent(render_api->window, render_api->gl_render_context);
-                }
-            }
+            endImGuiFrame(render_api);
 
             // End Frame
             {
@@ -354,9 +320,7 @@ int render (void* data) {
             }
         } while (running.load());
 
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplSDL2_Shutdown();
-        ImGui::DestroyContext();
+        destroyImGuiContext();
 
     } catch (const std::exception& e) {
         spdlog::error("Uncaught exception in graphics thread: {}", e.what());
@@ -369,7 +333,9 @@ int render (void* data) {
 
 void graphics::windowChanged(gou::api::Renderer* render_api)
 {
-    static_cast<graphics::RenderAPI*>(render_api)->windowChanged();
+    auto api = static_cast<graphics::RenderAPI*>(render_api);
+    api->window_changed = true;
+    api->dirty.store(true);
 }
 
 void graphics::term (gou::api::Renderer* render_api)

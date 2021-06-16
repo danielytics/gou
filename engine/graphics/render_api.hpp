@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <glad/glad.h>
 
+#include <atomic>
 #include <imgui.h>
 
 #include "graphics.hpp"
@@ -37,15 +38,25 @@ namespace graphics {
         std::atomic_bool running = true;
         SDL_Thread* render_thread;
         Sync state_sync;
-        bool dirty = false;
-        bool viewport_changed = false;
+        std::atomic_bool dirty = false;
+        bool window_changed = false;
+
+        /**********************************************************************
+         * Safe to call from anywhere
+         */
+
+        bool hasImGui () const final {
+#ifdef WITHOUT_IMGUI
+            return false;
+#else
+            return true;
+#endif
+        }
 
         /**********************************************************************
          * Below functions must hold the state_sync lock
          */ 
-        void setViewport (const glm::vec4& rect) final;
         const glm::vec4& viewport () const { return m_viewport; }
-
         const glm::mat4& projectionMatrix () const { return m_projection_matrix; }
 
         void windowChanged ();
@@ -53,6 +64,7 @@ namespace graphics {
         /**********************************************************************
          * Below functions should only be used in render thread context
          */
+        void setViewport (const glm::vec4& rect) final;
 
     private:
         glm::vec4 m_viewport;

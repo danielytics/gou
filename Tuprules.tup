@@ -17,6 +17,9 @@ else
     ifndef CONFIG_RELEASE_BUILD
         CFLAGS += -g -DBUILD_WITH_EASY_PROFILER
         BINARY_NAME_SUFFIX = -dev
+    else
+        # Release build does not include imgui
+        CPPFLAGS += -DWITHOUT_IMGUI
     endif
 endif
 ifdef CONFIG_BUILD_WITH_ASAN

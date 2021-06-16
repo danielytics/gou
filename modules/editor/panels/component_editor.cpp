@@ -231,74 +231,92 @@ void DataEditor::render_editors () {
         // ImGui::TableSetColumnIndex(1);
 
         ImGui::PushID(id);
-
-        switch (attribute.type) {
-            case Type::Vec2:
-                m_dirty |= editors::vec2((float*)ptr);
-                break;
-            case Type::Vec3:
-                m_dirty |= editors::vec3((float*)ptr);
-                break;
-            case Type::Vec4:
-                m_dirty |= editors::vec4((float*)ptr);
-                break;
-            case Type::UInt8:
-                m_dirty |= editors::integer<std::uint8_t>((std::uint8_t*)ptr);
-                break;
-            case Type::UInt16:
-                m_dirty |= editors::integer<std::uint16_t>((std::uint16_t*)ptr);
-                break;
-            case Type::UInt32:
-                m_dirty |= editors::integer<std::uint32_t>((std::uint32_t*)ptr);
-                break;
-            case Type::Int8:
-                m_dirty |= editors::integer<std::int8_t>((std::int8_t*)ptr);
-                break;
-            case Type::Int16:
-                m_dirty |= editors::integer<std::int16_t>((std::int16_t*)ptr);
-                break;
-            case Type::Int32:
-                m_dirty |= editors::integer<std::int32_t>((std::int32_t*)ptr);
-            case Type::Byte:
-                m_dirty |= editors::integer<std::byte>((std::byte*)ptr, "%x");
-            case Type::Resource:
-                break;
-            case Type::TextureResource:
-                break;
-            case Type::MeshResource:
-                break;
-            case Type::Entity:
-                break;
-            case Type::Float:
-                m_dirty |= editors::floating((float*)ptr);
-                break;
-            case Type::Double:
-                m_dirty |= editors::floating((float*)ptr);
-                break;
-            case Type::Bool:
-                m_dirty |= editors::boolean((bool*)ptr);
-                break;
-            case Type::Event:
-                break;
-            case Type::Ref:
-                break;
-            case Type::HashedString:
-            {
-                std::array<char, 256> buffer;
-                if (editors::text(buffer)) {
-                    m_dirty = true;
-                    *((entt::hashed_string*)ptr) = entt::hashed_string{buffer.data()};
+        if (attribute.options.empty()) {
+            switch (attribute.type) {
+                case Type::Vec2:
+                    m_dirty |= editors::vec2((float*)ptr);
+                    break;
+                case Type::Vec3:
+                    m_dirty |= editors::vec3((float*)ptr);
+                    break;
+                case Type::Vec4:
+                    m_dirty |= editors::vec4((float*)ptr);
+                    break;
+                case Type::UInt8:
+                    m_dirty |= editors::integer<std::uint8_t>((std::uint8_t*)ptr);
+                    break;
+                case Type::UInt16:
+                    m_dirty |= editors::integer<std::uint16_t>((std::uint16_t*)ptr);
+                    break;
+                case Type::UInt32:
+                    m_dirty |= editors::integer<std::uint32_t>((std::uint32_t*)ptr);
+                    break;
+                case Type::Int8:
+                    m_dirty |= editors::integer<std::int8_t>((std::int8_t*)ptr);
+                    break;
+                case Type::Int16:
+                    m_dirty |= editors::integer<std::int16_t>((std::int16_t*)ptr);
+                    break;
+                case Type::Int32:
+                    m_dirty |= editors::integer<std::int32_t>((std::int32_t*)ptr);
+                case Type::Byte:
+                    m_dirty |= editors::integer<std::byte>((std::byte*)ptr, "%x");
+                case Type::Resource:
+                    break;
+                case Type::TextureResource:
+                    break;
+                case Type::MeshResource:
+                    break;
+                case Type::Entity:
+                    break;
+                case Type::Float:
+                    m_dirty |= editors::floating((float*)ptr);
+                    break;
+                case Type::Double:
+                    m_dirty |= editors::floating((float*)ptr);
+                    break;
+                case Type::Bool:
+                    m_dirty |= editors::boolean((bool*)ptr);
+                    break;
+                case Type::Event:
+                    break;
+                case Type::Ref:
+                    break;
+                case Type::HashedString:
+                {
+                    std::array<char, 256> buffer;
+                    if (editors::text(buffer)) {
+                        m_dirty = true;
+                        *((entt::hashed_string*)ptr) = entt::hashed_string{buffer.data()};
+                    }
                 }
+                case Type::RGB:
+                    m_dirty |= editors::rgb((float*)ptr);
+                    break;
+                case Type::RGBA:
+                    m_dirty |= editors::rgba((float*)ptr);
+                    break;
+                case Type::Signal:
+                    break;
+                default: break;
             }
-            case Type::RGB:
-                m_dirty |= editors::rgb((float*)ptr);
-                break;
-            case Type::RGBA:
-                m_dirty |= editors::rgba((float*)ptr);
-                break;
-            case Type::Signal:
-                break;
-            default: break;
+        } else {
+            int item_current_idx = 0;
+            if (ImGui::BeginCombo("##options", attribute.options[0].label.c_str(), ImGuiComboFlags_None))
+            {
+                for (int n = 0; n < attribute.options.size(); n++)
+                {
+                    const bool is_selected = (item_current_idx == n);
+                    if (ImGui::Selectable(attribute.options[n].label.c_str(), is_selected)) {
+                        item_current_idx = n;
+                    }
+                        
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
         }
 
         ImGui::PopID();

@@ -27,7 +27,24 @@ namespace = ""
 [[component]]
     _name_ = "layer"
     _namespace_ = "graphics"
-    layer = { type = "uint8", default = 1 }
+    [component.layer]
+        type = "uint8"
+        default = 1
+        [[component.layer.options]]
+            label = "Background"
+            value = 1
+        [[component.layer.options]]
+            label = "Terrain"
+            value = 2
+        [[component.layer.options]]
+            label = "Objects"
+            value = 3
+        [[component.layer.options]]
+            label = "Characters"
+            value = 4
+        [[component.layer.options]]
+            label = "Foreground"
+            value = 5
 
 [[component]]
     _name_ = "sprite"
@@ -109,6 +126,18 @@ namespace = ""
     _name_ = "collision-sensor"
     _namespace_ = "physics"
     _description_ = "Entity sends signal when a physics body collides with it"
+    [component.collision-mask]
+        type = "byte"
+        default = 0
+        [[component.collision-mask.options]]
+            label = "Terrain"
+            value = 1
+        [[component.collision-mask.options]]
+            label = "Objects"
+            value = 2
+        [[component.collision-mask.options]]
+            label = "Characters"
+            value = 4
     on-collision = "signal" 
 
 [[component]]

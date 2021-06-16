@@ -108,7 +108,7 @@ int main (int argc, char* argv[])
         core::Engine engine;
         core::ModuleManager moduleManager(engine);
         struct ImGuiContext* imgui_ctx = engine.init();
-        if (!imgui_ctx || !moduleManager.load(logger, imgui_ctx)) {
+        if (! moduleManager.load(logger, imgui_ctx)) {
             spdlog::critical("Could not load some required modules. Terminating.");
         } else {
             engine.setupGame();
