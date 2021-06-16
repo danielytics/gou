@@ -52,10 +52,15 @@ Gameplans can contain a certain amount of logic:
 * Filtering data
 * Transforming data (basic math expressions and C++-defined functions)
 * Sequence generators
-* Timer/delays
+* Timer/delays (note1)
 * Combining data
 * Generating events
+* Interpolation and tweening
 * Writing to slots
+
+Should gameplans be able to read and write components? It would complicate the threading model and make execution harder (component defs need to be read to setup accessors) but it would mean component data could be animated through gameplans.
+
+note1: Should gameplans run to completion when signals are triggered, or can they setup recurring/timed/delayed/multi-frame execution? This would be needed to make delays and timers possible as well as making gameplan-driven animation possible. A middleground might be that a gameplan could register a continuation to be executed when an internal signal is fired and schedule that signal to fire after a delay/on a timer/each frame/every N frames.
 
 
 ## Task List
