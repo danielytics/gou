@@ -5,7 +5,7 @@
 #include <imgui_internal.h>
 
 #include <limits>
-
+#include <iostream>
 bool g_first_render = true;
 
 namespace editors {
@@ -199,6 +199,69 @@ namespace editors {
         return ImGui::ColorEdit4("##rgba", data);
     }
 
+    template <typename T> bool combobox(const gou::api::definitions::Attribute& attribute, void* ptr)
+    {
+        T value = *(T*)(ptr);
+        int item_current_idx = 0;
+        for (int n = 0; n < attribute.options.size(); n++) {
+            if (entt::any_cast<T>(attribute.options[n].value) == value) {
+                item_current_idx = n;
+                break;
+            }
+        }
+        int prev_idx = item_current_idx;
+        if (ImGui::BeginCombo("##options", attribute.options[item_current_idx].label.c_str(), ImGuiComboFlags_None))
+        {
+            for (int n = 0; n < attribute.options.size(); n++)
+            {
+                const bool is_selected = (item_current_idx == n);
+                if (ImGui::Selectable(attribute.options[n].label.c_str(), is_selected)) {
+                    item_current_idx = n;
+                }
+                    
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        if (prev_idx != item_current_idx) {
+            *(T*)(ptr) = entt::any_cast<T>(attribute.options[item_current_idx].value);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    template <typename T> bool checkboxes(const gou::api::definitions::Attribute& attribute, void* ptr)
+    {
+        bool dirty = false;
+        T value = *(T*)(ptr);
+        for (int n = 0; n < attribute.options.size(); n++) {
+            T bits = entt::any_cast<T>(attribute.options[n].value);
+            bool flag = value & bits;
+            if (ImGui::Checkbox((std::string{"##"} + char(n+1)).c_str(), &flag)) {
+                dirty = true;
+                if (flag) {
+                    value |= bits; // Set bits
+                } else {
+                    value &= ~bits; // Clear bits
+                }
+            }
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("%s", attribute.options[n].label.c_str());
+                ImGui::EndTooltip();
+            }
+            if (n < attribute.options.size() - 1) {
+                ImGui::SameLine();
+            }
+        }
+        *(T*)(ptr) = value;
+        return dirty;
+    }
+
 }
 
 
@@ -242,14 +305,21 @@ void DataEditor::render_editors () {
                 case Type::Vec4:
                     m_dirty |= editors::vec4((float*)ptr);
                     break;
+                case Type::Flags8:
                 case Type::UInt8:
                     m_dirty |= editors::integer<std::uint8_t>((std::uint8_t*)ptr);
                     break;
+                case Type::Flags16:
                 case Type::UInt16:
                     m_dirty |= editors::integer<std::uint16_t>((std::uint16_t*)ptr);
                     break;
+                case Type::Flags32:
                 case Type::UInt32:
                     m_dirty |= editors::integer<std::uint32_t>((std::uint32_t*)ptr);
+                    break;
+                case Type::Flags64:
+                case Type::UInt64:
+                    m_dirty |= editors::integer<std::uint64_t>((std::uint64_t*)ptr);
                     break;
                 case Type::Int8:
                     m_dirty |= editors::integer<std::int8_t>((std::int8_t*)ptr);
@@ -259,6 +329,9 @@ void DataEditor::render_editors () {
                     break;
                 case Type::Int32:
                     m_dirty |= editors::integer<std::int32_t>((std::int32_t*)ptr);
+                case Type::Int64:
+                    m_dirty |= editors::integer<std::int64_t>((std::int64_t*)ptr);
+                    break;
                 case Type::Byte:
                     m_dirty |= editors::integer<std::byte>((std::byte*)ptr, "%x");
                 case Type::Resource:
@@ -273,7 +346,13 @@ void DataEditor::render_editors () {
                     m_dirty |= editors::floating((float*)ptr);
                     break;
                 case Type::Double:
-                    m_dirty |= editors::floating((float*)ptr);
+                {
+                    float value = float(*(double*)ptr);
+                    if (editors::floating(&value)) {
+                        m_dirty = true;
+                        *(double*)ptr = double(value);
+                    }
+                }
                     break;
                 case Type::Bool:
                     m_dirty |= editors::boolean((bool*)ptr);
@@ -300,23 +379,64 @@ void DataEditor::render_editors () {
                     break;
                 default: break;
             }
+        } else if (attribute.type == Type::Flags8 | attribute.type == Type::Flags16 | attribute.type == Type::Flags32 | attribute.type == Type::Flags64) {
+            // Flags
+            switch (attribute.type) {
+                case Type::Flags8:
+                    m_dirty |= editors::checkboxes<std::uint8_t>(attribute, ptr);
+                    break;
+                case Type::Flags16:
+                    m_dirty |= editors::checkboxes<std::uint16_t>(attribute, ptr);
+                    break;
+                case Type::Flags32:
+                    m_dirty |= editors::checkboxes<std::uint32_t>(attribute, ptr);
+                    break;
+                case Type::Flags64:
+                    m_dirty |= editors::checkboxes<std::uint64_t>(attribute, ptr);
+                    break;
+                default: break;
+            };
         } else {
-            int item_current_idx = 0;
-            if (ImGui::BeginCombo("##options", attribute.options[0].label.c_str(), ImGuiComboFlags_None))
-            {
-                for (int n = 0; n < attribute.options.size(); n++)
-                {
-                    const bool is_selected = (item_current_idx == n);
-                    if (ImGui::Selectable(attribute.options[n].label.c_str(), is_selected)) {
-                        item_current_idx = n;
-                    }
-                        
-                    if (is_selected) {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-                ImGui::EndCombo();
-            }
+            // Dropdown options
+            switch (attribute.type) {
+                case Type::Int8:
+                    m_dirty |= editors::combobox<std::int8_t>(attribute, ptr);
+                    break;
+                case Type::Int16:
+                    m_dirty |= editors::combobox<std::int16_t>(attribute, ptr);
+                    break;
+                case Type::Int32:
+                    m_dirty |= editors::combobox<std::int32_t>(attribute, ptr);
+                    break;
+                case Type::Int64:
+                    m_dirty |= editors::combobox<std::int64_t>(attribute, ptr);
+                    break;
+                case Type::UInt8:
+                    m_dirty |= editors::combobox<std::uint8_t>(attribute, ptr);
+                    break;
+                case Type::UInt16:
+                    m_dirty |= editors::combobox<std::uint16_t>(attribute, ptr);
+                    break;
+                case Type::UInt32:
+                    m_dirty |= editors::combobox<std::uint32_t>(attribute, ptr);
+                    break;
+                case Type::UInt64:
+                    m_dirty |= editors::combobox<std::uint64_t>(attribute, ptr);
+                    break;
+                case Type::Byte:
+                    m_dirty |= editors::combobox<std::byte>(attribute, ptr);
+                    break;
+                case Type::Float:
+                    m_dirty |= editors::combobox<float>(attribute, ptr);
+                    break;
+                case Type::Double:
+                    m_dirty |= editors::combobox<double>(attribute, ptr);
+                    break;
+                case Type::Bool:
+                    m_dirty |= editors::combobox<bool>(attribute, ptr);
+                    break;
+                default: break;
+            };
         }
 
         ImGui::PopID();

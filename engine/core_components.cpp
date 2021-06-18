@@ -439,9 +439,9 @@ namespace gou {
 			gou::api::definitions::Component component {"collision-sensor"_hs, "physics", "CollisionSensor", entt::type_id<components::physics::CollisionSensor>().seq()};
 			component.loader = [](gou::api::Engine* engine, entt::registry& registry, const void* tableptr, entt::entity entity) {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
-				registry.emplace_or_replace<components::physics::CollisionSensor>(entity, std::byte(toml::find<toml::integer>(table, "collision-mask")));
+				registry.emplace_or_replace<components::physics::CollisionSensor>(entity, std::uint8_t(toml::find<toml::integer>(table, "collision-mask")));
 			};
-			component.attributes.push_back({"collision-mask", gou::types::Type::Byte, offsetof(components::physics::CollisionSensor, collision_mask), {{"Terrain", entt::make_any<std::byte>(std::byte{std::byte{1}})},{"Objects", entt::make_any<std::byte>(std::byte{std::byte{2}})},{"Characters", entt::make_any<std::byte>(std::byte{std::byte{4}})},}});
+			component.attributes.push_back({"collision-mask", gou::types::Type::Flags8, offsetof(components::physics::CollisionSensor, collision_mask), {{"Terrain", entt::make_any<std::uint8_t>(std::uint8_t{2})},{"Objects", entt::make_any<std::uint8_t>(std::uint8_t{4})},{"Characters", entt::make_any<std::uint8_t>(std::uint8_t{8})},}});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::CollisionSensor>(entity)); };
 			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::physics::CollisionSensor>(entity); };
 			component.size_in_bytes = sizeof(components::physics::CollisionSensor);
@@ -468,14 +468,14 @@ namespace gou {
 				const auto& table = *reinterpret_cast<const toml::value*>(tableptr);
 				auto enter_event = table.at("enter-event");
 				auto exit_event = table.at("exit-event");
-				registry.emplace_or_replace<components::physics::TriggerRegion>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), gou::events::Event{entt::hashed_string::value(toml::find<std::string>(enter_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(enter_event, "x")), float(toml::find<toml::floating>(enter_event, "y")), float(toml::find<toml::floating>(enter_event, "z"))}}, gou::events::Event{entt::hashed_string::value(toml::find<std::string>(exit_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(exit_event, "x")), float(toml::find<toml::floating>(exit_event, "y")), float(toml::find<toml::floating>(exit_event, "z"))}}, engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-enter").c_str())), engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-exit").c_str())), std::uint32_t(toml::find<toml::integer>(table, "trigger-mask")));
+				registry.emplace_or_replace<components::physics::TriggerRegion>(entity, engine->findResource(entt::hashed_string::value(toml::find<std::string>(table, "shape").c_str())), gou::events::Event{entt::hashed_string::value(toml::find<std::string>(enter_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(enter_event, "x")), float(toml::find<toml::floating>(enter_event, "y")), float(toml::find<toml::floating>(enter_event, "z"))}}, gou::events::Event{entt::hashed_string::value(toml::find<std::string>(exit_event, "type").c_str()), entity, glm::vec3{float(toml::find<toml::floating>(exit_event, "x")), float(toml::find<toml::floating>(exit_event, "y")), float(toml::find<toml::floating>(exit_event, "z"))}}, engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-enter").c_str())), engine->findSignal(entt::hashed_string::value(toml::find<std::string>(table, "on-exit").c_str())), std::uint8_t(toml::find<toml::integer>(table, "trigger-mask")));
 			};
 			component.attributes.push_back({"shape", gou::types::Type::Resource, offsetof(components::physics::TriggerRegion, shape), {}});
 			component.attributes.push_back({"enter-event", gou::types::Type::Event, offsetof(components::physics::TriggerRegion, enter_event), {}});
 			component.attributes.push_back({"exit-event", gou::types::Type::Event, offsetof(components::physics::TriggerRegion, exit_event), {}});
 			component.attributes.push_back({"on-enter", gou::types::Type::Signal, offsetof(components::physics::TriggerRegion, on_enter), {}});
 			component.attributes.push_back({"on-exit", gou::types::Type::Signal, offsetof(components::physics::TriggerRegion, on_exit), {}});
-			component.attributes.push_back({"trigger-mask", gou::types::Type::UInt32, offsetof(components::physics::TriggerRegion, trigger_mask), {}});
+			component.attributes.push_back({"trigger-mask", gou::types::Type::Flags8, offsetof(components::physics::TriggerRegion, trigger_mask), {{"Terrain", entt::make_any<std::uint8_t>(std::uint8_t{2})},{"Objects", entt::make_any<std::uint8_t>(std::uint8_t{4})},{"Characters", entt::make_any<std::uint8_t>(std::uint8_t{8})},}});
 			component.getter = [](entt::registry& registry, entt::entity entity){ return (char*)&(registry.get<components::physics::TriggerRegion>(entity)); };
 			component.attached_to_entity = [](entt::registry& registry, entt::entity entity){ return registry.any_of<components::physics::TriggerRegion>(entity); };
 			component.size_in_bytes = sizeof(components::physics::TriggerRegion);

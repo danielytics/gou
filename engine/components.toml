@@ -127,7 +127,7 @@ namespace = ""
     _namespace_ = "physics"
     _description_ = "Entity sends signal when a physics body collides with it"
     [component.collision-mask]
-        type = "byte"
+        type = "flags"
         default = 0
         [[component.collision-mask.options]]
             label = "Terrain"
@@ -137,7 +137,7 @@ namespace = ""
             value = 2
         [[component.collision-mask.options]]
             label = "Characters"
-            value = 4
+            value = 3
     on-collision = "signal" 
 
 [[component]]
@@ -149,4 +149,15 @@ namespace = ""
     exit-event = "event"
     on-enter = "signal"
     on-exit = "signal"
-    trigger-mask = "uint32"
+    [component.trigger-mask]
+        type = "flags"
+        default = 0
+        [[component.trigger-mask.options]]
+            label = "Terrain"
+            value = 1
+        [[component.trigger-mask.options]]
+            label = "Objects"
+            value = 2
+        [[component.trigger-mask.options]]
+            label = "Characters"
+            value = 3

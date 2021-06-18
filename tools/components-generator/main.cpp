@@ -66,15 +66,19 @@ std::map<std::string, std::string> data_types{
     {"vec2", "glm::vec2"},
     {"vec3", "glm::vec3"},
     {"vec4", "glm::vec4"},
-    {"uint64", "std::uint64_t"},
-    {"uint32", "std::uint32_t"},
-    {"uint16", "std::uint16_t"},
     {"uint8", "std::uint8_t"},
-    {"int64", "std::int64_t"},
-    {"int32", "std::int32_t"},
-    {"int16", "std::int16_t"},
+    {"uint16", "std::uint16_t"},
+    {"uint32", "std::uint32_t"},
+    {"uint64", "std::uint64_t"},    
     {"int8", "std::int8_t"},
+    {"int16", "std::int16_t"},
+    {"int32", "std::int32_t"},
+    {"int64", "std::int64_t"},
     {"byte", "std::byte"},
+    {"flags8", "std::uint8_t"},
+    {"flags16", "std::uint16_t"},
+    {"flags32", "std::uint32_t"},
+    {"flags64", "std::uint64_t"},
     {"resource", "gou::resources::Handle"},
     {"texture", "gou::resources::Handle"},
     {"mesh", "gou::resources::Handle"},
@@ -104,6 +108,10 @@ std::map<std::string, std::string> data_type_enums{
     {"int16",   "Int16"},
     {"int8",    "Int8"},
     {"byte",    "Byte"},
+    {"flags8",  "Flags8"},
+    {"flags16", "Flags16"},
+    {"flags32", "Flags32"},
+    {"flags64", "Flags64"},
     {"resource","Resource"},
     {"texture", "TextureResource"},
     {"mesh",    "MeshResource"},
@@ -215,15 +223,19 @@ std::map<std::string, std::string> toml_data_types{
     {"uint64", "toml::integer"},
     {"uint32", "toml::integer"},
     {"uint16", "toml::integer"},
-    {"uint8", "toml::integer"},
-    {"int64", "toml::integer"},
-    {"int32", "toml::integer"},
-    {"int16", "toml::integer"},
-    {"int8", "toml::integer"},
-    {"byte", "toml::integer"},
-    {"float", "toml::floating"},
+    {"uint8",  "toml::integer"},
+    {"int64",  "toml::integer"},
+    {"int32",  "toml::integer"},
+    {"int16",  "toml::integer"},
+    {"int8",   "toml::integer"},
+    {"byte",   "toml::integer"},
+    {"flags8", "toml::integer"},
+    {"flags16","toml::integer"},
+    {"flags32","toml::integer"},
+    {"flags64","toml::integer"},
+    {"float",  "toml::floating"},
     {"double", "toml::floating"},
-    {"bool", "toml::boolean"},
+    {"bool",   "toml::boolean"},
 };
 
 
@@ -253,7 +265,7 @@ std::string fromKebabCase (const std::string& kebab_case, CaseStyle style) {
     return sstr.str();
 }
 
-std::string genBasicValue (const std::string& type, const TomlValue& value) {
+std::string genBasicValue (const std::string& type, const TomlValue& value, bool shift=false) {
     std::ostringstream sstr;
     sstr.setf(std::ios::showpoint);
     if (type == "vec2") {
@@ -278,10 +290,11 @@ std::string genBasicValue (const std::string& type, const TomlValue& value) {
                 << value.at("b").as_floating() << "f,"
                 << value.at("a").as_floating() << "f";
     } else if (type == "uint64" || type == "uint32" || type == "uint16" || type == "uint8" ||
-                type == "int64" || type == "int32" || type == "int16" || type == "int8") {
-        sstr << value.as_integer();
+                type == "int64" || type == "int32" || type == "int16" || type == "int8" ||
+                type == "flags64" || type == "flags32" || type == "flags16" || type == "flags8") {
+        sstr << (shift ? 1 << value.as_integer() : value.as_integer());
     } else if (type == "byte") {
-        sstr << "std::byte{" << value.as_integer() << "}";
+        sstr << "std::byte{" << (shift ? 1 << value.as_integer() : value.as_integer()) << "}";
     } else if (type == "float" || type == "double") {
         sstr << value.as_floating() << "f";
     } else if (type == "bool") {
@@ -649,10 +662,27 @@ void generate_components (const TomlValue& in, const std::string& module_name, s
                         default_value.emplace(value.at("default"));
                     }
                     if (value.contains("options")) {
+                        bool should_bit_shift = false;
+                        if (data_type == "flags") {
+                            should_bit_shift = true;
+                            auto num_flags = value.at("options").as_array().size();
+                            if (num_flags <= 8) {
+                                data_type = "flags8";
+                            } else if (num_flags <= 16) {
+                                data_type = "flags16";
+                            } else if (num_flags <= 32) {
+                                data_type = "flags32";
+                            } else if (num_flags <= 64) {
+                                data_type = "flags64";
+                            } else {
+                                data_type = "flags64";
+                                std::cerr << "Error: " << component_name << " is of type 'flags' with " << num_flags << " options, but maximum supported is 64\n";
+                            }
+                        }
                         std::ostringstream opts_sstr;
                         opts_sstr << "{";
                         for (auto& opt : value.at("options").as_array()) {
-                            auto data_value = genBasicValue(data_type, opt.at("value"));
+                            auto data_value = genBasicValue(data_type, opt.at("value"), should_bit_shift);
                             const auto& label = toml::find<std::string>(opt, "label");
                             std::ostringstream sstr;
                             auto it = data_types.find(data_type);
