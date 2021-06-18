@@ -23,6 +23,7 @@ The name **GOU** is in honour of the [Game of Ur](https://en.wikipedia.org/wiki/
 Engine dependencies:
 
 * C++17 and OpenGL 4.6 (4.1 on OSX)
+* [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) - Framework for creating and executing behavior trees (MIT License)
 * [Bullet Physics](https://github.com/bulletphysics/bullet3) - Physics engine (zlib License) [TODO: Replace with PhysX]
 * [Catch2](https://github.com/catchorg/Catch2) - C++ testing library (Boost Software License)
 * [cr.h](https://github.com/fungos/cr) - Module live reload library (MIT License)
