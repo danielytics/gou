@@ -23,6 +23,7 @@ The name **GOU** is in honour of the [Game of Ur](https://en.wikipedia.org/wiki/
 Engine dependencies:
 
 * C++17 and OpenGL 4.6 (4.1 on OSX)
+* [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP) - Framework for creating and executing behavior trees (MIT License)
 * [Bullet Physics](https://github.com/bulletphysics/bullet3) - Physics engine (zlib License) [TODO: Replace with PhysX]
 * [Catch2](https://github.com/catchorg/Catch2) - C++ testing library (Boost Software License)
 * [cr.h](https://github.com/fungos/cr) - Module live reload library (MIT License)
@@ -38,6 +39,7 @@ Engine dependencies:
 * [PhysFS++](https://github.com/danielytics/physfs-hpp) - C++ wrapper for PhysicsFS (zlib License + [notes](https://github.com/Ybalrid/physfs-hpp/blob/master/LICENSE.txt))
 * [PhysicsFS](http://icculus.org/physfs/) - Library for filesystem abstraction (zlib License)
 * [SDL2](http://libsdl.org/) - Windowing & Input (ZLIB License)
+* [SoLoud](https://github.com/jarikomppa/soloud) - Portable audio engine (zlib/libpng License)
 * [Sparsepp](https://github.com/greg7mdp/sparsepp) - A fast, memory efficient hash map for C++ ([Custom do-almost-anything License](https://github.com/greg7mdp/sparsepp/blob/master/LICENSE))
 * [spdlog](https://github.com/gabime/spdlog) - Fast logging library (MIT License)
 * [stb_image](https://github.com/nothings/stb) - Image loader (Public Domain)

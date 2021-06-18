@@ -52,3 +52,9 @@
 [submodule "vendor/IconFontCppHeaders"]
 	path = vendor/IconFontCppHeaders
 	url = https://github.com/juliettef/IconFontCppHeaders
+[submodule "vendor/BehaviorTreeCPP"]
+	path = vendor/BehaviorTreeCPP
+	url = git@github.com:BehaviorTree/BehaviorTree.CPP.git
+[submodule "vendor/soloud"]
+	path = vendor/soloud
+	url = git@github.com:jarikomppa/soloud.git
