@@ -199,7 +199,7 @@ namespace editors {
         return ImGui::ColorEdit4("##rgba", data);
     }
 
-    template <typename T> bool combobox(const gou::api::definitions::Attribute& attribute, void* ptr)
+    template <typename T> bool dropdown(const gou::api::definitions::Attribute& attribute, void* ptr)
     {
         T value = *(T*)(ptr);
         int item_current_idx = 0;
@@ -400,40 +400,40 @@ void DataEditor::render_editors () {
             // Dropdown options
             switch (attribute.type) {
                 case Type::Int8:
-                    m_dirty |= editors::combobox<std::int8_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::int8_t>(attribute, ptr);
                     break;
                 case Type::Int16:
-                    m_dirty |= editors::combobox<std::int16_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::int16_t>(attribute, ptr);
                     break;
                 case Type::Int32:
-                    m_dirty |= editors::combobox<std::int32_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::int32_t>(attribute, ptr);
                     break;
                 case Type::Int64:
-                    m_dirty |= editors::combobox<std::int64_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::int64_t>(attribute, ptr);
                     break;
                 case Type::UInt8:
-                    m_dirty |= editors::combobox<std::uint8_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::uint8_t>(attribute, ptr);
                     break;
                 case Type::UInt16:
-                    m_dirty |= editors::combobox<std::uint16_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::uint16_t>(attribute, ptr);
                     break;
                 case Type::UInt32:
-                    m_dirty |= editors::combobox<std::uint32_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::uint32_t>(attribute, ptr);
                     break;
                 case Type::UInt64:
-                    m_dirty |= editors::combobox<std::uint64_t>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::uint64_t>(attribute, ptr);
                     break;
                 case Type::Byte:
-                    m_dirty |= editors::combobox<std::byte>(attribute, ptr);
+                    m_dirty |= editors::dropdown<std::byte>(attribute, ptr);
                     break;
                 case Type::Float:
-                    m_dirty |= editors::combobox<float>(attribute, ptr);
+                    m_dirty |= editors::dropdown<float>(attribute, ptr);
                     break;
                 case Type::Double:
-                    m_dirty |= editors::combobox<double>(attribute, ptr);
+                    m_dirty |= editors::dropdown<double>(attribute, ptr);
                     break;
                 case Type::Bool:
-                    m_dirty |= editors::combobox<bool>(attribute, ptr);
+                    m_dirty |= editors::dropdown<bool>(attribute, ptr);
                     break;
                 default: break;
             };
