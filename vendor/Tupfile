@@ -1,5 +1,8 @@
 include_rules
 
+# Build tinygltf
+: foreach tinygltf/*.cc |> !compile-c++ |> tinygltf__%B.o
+
 # Build GLAD
 ifdef CONFIG_DEBUG_BUILD
     INCLUDES += -Iglad/debug/include

@@ -13,6 +13,13 @@ using DeltaTime = Time;
     return entt::hashed_string{str}.value();
 }
 
+namespace graphics {
+    class Model;
+    class Mesh;
+    class Material;
+    class Texture;
+}
+
 namespace gou {
 
     namespace types {
@@ -51,9 +58,45 @@ namespace gou {
 
     namespace resources {
 
-        struct Handle {
+        enum class Type : std::uint32_t {
+            ///////////////////////////////////////////////////////////////////////
+            // Graphics Resources /////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////
 
+            // Models and meshes
+            Model = 0,      // A model, loaded from a gLTF file (includes meshes and materials)
+            StaticMesh,     // A single mesh, without material, cannot be modified (stored on GPU)
+            DynamicMesh,    // A single mesh, withotu material, can be modified (stored in main memory)
+
+            // Materials and textures
+            Material,       // A single material, without mesh
+            Texture,        // A single texture
+            TextureArray,   // An array of textures
+
+            ///////////////////////////////////////////////////////////////////////
+            // Audio Resources    /////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////
+
+            AudioClip,      // An audio clip, fully loaded to memory
+            AudioStream,    // An audio stream, dynamically streamed from disk
+
+            ///////////////////////////////////////////////////////////////////////
+            // Other              /////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////
+
+            None = 32,      // No resource
         };
+
+        namespace internal {
+            struct Handle;
+
+            template <typename T> constexpr Type type () { return Type::None; }
+            template <> constexpr Type type<graphics::Model> () { return Type::Model; }
+            template <> constexpr Type type<graphics::Mesh> () { return Type::StaticMesh; }
+            template <> constexpr Type type<graphics::Material> () { return Type::Material; }
+            template <> constexpr Type type<graphics::Texture> () { return Type::Texture; }
+        }
+        using Handle = internal::Handle*;
 
         struct EntitySetHandle {
 

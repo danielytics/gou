@@ -19,7 +19,7 @@ else
         BINARY_NAME_SUFFIX = -dev
     else
         # Release build does not include imgui
-        CPPFLAGS += -DWITHOUT_IMGUI
+        CPPFLAGS += -DWITHOUT_IMGUI -DRELEASE_BUILD
     endif
 endif
 ifdef CONFIG_BUILD_WITH_ASAN

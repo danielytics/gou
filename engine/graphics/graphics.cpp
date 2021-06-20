@@ -50,6 +50,9 @@ void GLAPIENTRY opengl_messageCallback (GLenum source, GLenum type, GLuint id, G
         case GL_DEBUG_TYPE_PERFORMANCE:
             type_string = "performance";
             break;
+        case GL_DEBUG_TYPE_MARKER:
+            type_string = "type_marker";
+            break;
         case GL_DEBUG_TYPE_OTHER:
         default:
             type_string = "other";
@@ -105,9 +108,6 @@ gou::api::Renderer* graphics::init (core::Engine& engine, graphics::Sync*& state
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, int(entt::monostate<"graphics/opengl/minimum-depthbuffer-bits"_hs>()));
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, bool(entt::monostate<"graphics/opengl/double-buffered"_hs>()) ? 1 : 0);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-#ifdef DEBUG_BUILD
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#endif
 
     bool fullscreen = entt::monostate<"graphics/fullscreen"_hs>();
 
@@ -178,6 +178,7 @@ int render (void* data) {
 
 #ifdef DEBUG_BUILD
         spdlog::info("Setting error callback");
+        glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(opengl_messageCallback, 0);
         GLuint unused_ids = 0;

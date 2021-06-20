@@ -24,6 +24,7 @@ INCLUDES += -I$(VENDOR)/sparsepp
 INCLUDES += -I$(VENDOR)/stb
 INCLUDES += -I$(VENDOR)/easy_profiler/easy_profiler_core/include
 INCLUDES += -I$(VENDOR)/IconFontCppHeaders
+INCLUDES += -I$(VENDOR)/tinygltf
 
 ifdef CONFIG_DEBUG_BUILD
     INCLUDES += -I$(VENDOR)/glad/debug/include
