@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <stdexcept>
 #include <new>
+#include <atomic>
 
 namespace memory {
 
@@ -117,10 +118,107 @@ namespace memory {
         }
 
     private:
-        std::byte* memory;
-        T* pool;
+        std::byte* const memory;
+        T* const pool;
         std::uint32_t next;
-        std::uint32_t size;
+        const std::uint32_t size;
+    };
+
+
+    template <typename T, typename Align = NoAlign>
+    class AtomicStackPool {
+    public:
+        static_assert(std::is_trivial<T>::value, "AtomicStackPool<T> must contain a trivial type");
+        using Type = T;
+        using AlignType = Align;
+
+        AtomicStackPool (std::uint32_t size) :
+            memory(new std::byte[Align::adjust_size(sizeof(T) * size)]),
+            pool(Align::template align<T>(memory)),
+            next(0),
+            size(size) {
+
+        }
+        ~AtomicStackPool() {
+            delete [] memory;
+        }
+
+        // Allocate, but don't construct
+        T* allocate () {
+            if (next < size) {
+                return (pool + next++);
+            } else {
+                throw std::runtime_error("AtomicStackPool allocated more items than reserved space");
+            }
+        }
+            
+        // Allocate and construct
+        template <typename... Args>
+        T* emplace (Args&&... args) {
+            return new(allocate()) T{args...};
+        }
+
+        void discard (T* object) const {
+        }
+
+        void push_back (const T& item) {
+            std::memcpy(reinterpret_cast<void*>(pool + next++), reinterpret_cast<const void*>(item), sizeof(T));
+        }
+
+        void reset () {
+            next.store(0);
+        }
+
+        std::uint32_t remaining () const {
+            return size - next.load();
+        }
+
+        std::uint32_t count () const {
+            return next.load();
+        }
+
+        std::uint32_t capacity () const {
+            return size;
+        }
+
+        T* begin () {
+            return pool;
+        }
+
+        T* end () {
+            return pool + next.load();
+        }
+
+        const T* cbegin () const {
+            return pool;
+        }
+
+        const T* cend () const {
+            return pool + next.load();
+        }
+
+        // Copy buffer into StackPool
+        void copy (T* buffer, uint32_t count) {
+            if (remaining() < count) {
+                throw std::runtime_error("AtomicStackPool attempted to copy more elements than remaining space allows");
+            }
+            // TODO: benchmark copy_n, copy, memmove and memcpy
+            std::copy_n(buffer, count, end());
+            // std::memcpy(reinterpret_cast<void*>(pool + next), reinterpret_cast<const void*>(buffer), sizeof(T) * count);
+            next.fetch_add(count);
+        }
+
+        // Copy items from other into StackPool
+        template <typename PT>
+        void copy (StackPool<typename PT::Type, typename PT::AlignType>& other) {
+            copy(other.pool, other.count());
+        }
+
+    private:
+        std::byte* const memory;
+        T* const pool;
+        std::atomic_uint32_t next;
+        const std::uint32_t size;
     };
 
 
@@ -192,7 +290,7 @@ namespace memory {
         }
 
     private:
-        std::byte* memory;
+        std::byte* const memory;
         union Item {
             T object;
             Item* next;
