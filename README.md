@@ -44,6 +44,7 @@ Engine dependencies:
 * [spdlog](https://github.com/gabime/spdlog) - Fast logging library (MIT License)
 * [stb_image](https://github.com/nothings/stb) - Image loader (Public Domain)
 * [taskflow](https://github.com/taskflow/taskflow) - Parallel task programming framework (MIT-like [Taskflow Lisence](https://github.com/taskflow/taskflow/blob/master/LICENSE))
+* [tinygltf](https://github.com/syoyo/tinygltf) = gLTF loader (MIT License)
 * [toml11](https://github.com/ToruNiina/toml11) - TOML data file loader (MIT License)
 * [tweeny](https://github.com/mobius3/tweeny) - Inbetweening library (MIT License)
 

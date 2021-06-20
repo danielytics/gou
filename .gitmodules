@@ -58,3 +58,6 @@
 [submodule "vendor/soloud"]
 	path = vendor/soloud
 	url = git@github.com:jarikomppa/soloud.git
+[submodule "vendor/tinygltf"]
+	path = vendor/tinygltf
+	url = git@github.com:syoyo/tinygltf.git
