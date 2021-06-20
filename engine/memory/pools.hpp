@@ -9,18 +9,16 @@
 namespace memory {
 
     struct NoAlign {
-        static uint32_t adjust_size (uint32_t size) { return size; }
-        template <typename T>
-        static T* align (void* buffer) {
+        static uint32_t adjust_size (std::uint32_t size) { return size; }
+        template <typename T> static T* align (void* buffer) {
             return reinterpret_cast<T*>(buffer);
         }
     };
 
     template <int Boundary>
     struct Aligned {
-        static uint32_t adjust_size (uint32_t size) { return size + Boundary; }
-        template <typename T>
-        static T* align (void* buffer) {
+        static uint32_t adjust_size (std::uint32_t size) { return size + Boundary; }
+        template <typename T> static T* align (void* buffer) {
             return reinterpret_cast<T*>(helpers::align(reinterpret_cast<void*>(buffer), Boundary));
         }
     };
@@ -36,8 +34,8 @@ namespace memory {
         using Type = T;
         using AlignType = Align;
 
-        StackPool (uint32_t size) :
-            memory(new uint8_t[Align::adjust_size(sizeof(T) * size)]),
+        StackPool (std::uint32_t size) :
+            memory(new std::byte[Align::adjust_size(sizeof(T) * size)]),
             pool(Align::template align<T>(memory)),
             next(0),
             size(size) {
@@ -73,15 +71,15 @@ namespace memory {
             next = 0;
         }
 
-        uint32_t remaining () const {
+        std::uint32_t remaining () const {
             return size - next;
         }
 
-        uint32_t count () const {
+        std::uint32_t count () const {
             return next;
         }
 
-        uint32_t capacity () const {
+        std::uint32_t capacity () const {
             return size;
         }
 
@@ -119,10 +117,10 @@ namespace memory {
         }
 
     private:
-        uint8_t* memory;
+        std::byte* memory;
         T* pool;
-        uint32_t next;
-        uint32_t size;
+        std::uint32_t next;
+        std::uint32_t size;
     };
 
 
@@ -132,15 +130,15 @@ namespace memory {
         static_assert(std::is_trivial<T>::value, "Pool<T> must contain a trivial type");
         using Type = T;
 
-        Pool (uint32_t size) :
-            memory(new uint8_t[Align::adjust_size(sizeof(T) * size)]),
-            pool(Align::template align<T>(memory)),
+        Pool (std::uint32_t size) :
+            memory(new std::byte[Align::adjust_size(sizeof(T) * size)]),
+            pool(reinterpret_cast<Item*>(Align::template align<T>(memory))),
             size(size) {
             reset();
         }
 
         ~Pool() {
-            Align::template dealloc<T>(pool);
+            delete [] memory;
         }
 
         template <typename... Args>
@@ -161,8 +159,8 @@ namespace memory {
         }
 
         void discard (T* object) {
-            uint64_t addr = reinterpret_cast<uint64_t>(object);
-            uint64_t first =  reinterpret_cast<uint64_t>(pool);
+            std::uint64_t addr = reinterpret_cast<std::uint64_t>(object);
+            std::uint64_t first =  reinterpret_cast<std::uint64_t>(pool);
             if (addr < first || addr > first + (sizeof(Item) * size)) {
                 throw std::runtime_error("Pool discarded object not belonging to pool");
             }
@@ -194,15 +192,15 @@ namespace memory {
         }
 
     private:
-        uint8_t* memory;
+        std::byte* memory;
         union Item {
             T object;
             Item* next;
         };
         Item* const pool;
         Item* next;
-        uint32_t free;
-        const uint32_t size;
+        std::uint32_t free;
+        const std::uint32_t size;
     };
 
 
@@ -236,15 +234,15 @@ namespace memory {
             pool.clear();
         }
 
-        uint32_t count () const {
+        std::uint32_t count () const {
             return pool.size();
         }
 
-        uint32_t remaining () const {
+        std::uint32_t remaining () const {
             return pool.capacity() - pool.size();
         }
 
-        uint32_t capacity () const {
+        std::uint32_t capacity () const {
             return pool.capacity();
         }
 
@@ -295,15 +293,15 @@ namespace memory {
             pools[index].reset();
         }
 
-        uint32_t count () const {
+        std::uint32_t count () const {
             return pools[index].count();
         }
 
-        uint32_t remaining () const {
+        std::uint32_t remaining () const {
             return pools[index].remaining();
         }
 
-        uint32_t capacity () const {
+        std::uint32_t capacity () const {
             return pools[index].capacity();
         }
 
@@ -324,7 +322,7 @@ namespace memory {
         }
     private:
         PoolType pools[2];
-        uint32_t index;
+        std::uint32_t index;
     };
 
 } // memory::
