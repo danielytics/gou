@@ -32,6 +32,7 @@ Engine dependencies:
 * [easy_profiler](https://github.com/yse/easy_profiler) - Function runtime profiling (choice of MIT and Apache v2)
 * [EnTT](https://github.com/skypjack/entt) - Entity Component System (MIT License)
 * [FastNoiseSIMD](https://github.com/Auburns/FastNoiseSIMD) - Library of various SIMD-optimised noise functions (MIT License, note: Simplex noise is patent-encumbered when used for texture generation)
+* [fast_obj](https://github.com/thisistherk/fast_obj) - A Wavefront OBJ loader (MIT License)
 * [GLAD](https://github.com/Dav1dde/glad) - OpenGL extension generator (MIT License)
 * [GLM](https://glm.g-truc.net/0.9.8/index.html) - OpenGL Mathematics library (The Happy Bunny/Modified MIT License)
 * [ordered-map](https://github.com/Tessil/ordered-map) - Order-preserving hash map/set (MIT License)
